@@ -1,0 +1,1708 @@
+Introducción
+
+La API de Datadis nos permite: Acceder a la información de consumo almacenada en las bases de datos de las distintas distribuidoras eléctricas, utilizando una única API. Podemos ver datos de suministros propios o de terceros que nos han autorizado o datos agregados por zonas, sectores o potencias máximas.
+
+Se crea siguiendo las definiciones de la API REST, por lo que es necesario utilizar herramientas diseñadas para realizar solicitudes HTTP o integrarlo en un software diseñado para ello.
+
+Para utilizar la API de Datadis es necesario estar registrado en la plataforma ya que para consumir cualquier recurso se debe disponer de un token, obtenido a través de la llamada expuesta en la sección de Autenticación, el cual se insertará en la cabecera de la llamada a través del encabezado Autorización seguido de Bearer <token>.
+
+Es una API de solo consulta, solo se pueden leer los datos no añadir, modificar o borrar información, por lo que los único verbos utilizados son POST para obtener el token y GET para pedir información.
+
+Es importante tener en cuenta que las URL no están destinadas a ser utilizadas por navegadores web.
+
+URL BASE
+https://datadis.es/
+Respuestas y errores
+
+Datadis usa los códigos de respuesta HTTP habituales para saber si se ha completado satisfactoriamente la solicitud.
+
+Basicamente existen 5 tipos de respuestas:
+
+2xx Respuestas satisfactorias
+4xx Error del cliente
+5xx Error del servidor
+200
+OK
+400
+Bad request
+401
+Unauthorized
+403
+Forbidden
+404
+Not Found
+429
+Too Many Request
+500
+Internal Error Server
+Autentificación POST
+
+Obtiene el token de autenticación para el área privada.
+
+https://datadis.es/nikola-auth/tokens/login
+Parámetros
+
+username
+string
+required
+NIF del usuario dado de alta en Datadis.
+password
+string
+required
+Contraseña de acceso a Datadis del usuario.
+/get-supplies GET
+
+Buscar todos los suministros
+
+https://datadis.es/api-private/api/get-supplies
+Parámetros
+
+authorizedNif
+string
+Si queremos buscar suministros de personas que hemos autorizado, podemos buscarlo con el NIF de las personas autorizadas
+distributorCode
+string
+Código del distribuidor, que se obtiene con la solicitud de distribuidoras con suministros: /get-distributors-with-supplies.
+Para consultar los suministros de una sola distribuidora.
+Formato de respuesta JSON
+
+
+   [
+    {
+     "address":"String",	Dirección del suministro
+     "cups":"String",	CUPS
+     "postalCode":"String",	Código postal
+     "province":"String",	Provincia
+     "municipality":"String",	Municipio
+     "distributor":"String",	Nombre de la distribuidora
+     "validDateFrom":"String",	Fecha de inicio del contrato (aaaa/MM/dd)
+     "validDateTo":"String",	Fecha de fin del contrato (aaaa/MM/dd)
+     "pointType":Integer,	Tipo de punto de medida (1, 2, 3, 4 o 5)
+     "distributorCode":"String"	Código de distribuidora (1: Viesgo, 2: E-distribución, 3: E-redes, 4: ASEME, 5: UFD, 6: EOSA, 7:CIDE, 8: IDE)
+    }
+   ]
+
+
+Ejemplo de respuesta JSON
+
+
+  [
+    {
+      "address":"C/ MORIONES, 23 , 1ºG 03182-TORREVIEJA - ALICANTE",
+      "cups":"ES002100xxxxxxxxxxJL",
+      "postalCode":"3182",
+      "province":"Alicante",
+      "municipality":"TORREVIEJA",
+      "distributor":"I-DE REDES ELÉCTRICAS INTELIGENTES, S.A.U.",
+      "validDateFrom":"2021/11/29",
+      "validDateTo":"2023/11/29",
+      "pointType":5,
+      "distributorCode":"8"
+    }
+  ]
+
+/get-contract-detail GET
+
+Buscar el detalle del contrato
+
+https://datadis.es/api-private/api/get-contract-detail
+Parámetros
+
+cups
+string
+required
+Los CUPS de los que querremos saber los detalles del contrato. Solo puede buscar un CUPS por pedido
+distributorCode
+string
+required
+Código del distribuidor, que se obtiene con la solicitud de obtención de suministros
+authorizedNif
+string
+Solo en el caso de que quieras obtener el detalle del contrato del NIF autorizado
+Formato de respuesta JSON
+
+
+   [
+    {
+     "cups":"String",	CUPS
+     "distributor":"String",	Distribuidora
+     "marketer":"String",	Comercializadora (sólo  se devuelve si el usuario que lanza la consulta es el propietario del CUPS)
+     "tension":"String",	Tensión
+     "accesFare":"String",	Descripción tarifa de acceso
+     "province":"String",	Provincia
+     "municipality":"String",	Municipio
+     "postalCode":"String",	Código postal
+     "contractedPowerkW":[Number],	Potencias contratadas
+     "timeDiscrimination":"String",	Discriminación horaria
+     "modePowerControl":"String",	Modo de control de potencia (ICP/Maxímetro)
+     "startDate":"String",	Fecha de inicio del contrato
+     "endDate":"String",	Fecha de fin del contrato
+     "codeFare":"String",	Código de tarifa de acceso (códigos  CNMC)
+     "selfConsumptionTypeCode":"String",	Código del tipo de autoconsumo (códigos CNMC). Sólo se informa si se tiene autoconsumo.
+     "selfConsumptionTypeDesc":"String",	Descripción del tipo de autoconsumo. Sólo se informa si se tiene autoconsumo.
+     "section":"String",	Sección. Sólo se informa si se tiene autoconsumo.
+     "subsection":"String",	Subsección. Sólo se informa si se tiene autoconsumo.
+     "partitionCoefficient": Number,	Coeficiente de reparto. Sólo se informa si se tiene autoconsumo.
+     "cau":"String",	CAU. Sólo se informa si se tiene autoconsumo.
+     "installedCapacityKW": Number,	Capacidad de generación instalada. Sólo se informa si se tiene autoconsumo.
+     "dateOwner":[{"String", "String"}],
+                       	Array con la fechas en las cuales ha sido propietario.
+     "lastMarketerDate": "String",	Fecha del último cambio de comercializadora (yyyy/mm/dd).
+     "maxPowerInstall": String	Potencia máxima de la instalación.
+    }
+   ]
+
+
+Ejemplo de respuesta JSON
+
+
+  [
+    {
+      "cups":"ES002100xxxxxxxxxxJL",
+      "distributor":"I-DE REDES ELÉCTRICAS INTELIGENTES, S.A.U.",
+      "marketer":"TOTALENERGIES MERCADO ESPAÑA, S.A.",
+      "tension":"Baja tensión",
+      "accessFare":"BAJA TENSION y POTENCIA <= 15 kW",
+      "province":"Madrid",
+      "municipality":"MADRID",
+      "postalCode":"30740",
+      "contractedPowerkW":[ 3.45, 3.45 ],
+      "timeDiscrimination":"",
+      "modePowerControl":"ICP",
+      "startDate":"2022/09/13",
+      "endDate":"",
+      "codeFare":"2T",
+      "selfConsumptionTypeCode":"01",
+      "selfConsumptionTypeDesc":null,
+      "section":"2",
+      "subsection":"2",
+      "partitionCoefficient":1.0,
+      "cau":"ES0021000xxxxxxxxx",
+      "installedCapacityKW":6.4,
+      "dateOwner":[{
+          "startDate": "2016/02/15",
+          "endDate": "2018/09/19",
+          },
+          {
+          "startDate": "2019/04/12",
+          "endDate": "2023/06/02",
+          }],
+      "lastMarketerDate": "2021/06/30",
+      "maxPowerInstall":"9.200"
+    }
+  ]
+
+/get-consumption-data GET
+
+Buscar los datos de consumo
+
+https://datadis.es/api-private/api/get-consumption-data
+Parámetros
+
+cups
+string
+required
+Los CUPS de los que querremos saber los datos de consumo
+distributorCode
+string
+required
+Código del distribuidor, que se obtiene con la solicitud de obtención de suministros
+startDate
+string(date-time)
+required
+Fecha de inicio entre los datos de búsqueda. Formato: AAAA/MM. Ejemplo = 2020/02.
+endDate
+string(date-time)
+required
+Fecha de finalización entre los datos de búsqueda. Formato: AAAA/MM. Ejemplo = 2020/02.
+measurementType
+string
+required
+Establézcalo en 0 (Cero) si desea obtener el consumo por hora y en 1 (Uno) si desea obtener el consumo por cuarto de hora. La consulta cuarta horaria solo está disponible para los PointType 1 y 2, y en el caso de la distribuidora E-distribución adicionalmente el PointType 3
+pointType
+string
+required
+Código de tipo de punto, que se obtiene con la solicitud de obtención de suministros
+authorizedNif
+string
+Solo en caso que se quiera obtener los datos de consumo de un NIF autorizado.
+Formato de respuesta JSON
+
+
+   [
+    {
+     "cups":"String",	CUPS
+     "date":"String",	Fecha (aaaa/MM/dd)
+     "time":"String",	Hora (hh:mm)
+     "consumptionKWh":Number,	Energía consumida (kWh)
+     "obtainMethod":"String",	Método de obtención de la energía consumida (Real/Estimada)
+     "surplusEnergyKWh":Number,	Energía vertida (neteada/facturada) (kWh)
+     "generationEnergyKWh":Number,	Energía generada (neteada/facturada) (kWh)
+     "selfConsumptionEnergyKWh":Number	Energía autoconsumida (neteada/facturada) (kWh)
+    }
+   ]
+
+
+Ejemplo de respuesta JSON
+
+
+  [
+    {
+      "cups":"ES002100xxxxxxxxxxJL",
+      "date":"2022/07/01",
+      "time":"01:00",
+      "consumptionKWh":4879.0,
+      "obtainMethod":"Real",
+      "surplusEnergyKWh":0.0,
+      "generationEnergyKWh" : 0.0,
+      "selfConsumptionEnergyKWh" : 0.0
+    }
+  ]
+
+/get-max-power GET
+
+Busca la potencia máxima y te aparecerá el resultado en kW
+
+https://datadis.es/api-private/api/get-max-power
+Parámetros
+
+cups
+string
+required
+Las CUPS de las que querremos conocer los detalles del contrato
+distributorCode
+string
+required
+Código del distribuidor, que se obtiene con la solicitud de obtención de suministros
+startDate
+string(date-time)
+required
+Fecha de inicio entre los datos de búsqueda. Formato: AAAA/MM. Ejemplo = 2020/02.
+endDate
+string(date-time)
+required
+Fecha de finalización entre los datos de búsqueda. Formato: AAAA/MM. Ejemplo = 2020/02.
+authorizedNif
+string
+Solo en el caso de que quieras obtener el detalle del contrato del NIF autorizado
+Formato de respuesta JSON
+
+
+   [
+    {
+     "cups":"String",	CUPS
+     "date":"String",	Fecha en la que se ha demandado la potencia máxima en el periodo (aaaa/MM/dd)
+     "time":"String",	Hora en la que se ha demandado la potencia máxima en el periodo (hh:mm)
+     "maxPower":Number,	Potencia máxima demandada (W)
+     "period":"String"	Periodo (VALLE, LLANO, PUNTA, 1-6)
+    }
+   ]
+
+
+Ejemplo de respuesta JSON
+
+
+  [
+    {
+      "cups":"ES002100xxxxxxxxxxJL",
+      "date":"2022/07/01",
+      "time":"01:00",
+      "maxPower":4879.0,
+      "period":"VALLE"
+    }
+  ]
+
+/get-distributors-with-supplies GET
+
+Obtiene una lista de códigos de distribuidores en los que el usuario tiene suministros.
+
+https://datadis.es/api-private/api/get-distributors-with-supplies
+Parámetros
+
+authorizedNif
+string
+Únicamente en caso de querer obtener el listado de códigos de distribuidoras que disponen de suministros del NIF autorizado.
+Formato de respuesta JSON
+
+
+  [
+    {
+      "distributorCodes":["String","String"]
+    }
+  ]
+
+
+
+
+Array con los códigos de distribuidora en los que el NIF tiene suministros. (1: Viesgo, 2: E-distribución, 3: E-redes, 4: ASEME, 5: UFD, 6: EOSA, 7:CIDE, 8: IDE)
+
+Ejemplo de respuesta JSON
+
+
+  [
+    {
+      "distributorCodes":["1","7"]
+    }
+  ]
+
+/get-supplies GET
+
+Buscar todos los suministros
+
+https://datadis.es/api-private/api/get-supplies-v2
+Parámetros
+
+authorizedNif
+string
+Si queremos buscar suministros de personas que hemos autorizado, podemos buscarlo con el NIF de las personas autorizadas
+distributorCode
+string
+Código del distribuidor, que se obtiene con la solicitud de distribuidoras con suministros: /get-distributors-with-supplies.
+Para consultar los suministros de una sola distribuidora.
+Formato de respuesta JSON
+
+
+  {
+   "supplies": [{
+     "address":"String",	Dirección del suministro
+     "cups":"String",	CUPS
+     "postalCode":"String",	Código postal
+     "province":"String",	Provincia
+     "municipality":"String",	Municipio
+     "distributor":"String",	Nombre de la distribuidora
+     "validDateFrom":"String",	Fecha de inicio del contrato (aaaa/MM/dd)
+     "validDateTo":"String",	Fecha de fin del contrato (aaaa/MM/dd)
+     "pointType":Integer,	Tipo de punto de medida (1, 2, 3, 4 o 5)
+     "distributorCode":"String"	Código de distribuidora (1: Viesgo, 2: E-distribución, 3: E-redes, 4: ASEME, 5: UFD, 6: EOSA, 7:CIDE, 8: IDE)
+  }],
+  "distributorError": [{
+     "distributorCode":"String",	Código de distribuidora (1: Viesgo, 2: E-distribución, 3: E-redes, 4: ASEME, 5: UFD, 6: EOSA, 7:CIDE, 8: IDE)
+     "distributorName":"String",	Nombre de la distribuidora
+     "errorCode":"String",	Código de error
+     "errorDescription":"String"	Descripción del error
+    }]
+  }
+
+
+Ejemplo de respuesta JSON
+
+  {
+    "supplies":[
+      {
+        "address":"C/ MORIONES, 23 , 1ºG 03182-TORREVIEJA - ALICANTE",
+        "cups":"ES002100xxxxxxxxxxJL",
+        "postalCode":"3182",
+        "province":"Alicante",
+        "municipality":"TORREVIEJA",
+        "distributor":"I-DE REDES ELÉCTRICAS INTELIGENTES, S.A.U.",
+        "validDateFrom":"2021/11/29",
+        "validDateTo":"2023/11/29",
+        "pointType":5,
+        "distributorCode":"8"
+      }
+    ],
+    "distributorError":[
+      {
+        "distributorCode":"1",
+        "distributorName":"VIESGO",
+        "errorCode":"10",
+        "errorDescription":"Error interno distribuidora"
+      }
+    ]
+  }
+
+/get-contract-detail GET
+
+Buscar el detalle del contrato
+
+https://datadis.es/api-private/api/get-contract-detail-v2
+Parámetros
+
+cups
+string
+required
+Los CUPS de los que querremos saber los detalles del contrato. Solo puede buscar un CUPS por pedido
+distributorCode
+string
+required
+Código del distribuidor, que se obtiene con la solicitud de obtención de suministros
+authorizedNif
+string
+Solo en el caso de que quieras obtener el detalle del contrato del NIF autorizado
+Formato de respuesta JSON
+
+
+  {
+   "contract": [{
+     "cups":"String",	CUPS
+     "distributor":"String",	Distribuidora
+     "marketer":"String",	Comercializadora (sólo  se devuelve si el usuario que lanza la consulta es el propietario del CUPS)
+     "tension":"String",	Tensión
+     "accesFare":"String",	Descripción tarifa de acceso
+     "province":"String",	Provincia
+     "municipality":"String",	Municipio
+     "postalCode":"String",	Código postal
+     "contractedPowerkW":[Number],	Potencias contratadas
+     "timeDiscrimination":"String",	Discriminación horaria
+     "modePowerControl":"String",	Modo de control de potencia (ICP/Maxímetro)
+     "startDate":"String",	Fecha de inicio del contrato
+     "endDate":"String",	Fecha de fin del contrato
+     "codeFare":"String",	Código de tarifa de acceso (códigos  CNMC)
+     "selfConsumptionTypeCode":"String",	Código del tipo de autoconsumo (códigos CNMC). Sólo se informa si se tiene autoconsumo.
+     "selfConsumptionTypeDesc":"String",	Descripción del tipo de autoconsumo. Sólo se informa si se tiene autoconsumo.
+     "section":"String",	Sección. Sólo se informa si se tiene autoconsumo.
+     "subsection":"String",	Subsección. Sólo se informa si se tiene autoconsumo.
+     "partitionCoefficient": Number,	Coeficiente de reparto. Sólo se informa si se tiene autoconsumo.
+     "cau":"String",	CAU. Sólo se informa si se tiene autoconsumo.
+     "installedCapacityKW": Number,	Capacidad de generación instalada. Sólo se informa si se tiene autoconsumo.
+     "dateOwner":[{"String", "String"}],
+                       	Array con la fechas en las cuales ha sido propietario.
+     "lastMarketerDate": "String",	Fecha del último cambio de comercializadora (yyyy/mm/dd).
+     "maxPowerInstall": String	Potencia máxima de la instalación.
+  }],
+  "distributorError": [{
+     "distributorCode":"String",	Código de distribuidora (1: Viesgo, 2: E-distribución, 3: E-redes, 4: ASEME, 5: UFD, 6: EOSA, 7:CIDE, 8: IDE)
+     "distributorName":"String",	Nombre de la distribuidora
+     "errorCode":"String",	Código de error
+     "errorDescription":"String"	Descripción del error
+    }]
+  }
+
+
+Ejemplo de respuesta JSON
+
+
+  {
+    "contract":[
+    {
+      "cups":"ES002100xxxxxxxxxxJL",
+      "distributor":"I-DE REDES ELÉCTRICAS INTELIGENTES, S.A.U.",
+      "marketer":"TOTALENERGIES MERCADO ESPAÑA, S.A.",
+      "tension":"Baja tensión",
+      "accessFare":"BAJA TENSION y POTENCIA <= 15 kW",
+      "province":"Madrid",
+      "municipality":"MADRID",
+      "postalCode":"30740",
+      "contractedPowerkW":[ 3.45, 3.45 ],
+      "timeDiscrimination":"",
+      "modePowerControl":"ICP",
+      "startDate":"2022/09/13",
+      "endDate":"",
+      "codeFare":"2T",
+      "selfConsumptionTypeCode":"01",
+      "selfConsumptionTypeDesc":null,
+      "section":"2",
+      "subsection":"2",
+      "partitionCoefficient":1.0,
+      "cau":"ES0021000xxxxxxxxx",
+      "installedCapacityKW":6.4,
+      "dateOwner":[{
+          "startDate": "2016/02/15",
+          "endDate": "2018/09/19",
+          },
+          {
+          "startDate": "2019/04/12",
+          "endDate": "2023/06/02",
+          }],
+      "lastMarketerDate": "2021/06/30",
+      "maxPowerInstall":"9.200"
+    }
+  ],
+  "distributorError":[
+      {
+        "distributorCode":"1",
+        "distributorName":"VIESGO",
+        "errorCode":"10",
+        "errorDescription":"Error interno distribuidora"
+      }
+    ]
+  }
+
+/get-consumption-data GET
+
+Buscar los datos de consumo
+
+https://datadis.es/api-private/api/get-consumption-data-v2
+Parámetros
+
+cups
+string
+required
+Los CUPS de los que querremos saber los datos de consumo
+distributorCode
+string
+required
+Código del distribuidor, que se obtiene con la solicitud de obtención de suministros
+startDate
+string(date-time)
+required
+Fecha de inicio entre los datos de búsqueda. Formato: AAAA/MM. Ejemplo = 2020/02.
+endDate
+string(date-time)
+required
+Fecha de finalización entre los datos de búsqueda. Formato: AAAA/MM. Ejemplo = 2020/02.
+measurementType
+string
+required
+Establézcalo en 0 (Cero) si desea obtener el consumo por hora y en 1 (Uno) si desea obtener el consumo por cuarto de hora. La consulta cuarta horaria solo está disponible para los PointType 1 y 2, y en el caso de la distribuidora E-distribución adicionalmente el PointType 3
+pointType
+string
+required
+Código de tipo de punto, que se obtiene con la solicitud de obtención de suministros
+authorizedNif
+string
+Solo en caso que se quiera obtener los datos de consumo de un NIF autorizado.
+Formato de respuesta JSON
+
+
+  {
+   "timeCurve": [{
+     "cups":"String",	CUPS
+     "date":"String",	Fecha (aaaa/MM/dd)
+     "time":"String",	Hora (hh:mm)
+     "consumptionKWh":Number,	Energía consumida (kWh)
+     "obtainMethod":"String",	Método de obtención de la energía consumida (Real/Estimada)
+     "surplusEnergyKWh":Number,	Energía vertida (neteada/facturada) (kWh)
+     "generationEnergyKWh":Number,	Energía generada (neteada/facturada) (kWh)
+     "selfConsumptionEnergyKWh":Number	Energía autoconsumida (neteada/facturada) (kWh)
+  }],
+  "distributorError": [{
+     "distributorCode":"String",	Código de distribuidora (1: Viesgo, 2: E-distribución, 3: E-redes, 4: ASEME, 5: UFD, 6: EOSA, 7:CIDE, 8: IDE)
+     "distributorName":"String",	Nombre de la distribuidora
+     "errorCode":"String",	Código de error
+     "errorDescription":"String"	Descripción del error
+    }]
+  }
+
+
+Ejemplo de respuesta JSON
+
+
+{
+  "timeCurve":[
+    {
+      "cups":"ES002100xxxxxxxxxxJL",
+      "date":"2022/07/01",
+      "time":"01:00",
+      "consumptionKWh":4879.0,
+      "obtainMethod":"Real",
+      "surplusEnergyKWh":0.0,
+      "generationEnergyKWh" : 0.0,
+      "selfConsumptionEnergyKWh" : 0.0
+    }
+  ],
+  "distributorError":[
+      {
+        "distributorCode":"1",
+        "distributorName":"VIESGO",
+        "errorCode":"10",
+        "errorDescription":"Error interno distribuidora"
+      }
+    ]
+  }
+
+/get-max-power GET
+
+Busca la potencia máxima y te aparecerá el resultado en kW
+
+https://datadis.es/api-private/api/get-max-power-v2
+Parámetros
+
+cups
+string
+required
+Las CUPS de las que querremos conocer los detalles del contrato
+distributorCode
+string
+required
+Código del distribuidor, que se obtiene con la solicitud de obtención de suministros
+startDate
+string(date-time)
+required
+Fecha de inicio entre los datos de búsqueda. Formato: AAAA/MM. Ejemplo = 2020/02.
+endDate
+string(date-time)
+required
+Fecha de finalización entre los datos de búsqueda. Formato: AAAA/MM. Ejemplo = 2020/02.
+authorizedNif
+string
+Solo en el caso de que quieras obtener el detalle del contrato del NIF autorizado
+Formato de respuesta JSON
+
+
+  {
+   "maxPower": [{
+     "cups":"String",	CUPS
+     "date":"String",	Fecha en la que se ha demandado la potencia máxima en el periodo (aaaa/MM/dd)
+     "time":"String",	Hora en la que se ha demandado la potencia máxima en el periodo (hh:mm)
+     "maxPower":Number,	Potencia máxima demandada (W)
+     "period":"String"	Periodo (VALLE, LLANO, PUNTA, 1-6)
+  }],
+  "distributorError": [{
+     "distributorCode":"String",	Código de distribuidora (1: Viesgo, 2: E-distribución, 3: E-redes, 4: ASEME, 5: UFD, 6: EOSA, 7:CIDE, 8: IDE)
+     "distributorName":"String",	Nombre de la distribuidora
+     "errorCode":"String",	Código de error
+     "errorDescription":"String"	Descripción del error
+    }]
+  }
+
+
+Ejemplo de respuesta JSON
+
+
+{
+  "maxPower":[
+    {
+      "cups":"ES002100xxxxxxxxxxJL",
+      "date":"2022/07/01",
+      "time":"01:00",
+      "maxPower":4879.0,
+      "period":"VALLE"
+    }
+  ],
+  "distributorError":[
+      {
+        "distributorCode":"1",
+        "distributorName":"VIESGO",
+        "errorCode":"10",
+        "errorDescription":"Error interno distribuidora"
+      }
+    ]
+  }
+
+/get-distributors-with-supplies GET
+
+Obtiene una lista de códigos de distribuidores en los que el usuario tiene suministros.
+
+https://datadis.es/api-private/api/get-distributors-with-supplies-v2
+Parámetros
+
+authorizedNif
+string
+Únicamente en caso de querer obtener el listado de códigos de distribuidoras que disponen de suministros del NIF autorizado.
+Formato de respuesta JSON
+
+
+    {
+      "distExistenceUser":{
+        "distributorCodes":["String","String"]
+      },
+      "distributorError":[
+        {
+          "distributorCode":"String",
+          "distributorName":"String",
+          "errorCode":"String",
+          "errorDescription":"String"
+        }
+      ]
+    }
+
+
+
+
+Array con los códigos de distribuidora en los que el NIF tiene suministros. (1: Viesgo, 2: E-distribución, 3: E-redes, 4: ASEME, 5: UFD, 6: EOSA, 7:CIDE, 8: IDE)
+
+Ejemplo de respuesta JSON
+
+
+  {
+    "distExistenceUser":{
+      "distributorCodes":["1","7"]
+    },
+    "distributorError":[
+      {
+        "distributorCode":"1",
+        "distributorName":"VIESGO",
+        "errorCode":"10",
+        "errorDescription":"Error interno distribuidora"
+      }
+    ]
+  }
+
+/get-reactive-data GET
+
+Buscar datos de energía reactiva
+
+  https://datadis.es/api-private/api/get-reactive-data-v2
+Parámetros
+
+cups
+string
+required
+Los CUPS de los que querremos saber los datos de consumo
+distributorCode
+string
+required
+Código del distribuidor, que se obtiene con la solicitud de obtención de suministros
+startDate
+string(date-time)
+required
+Fecha de inicio entre los datos de búsqueda. Formato: AAAA/MM. Ejemplo = 2020/02.
+endDate
+string(date-time)
+required
+Fecha de finalización entre los datos de búsqueda. Formato: AAAA/MM. Ejemplo = 2020/02.
+authorizedNif
+string
+Solo en caso que se quiera obtener los datos de consumo de un NIF autorizado.
+Formato de respuesta JSON
+
+
+  {
+   "reactiveEnergy": {
+     "cups":"String",	CUPS
+     "energy": [	Energía
+       {
+        "date":"String",	Fecha (aaaa/MM)
+        "energy_p1":"Number",	Energía reactiva en el Periodo 1
+        "energy_p2":"Number",	Energía reactiva en el Periodo 2
+        "energy_p3":"Number",	Energía reactiva en el Periodo 3
+        "energy_p4":"Number",	Energía reactiva en el Periodo 4
+        "energy_p5":"Number",	Energía reactiva en el Periodo 5
+        "energy_p6":"Number"	Energía reactiva en el Periodo 6
+       }
+      ],
+      "code":"String",	Código de error
+      "code_desc":"String"	Descripción del error
+    },
+  "distributorError": [{
+     "distributorCode":"String",	Código de distribuidora (1: Viesgo, 2: E-distribución, 3: E-redes, 4: ASEME, 5: UFD, 6: EOSA, 7:CIDE, 8: IDE)
+     "distributorName":"String",	Nombre de la distribuidora
+     "errorCode":"String",	Código de error
+     "errorDescription":"String"	Descripción del error
+    }]
+  }
+
+
+Ejemplo de respuesta JSON
+
+  {
+    "reactiveEnergy":{
+      "cups": "xxxxx",
+      "energy":[
+        {
+          "date": "2024/01",
+          "energy_p1": 0,
+          "energy_p2": 100,
+          "energy_p3": 0,
+          "energy_p4": 1200,
+          "energy_p5": 0,
+          "energy_p6": -150
+        }
+      ],
+      "code": "001",
+      "code_desc": "Correcto"
+    },
+    "distributorError":[
+      {
+        "distributorCode":"1",
+        "distributorName":"VIESGO",
+        "errorCode":"10",
+        "errorDescription":"Error interno distribuidora"
+      }
+    ]
+  }
+
+/new-authorization GET
+
+Se crea una nueva autorización segun los datos introducidos
+
+https://datadis.es/api-private/api/new-authorization
+Parámetros
+
+authorizedNif
+string
+required
+NIF de la persona que ha dado la autorización
+startDate
+string
+Fecha de inicio de la autorización
+endDate
+string
+Fecha de fin de la autorización
+cups
+String[]
+CUPS que se van a dar de alta en la nueva autorización, de ser vacío se autorizará a todos los CUPS del usuario
+Formato de respuesta JSON
+
+
+  {
+   "error":"String", 	Código de error
+   "message":"String", 	Descripción del error
+  }
+
+
+Ejemplo de respuesta JSON
+
+  {
+    "error": "0"
+    "message": "OK"
+  }
+
+/cancel-authorization GET
+
+Da de baja una autorización existente. Se quedará en estado 'CANCELADA'
+
+https://datadis.es/api-private/api/cancel-authorization
+Parámetros
+
+authorizedNif
+string
+required
+NIF de la persona de la que quieres cancelar las autorizaciones
+cups
+String[]
+CUPS que se van a dar de baja, de ser vacío se cancelará el acceso a todos los CUPS del usuario
+Formato de respuesta JSON
+
+
+  {
+   "error":"String", 	Código de error
+   "message":"String", 	Descripción del error
+  }
+
+
+Ejemplo de respuesta JSON
+
+  {
+    "error": "0"
+    "message": "OK"
+  }
+
+/list-authorization GET
+
+Lista con todas las autorizaciones
+
+https://datadis.es/api-private/api/list-authorization
+Parámetros
+
+ownerNif
+string
+NIF de la persona propietaria de los CUPS
+Formato de respuesta JSON
+
+
+  [
+   {
+     "id":"Number",	Id de la autorización
+     "ownerDocument":"String",	NIF del propietario del CUPS
+     "requesterDocument":"String",	NIF del usuario autorizado al CUPS
+     "status":"String",	Estado de la autorización
+     "validityDateStart":"String",	Fecha de inicio de la autorización
+     "validityDateEnd":"String",	Fecha de fin de la autorización
+     "distributorCodeFather":"String",	Codigo de la distribuidora padre
+    }
+  ]
+
+
+Ejemplo de respuesta JSON
+
+  [
+      {
+        "id": 28908,
+        "ownerDocument": "X88888888",
+        "requesterDocument": "X99999999",
+        "cups": "ES0021000846719380RX",
+        "status": "PENDIENTE DE VALIDACION",
+        "validityDateStart": "2025-03-21 00:00:00.0",
+        "validityDateEnd": "2025-05-24 23:59:59.0",
+        "distributorCodeFather": "0021"
+    }
+  ]
+
+/api-search GET
+
+Buscar por conjunto de datos
+
+https://datadis.es/api-public/api-search
+Parámetros
+
+startDate
+string($date-time)
+required
+Fecha de inicio entre los datos de búsqueda. Formato: AAAA/MM/dd. Ejemplo = 2020/02/28.
+endDate
+string(date-time)
+required
+Fecha de finalización entre los datos de búsqueda. Formato: AAAA/MM/dd. Ejemplo = 2020/02/28.
+page
+integer
+required
+El número de página que desea ver. La primera página es 0.
+pageSize
+integer
+required
+Con este parámetro puedes establecer el número de resultados por página. El valor máximo es 2000.
+measurementType
+array[string]
+Puede llamar por tipo de punto de medida contratado. La API responde con una lista de resultados que coinciden con un tipo de punto de medida seleccionado para el valor de consulta, seleccione el nombre del tipo de punto de medida. Puede comprobar más de un tipo de punto de medida. Ejemplo: 02.
+01
+Punto de medida tipo  1
+02
+Punto de medida tipo  2
+03
+Punto de medida tipo  3
+04
+Punto de medida tipo  4
+05
+Punto de medida tipo  5
+community
+array[string]
+required
+Puede llamar por el nombre de la comunidad. Este parámetro es obligatorio y el máximo que puede seleccionar es dos. La API responde con una lista de resultados que coinciden con una palabra seleccionada. Para el valor de la consulta, seleccione el nombre de la comunidad. Puede marcar más de una comunidad. Ejemplo: 01.
+01
+Andalucía
+02
+Aragón
+03
+Principado de Asturias
+04
+Islas Baleares
+05
+Canarias
+06
+Cantabria
+07
+Castilla y León
+08
+Castilla La Mancha
+09
+Cataluña
+10
+Comunidad Valenciana
+11
+Extremadura
+12
+Galicia
+13
+Comunidad de Madrid
+14
+Región de Murcia
+15
+Comunidad Foral de Navarra
+16
+País Vasco
+17
+La Rioja
+18
+Ceuta
+19
+Melilla
+distributor
+array[string]
+Puede llamar por distribuidor. Puede ver todos los distribuidores aquí. Usará el código de distribuidor XXXX dígito. Ejemplo: del distribuidor ADURIZ DISTRIBUCIÓN, S.L. = 0172. Puede combinar más de un distribuidor usando ', '. Ejemplo = 0172,0426.
+fare
+array[string]
+Puede llamar por tarifa contratada. La API responde con una lista de resultados que coinciden con una tarifa seleccionada para el valor de la consulta, seleccione el nombre de la tarifa. Puede consultar más de una tarifa. Ejemplo: 31 .
+30
+GENERAL BAJA TENSIÓN
+31
+DE 1 A 36 kV DE TRES PERIODOS
+3T
+GENERAL BAJA TENSIÓN, POTENCIA SUPERIOR A 15 kW
+3V
+GENERAL BAJA TENSIÓN, POTENCIA SUPERIOR 15 kW PARA VEHÍCULO ELÉCTRICO
+62
+>= 30 kV Y < 72.5 kV
+63
+>= 72.5 kV Y < 145 kV
+64
+>= 145 kV
+65
+CONEXIONES INTERNACIONALES
+21
+GENERAL BAJA TENSIÓN, POTENCIA SUPERIOR A 10 kW Y NO SUPERIOR A 15 kW
+2A
+GENERAL BAJA TENSIÓN, POTENCIA NO SUPERIOR A 10 kW
+2T
+GENERAL BAJA TENSIÓN, POTENCIA INFERIOR A 15 kW
+6A
+>= 1 kV Y < 30 kV
+6V
+TARIFA 6.1A PARA VEHÍCULO ELÉCTRICO
+provinceMunicipality
+array[string]
+Puede llamar por provincia y municipio. Puede ver todas las provincias aquí. Utilizará 2 códigos: código de provincia = XX dígito y código de municipio = XXX dígito. Ejemplo: desde el municipio Torrevieja = 03133, si solo ingresas los 2 primeros digitos buscaras por provincia. Ejemplo: Alicante = 03. Puedes combinar mas de un municipio o provincia usando ','. Ejemplo: 03133,03132 o 03,04.
+postalCode
+array[string]
+Puedes llamar por código postal. Ejemplo: 18817. Puedes combinar más de un código postal usando ','. Ejemplo: 18817,18800.
+economicSector
+array [string]
+Puede llamar por sector económico. La API responde con una lista de resultados que coinciden con un sector económico seleccionado para el valor de la consulta, seleccione el nombre del sector económico. Puede consultar más de un sector económico. Ejemplo 1.
+1
+Residencial
+2
+Industrial
+3
+Servicios
+4
+No especificado
+tension
+array [string]
+Puede llamar por tensión eléctrica. La API responde con una lista de resultados que coinciden con una tensión eléctrica seleccionada para el valor de consulta, seleccione la tensión eléctrica. Puede verificar más de una tensión eléctrica. Ejemplo : E0.
+E0
+Baja tensiónón
+E1
+>= 1 kV y < 14 kV
+E2
+>= 14 kV y < 36 kV
+E3
+>= 36 kV y < 72.5 kV
+E4
+>= 72.5 kV y < 145 kV
+E5
+>= 145 kV y < 220 kV
+E6
+>= 220 kV
+timeDiscrimination
+array [string]
+Puede llamar por discriminación de tiempo. La API responde con una lista de resultados que coinciden con una discriminación de tiempo seleccionada para el valor de consulta, seleccione la discriminación de tiempo. Puede verificar más de una discriminación de tiempo. Ejemplo : G0.
+G0
+GENERAL ALTA TENSIÓN
+E3
+TARIFA DE TRES PERIODOS
+E2
+TARIFA DE DOS PERIODOS
+E1
+TARIFA DE UN PERIODO
+sort
+Con este parámetro puede ordenar sus resultados. Para el orden inverso, debe agregar un símbolo '-' antes del campo. Ejemplo: _sort=dataDate. Puede combinar más de una clasificación usando ',' .Puedes ordenar por: datoFecha, comunidad, provincia, municipio, código postal, tarifa, medidaPuntoTipo, tensión, Sectoreconómico, tiempoDiscriminación, distribuidor, sumaEnergía y sumaContratos. Solo puedes ordenar por filtros utilizados anteriormente.
+Formato de respuesta JSON
+
+
+  [
+    {
+      "dataDay":Number,
+      "dataMonth":Number,
+      "dataYear":Number,
+      "community":"String",
+      "province":"String",
+      "municipality":"String",
+      "postalCode":"String",
+      "fare":"String",
+      "timeDiscrimination":"String",
+      "measurePointType":"String",
+      "sumContracts":Number,
+      "sumEnergy":Number,
+      "tension":"String",
+      "economicSector":"String",
+      "distributor":"String",
+      "mi1":"String",
+      "mi2":"String",
+      "mi3":"String",
+      "mi4":"String",
+      "mi5":"String",
+      "mi6":"String",
+      "mi7":"String",
+      "mi8":"String",
+      "mi9":"String",
+      "mi10":"String",
+      "mi11":"String",
+      "mi12":"String",
+      "mi13":"String",
+      "mi14":"String",
+      "mi15":"String",
+      "mi16":"String",
+      "mi17":"String",
+      "mi18":"String",
+      "mi19":"String",
+      "mi20":"String",
+      "mi21":"String",
+      "mi22":"String",
+      "mi23":"String",
+      "mi24":"String",
+      "mi25":"String"
+    }
+  ]
+
+
+
+
+Día
+Mes
+Año
+Comunidad autónoma
+Provincia
+Municipio
+Código postal
+Tarifa
+Discriminación horaria
+Tipo de punto de medida
+Suma de contratos
+Suma de energía (kWh)
+Tensión
+Sector económico
+Distribuidor
+Consumo energía por hora (mi1 - mi25)
+
+
+Ejemplo de respuesta JSON
+
+
+  [
+    {
+      "dataDay":11,
+      "dataMonth":10,
+      "dataYear":2021,
+      "community":"Madrid, Comunidad de",
+      "province":"",
+      "municipality":"",
+      "postalCode":"",
+      "fare":"",
+      "timeDiscrimination":"",
+      "measurePointType":"",
+      "sumEnergy":"57814623",
+      "sumContracts":"3423561",
+      "tension":"",
+      "economicSector":"",
+      "distributor":"",
+      "mi1":"1964137",
+      "mi2":"1792914",
+      "mi3":"1683028",
+      "mi4":"1624914",
+      "mi5":"1637193",
+      "mi6":"1706428",
+      "mi7":"1952541",
+      "mi8":"2290914",
+      "mi9":"2535018",
+      "mi10":"2678183",
+      "mi11":"2768127",
+      "mi12":"2815538",
+      "mi13":"2867838",
+      "mi14":"2947636",
+      "mi15":"2986822",
+      "mi16":"2817503",
+      "mi17":"2704604",
+      "mi18":"2648844",
+      "mi19":"2570887",
+      "mi20":"2605252",
+      "mi21":"2770807",
+      "mi22":"2715123",
+      "mi23":"2491128",
+      "mi24":"2239244",
+      "mi25":"0"
+    }
+  ]
+
+/api-sum-search GET
+
+Búsqueda sumatoria por conjunto de datos
+
+https://datadis.es/api-public/api-sum-search
+Parámetros
+
+startDate
+string($date-time)
+required
+Fecha de inicio entre los datos de búsqueda. Formato: AAAA/MM/dd. Ejemplo = 2020/02/28.
+endDate
+string(date-time)
+required
+Fecha de finalización entre los datos de búsqueda. Formato: AAAA/MM/dd. Ejemplo = 2020/02/28.
+measurementType
+array[string]
+Puede llamar por tipo de punto de medida contratado. La API responde con una lista de resultados que coinciden con un tipo de punto de medida seleccionado para el valor de consulta, seleccione el nombre del tipo de punto de medida. Puede comprobar más de un tipo de punto de medida. Ejemplo: 02.
+01
+Punto de medida tipo  1
+02
+Punto de medida tipo  2
+03
+Punto de medida tipo  3
+04
+Punto de medida tipo  4
+05
+Punto de medida tipo  5
+community
+array[string]
+required
+Puede llamar por el nombre de la comunidad. Este parámetro es obligatorio y el máximo que puede seleccionar es dos. La API responde con una lista de resultados que coinciden con una palabra seleccionada. Para el valor de la consulta, seleccione el nombre de la comunidad. Puede marcar más de una comunidad. Ejemplo: 01.
+01
+Andalucía
+02
+Aragón
+03
+Principado de Asturias
+04
+Islas Baleares
+05
+Canarias
+06
+Cantabria
+07
+Castilla y León
+08
+Castilla La Mancha
+09
+Cataluña
+10
+Comunidad Valenciana
+11
+Extremadura
+12
+Galicia
+13
+Comunidad de Madrid
+14
+Región de Murcia
+15
+Comunidad Foral de Navarra
+16
+País Vasco
+17
+La Rioja
+18
+Ceuta
+19
+Melilla
+distributor
+array[string]
+Puede llamar por distribuidor. Puede ver todos los distribuidores
+fare
+array[string]
+Puede llamar por tarifa contratada. La API responde con una lista de resultados que coinciden con una tarifa seleccionada para el valor de la consulta, seleccione el nombre de la tarifa. Puede consultar más de una tarifa. Ejemplo: 31 .
+30
+GENERAL BAJA TENSIÓN
+31
+DE 1 A 36 kV DE TRES PERIODOS
+3T
+GENERAL BAJA TENSIÓN, POTENCIA SUPERIOR A 15 kW
+3V
+GENERAL BAJA TENSIÓN, POTENCIA SUPERIOR 15 kW PARA VEHÍCULO ELÉCTRICO
+62
+>= 30 kV Y < 72.5 kV
+63
+>= 72.5 kV Y < 145 kV
+64
+>= 145 kV
+65
+CONEXIONES INTERNACIONALES
+21
+GENERAL BAJA TENSIÓN, POTENCIA SUPERIOR A 10 kW Y NO SUPERIOR A 15 kW
+2A
+GENERAL BAJA TENSIÓN, POTENCIA NO SUPERIOR A 10 kW
+2T
+GENERAL BAJA TENSIÓN, POTENCIA INFERIOR A 15 kW
+6A
+>= 1 kV Y < 30 kV
+6V
+TARIFA 6.1A PARA VEHÍCULO ELÉCTRICO
+provinceMunicipality
+array[string]
+Puede llamar por provincia y municipio. Puede ver todas las provincias aquí. Utilizará 2 códigos: código de provincia = XX dígito y código de municipio = XXX dígito. Ejemplo: desde el municipio Torrevieja = 03133, si solo ingresas los 2 primeros digitos buscaras por provincia. Ejemplo: Alicante = 03. Puedes combinar mas de un municipio o provincia usando ','. Ejemplo: 03133,03132 o 03,04.
+postalCode
+array[string]
+Puedes llamar por código postal. Ejemplo: 18817. Puedes combinar más de un código postal usando ','. Ejemplo: 18817,18800.
+economicSector
+array [string]
+Puede llamar por sector económico. La API responde con una lista de resultados que coinciden con un sector económico seleccionado para el valor de la consulta, seleccione el nombre del sector económico. Puede consultar más de un sector económico. Ejemplo 1.
+1
+Residencial
+2
+Industrial
+3
+Servicios
+4
+No especificado
+tension
+array [string]
+Puede llamar por tensión eléctrica. La API responde con una lista de resultados que coinciden con una tensión eléctrica seleccionada para el valor de consulta, seleccione la tensión eléctrica. Puede verificar más de una tensión eléctrica. Ejemplo : E0.
+E0
+Baja tensiónón
+E1
+>= 1 kV y < 14 kV
+E2
+>= 14 kV y < 36 kV
+E3
+>= 36 kV y < 72.5 kV
+E4
+>= 72.5 kV y < 145 kV
+E5
+>= 145 kV y < 220 kV
+E6
+>= 220 kV
+timeDiscrimination
+array [string]
+Puede llamar por discriminación de tiempo. La API responde con una lista de resultados que coinciden con una discriminación de tiempo seleccionada para el valor de consulta, seleccione la discriminación de tiempo. Puede verificar más de una discriminación de tiempo. Ejemplo : G0.
+G0
+GENERAL ALTA TENSIÓN
+E3
+TARIFA DE TRES PERIODOS
+E2
+TARIFA DE DOS PERIODOS
+E1
+TARIFA DE UN PERIODO
+sort
+Con este parámetro puede ordenar sus resultados. Para el orden inverso, debe agregar un símbolo '-' antes del campo. Ejemplo: _sort=dataDate. Puede combinar más de una clasificación usando ',' .Puedes ordenar por: datoFecha, comunidad, provincia, municipio, código postal, tarifa, medidaPuntoTipo, tensión, Sectoreconómico, tiempoDiscriminación, distribuidor, sumaEnergía y sumaContratos. Solo puedes ordenar por filtros utilizados anteriormente.
+Formato de respuesta JSON
+
+
+  [
+    {
+    "sumEnergy":Number,
+    "sumContract":Number
+    }
+  ]
+
+
+
+
+Suma de energía (kWh)
+Suma de contratos
+
+
+Ejemplo de respuesta JSON
+
+
+  [
+    {
+    "sumEnergy":1863572529,
+    "sumContract":3425358
+    }
+  ]
+
+/api-search-auto GET
+
+Buscar por dataSetAuto
+
+https://datadis.es/api-public/api-search-auto
+Parámetros
+
+startDate
+string($date-time)
+required
+Fecha de inicio entre los datos de búsqueda. Formato: AAAA/MM/dd. Ejemplo = 2020/02/28.
+endDate
+string(date-time)
+required
+Fecha de finalización entre los datos de búsqueda. Formato: AAAA/MM/dd. Ejemplo = 2020/02/28.
+page
+integer
+required
+El número de página que desea ver. La primera página es 0.
+pageSize
+integer
+required
+Con este parámetro puedes establecer el número de resultados por página. El valor máximo es 2000.
+community
+array[string]
+required
+Puede llamar por el nombre de la comunidad. Este parámetro es obligatorio y el máximo que puede seleccionar es dos. La API responde con una lista de resultados que coinciden con una palabra seleccionada. Para el valor de la consulta, seleccione el nombre de la comunidad. Puede marcar más de una comunidad. Ejemplo: 01.
+01
+Andalucía
+02
+Aragón
+03
+Principado de Asturias
+04
+Islas Baleares
+05
+Canarias
+06
+Cantabria
+07
+Castilla y León
+08
+Castilla La Mancha
+09
+Cataluña
+10
+Comunidad Valenciana
+11
+Extremadura
+12
+Galicia
+13
+Comunidad de Madrid
+14
+Región de Murcia
+15
+Comunidad Foral de Navarra
+16
+País Vasco
+17
+La Rioja
+18
+Ceuta
+19
+Melilla
+distributor
+array[string]
+Puede llamar por distribuidor. Puede ver todos los distribuidores
+selfConsumption
+array[string]
+Puede llamar por autoconsumo contratado. La API responde con una lista de resultados que coinciden con una tarifa seleccionada para el valor de la consulta, seleccione el nombre de la tarifa. Puede consultar más de una tarifa. Ejemplo : 31.
+31
+Sin Excedentes Individual
+32
+Sin Excedentes Colectivo
+33
+Sin Excedentes Colectivo con acuerdo de compensación
+41
+Con excedentes y compensación Individual
+42
+Con excedentes y compensación Colectivo
+43
+Con excedentes y compensación Colectivo a través de red - Consumo
+51
+Con excedentes sin compensación Individual en Red Interior
+52
+Con excedentes sin compensación Colectivo en Red Interior
+53
+Con excedentes sin compensación Individual con contrato de SSAA en Red Interior
+54
+Con excedentes sin compensación individual con cto SSAA en Red Interior– SSAA
+55
+Con excedentes sin compensación Colectivo con contrato de SSAA en Red Interior
+56
+Con excedentes sin compensación Colectivo con cto de SSAA en Red Interior– SSAA
+57
+Con excedentes sin compensación Colectivo sin cto de SSAA(despreciable) en red interior – Consumo
+58
+Con excedentes sin compensación Colectivo sin cto de SSAA a través de red - Consumo
+61
+Con excedentes sin compensación Individual con contrato de SSAA a través de red
+62
+Con excedentes sin compensación individual con cto SSAA a través de red – SSAA
+63
+Con excedentes sin compensación Colectivo con contrato de SSAA a través de red
+64
+Con excedentes sin compensación Colectivo con cto de SSAA a través de red – SSAA
+71
+Con excedentes sin compensación Individual con contrato de SSAA a través de red y red interior
+72
+Con excedentes sin compensación individual con cto SSAA a través de red y red interior – SSAA
+73
+Con excedentes sin compensación Colectivo con contrato de SSAA a través de red y red interior
+74
+Con excedentes sin compensación Colectivo con cto de SSAA a través de red y red interior - SSAA
+77
+Con excedentes sin compensación Colectivo con contrato de SSAA a través de red y red interior
+province
+array[string]
+Puede llamar por provincias Puede ver todas las provincias aquí. Usará Código numérico de provincia = XX dígito Ejemplo: Desde provincia Alicante = 03, desde Almería = 04. Puede combinar más de una provincia usando , Ejemplo = 04,18.
+sort
+Con este parámetro puede ordenar sus resultados. Para el orden inverso, debe agregar un símbolo '-' antes del campo. Ejemplo: _sort=dataDate. Puede combinar más de una clasificación usando ',' .Puedes ordenar por: datoFecha, comunidad, provincia, municipio, código postal, tarifa, medidaPuntoTipo, tensión, Sectoreconómico, tiempoDiscriminación, distribuidor, sumaEnergía y sumaContratos. Solo puedes ordenar por filtros utilizados anteriormente.
+Formato de respuesta JSON
+
+
+  [
+    {
+      "dataDay":Number,
+      "dataMonth":Number,
+      "dataYear":Number,
+      "community":"String",
+      "province":"String",
+      "selfConsumption":"String",
+      "sumContracts":Number,
+      "sumEnergy":Number,
+      "sumPower":Number,
+      "distributor":"String",
+      "mi1":"String",
+      "mi2":"String",
+      "mi3":"String",
+      "mi4":"String",
+      "mi5":"String",
+      "mi6":"String",
+      "mi7":"String",
+      "mi8":"String",
+      "mi9":"String",
+      "mi10":"String",
+      "mi11":"String",
+      "mi12":"String",
+      "mi13":"String",
+      "mi14":"String",
+      "mi15":"String",
+      "mi16":"String",
+      "mi17":"String",
+      "mi18":"String",
+      "mi19":"String",
+      "mi20":"String",
+      "mi21":"String",
+      "mi22":"String",
+      "mi23":"String",
+      "mi24":"String",
+      "mi25":"String"
+    }
+  ]
+
+
+
+
+Día
+Mes
+Año
+Comunidad autónoma
+Provincia
+Tipo de autoconsumo
+Suma de contratos
+Suma de energía vertida (kWh)
+Suma de potencia de generación (kW)
+Distribuidora
+Energía vertida por hora (mi1-mi25)
+
+
+Ejemplo de respuesta JSON
+
+
+  [
+    {
+      "dataDay":11,
+      "dataMonth":10,
+      "dataYear":2021,
+      "community":"Madrid, Comunidad de",
+      "province":"",
+      "selfConsumption":"",
+      "sumPower":"45939",
+      "sumEnergy":"110498",
+      "sumContracts":"7655",
+      "distributor":"",
+      "mi1":"1904",
+      "mi2":"1907",
+      "mi3":"1915",
+      "mi4":"1908",
+      "mi5":"1911",
+      "mi6":"1910",
+      "mi7":"1849",
+      "mi8":"986",
+      "mi9":"794",
+      "mi10":"2168",
+      "mi11":"5259",
+      "mi12":"8814",
+      "mi13":"12024",
+      "mi14":"14240",
+      "mi15":"14350",
+      "mi16":"12997",
+      "mi17":"9086",
+      "mi18":"4596",
+      "mi19":"1927",
+      "mi20":"1908",
+      "mi21":"2011",
+      "mi22":"2015",
+      "mi23":"2061",
+      "mi24":"1957",
+      "mi25":"0"
+    }
+  ]
+
+/api-sum-search-auto GET
+
+Búsqueda sumatoria por dataSetAuto
+
+https://datadis.es/api-public/api-sum-search-auto
+Parámetros
+
+startDate
+string($date-time)
+required
+Fecha de inicio entre los datos de búsqueda. Formato: AAAA/MM/dd. Ejemplo = 2020/02/28.
+endDate
+string(date-time)
+required
+Fecha de finalización entre los datos de búsqueda. Formato: AAAA/MM/dd. Ejemplo = 2020/02/28.
+community
+array[string]
+required
+Puede llamar por el nombre de la comunidad. Este parámetro es obligatorio y el máximo que puede seleccionar es dos. La API responde con una lista de resultados que coinciden con una palabra seleccionada. Para el valor de la consulta, seleccione el nombre de la comunidad. Puede marcar más de una comunidad. Ejemplo: 01.
+01
+Andalucía
+02
+Aragón
+03
+Principado de Asturias
+04
+Islas Baleares
+05
+Canarias
+06
+Cantabria
+07
+Castilla y León
+08
+Castilla La Mancha
+09
+Cataluña
+10
+Comunidad Valenciana
+11
+Extremadura
+12
+Galicia
+13
+Comunidad de Madrid
+14
+Región de Murcia
+15
+Comunidad Foral de Navarra
+16
+País Vasco
+17
+La Rioja
+18
+Ceuta
+19
+Melilla
+province
+array[string]
+Puede llamar por provincias Puede ver todas las provincias aquí. Usará Código numérico de provincia = XX dígito Ejemplo: Desde provincia Alicante = 03, desde Almería = 04. Puede combinar más de una provincia usando , Ejemplo = 04,18.
+distributor
+array[string]
+Puede llamar por distribuidor. Puede ver todos los distribuidores
+selfConsumption
+array[string]
+Puede llamar por autoconsumo contratado. La API responde con una lista de resultados que coinciden con una tarifa seleccionada para el valor de la consulta, seleccione el nombre de la tarifa. Puede consultar más de una tarifa. Ejemplo : 31.
+31
+Sin Excedentes Individual
+32
+Sin Excedentes Colectivo
+33
+Sin Excedentes Colectivo con acuerdo de compensación
+41
+Con excedentes y compensación Individual
+42
+Con excedentes y compensación Colectivo
+51
+Con excedentes sin compensación Individual en Red Interior
+52
+Con excedentes sin compensación Colectivo en Red Interior
+53
+Con excedentes sin compensación Individual con contrato de SSAA en Red Interior
+55
+Con excedentes sin compensación Colectivo con contrato de SSAA en Red Interior
+61
+Con excedentes sin compensación Individual con contrato de SSAA a través de red
+63
+Con excedentes sin compensación Colectivo con contrato de SSAA a través de red
+71
+Con excedentes sin compensación Individual con contrato de SSAA a través de red y red interior
+77
+Con excedentes sin compensación Colectivo con contrato de SSAA a través de red y red interior
+Formato de respuesta JSON
+
+
+  [
+    {
+      "sumEnergy":Number,
+      "sumPower":Number,
+      "sumContract":Number
+    }
+  ]
+
+
+
+
+Suma de energía vertida (kWh)
+Suma de potencia de generación (kW)
+Suma de contratos
+
+
+Ejemplo de respuesta JSON
+
+
+  [
+    {
+      "sumEnergy":3175846,
+      "sumPower":1450291,
+      "sumContract":8277
+    }
+  ]
+            
