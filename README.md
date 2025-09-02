@@ -1,181 +1,147 @@
 # Datadis Python SDK
 
-Un SDK Python sencillo y completo para interactuar con la API oficial de Datadis (Distribuidora de Información de Suministros de España).
+A comprehensive Python SDK for interacting with the official Datadis API (Distribuidora de Información de Suministros de España).
 
-## Características
+[![PyPI version](https://badge.fury.io/py/datadis-python.svg)](https://badge.fury.io/py/datadis-python)
+[![Python](https://img.shields.io/pypi/pyversions/datadis-python.svg)](https://pypi.org/project/datadis-python/)
+[![Documentation Status](https://readthedocs.org/projects/datadis-python/badge/?version=latest)](https://datadis-python.readthedocs.io/en/latest/?badge=latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-- 🔑 Autenticación automática y gestión de tokens
-- 📊 Acceso completo a todos los endpoints de Datadis
-- 🛡️ Validación de parámetros y manejo de errores
-- 📝 Type hints completos para mejor experiencia de desarrollo
-- 🐍 Compatible con Python 3.8+
-- ⚡ API v2 actualizada con endpoints reales
+## Overview
 
-## Instalación
+Datadis is the official Spanish platform that provides electricity supply data access. This SDK provides a simple and robust interface to interact with the Datadis API v2, allowing developers to retrieve consumption data, contract information, supply points, and more.
+
+## Features
+
+- **Automatic Authentication**: Token-based authentication with automatic renewal
+- **Complete API Coverage**: Access to all Datadis API v2 endpoints
+- **Type Safety**: Full type hints and Pydantic models for data validation
+- **Error Handling**: Comprehensive error handling with custom exceptions
+- **Rate Limiting**: Built-in retry logic and rate limit handling
+- **Python 3.8+**: Compatible with modern Python versions
+
+## Installation
+
+Install the package using pip:
 
 ```bash
 pip install datadis-python
 ```
 
-O usando Poetry:
+Or using Poetry:
 
 ```bash
 poetry add datadis-python
 ```
 
-## Uso Rápido
+## Quick Start
 
 ```python
 from datadis_python import DatadisClient
 
-# Inicializar cliente (NIF como username)
+# Initialize client with your NIF and password
 client = DatadisClient(
-    username="12345678A",  # Tu NIF registrado en Datadis
-    password="tu_password"
+    username="12345678A",  # Your NIF registered in Datadis
+    password="your_password"
 )
 
-# Obtener distribuidores disponibles
+# Get available distributors
 distributors = client.get_distributors()
 
-# Obtener puntos de suministro
+# Get supply points
 supplies = client.get_supplies()
 
-# Obtener detalle del contrato (requiere distributor_code)
-contract = client.get_contract_detail(
-    cups="ES001234567890123456AB",
-    distributor_code="2"  # Código del distribuidor
-)
-
-# Obtener consumos (formato mensual YYYY/MM)
-consumptions = client.get_consumption(
-    cups="ES001234567890123456AB",
-    distributor_code="2",
-    date_from="2024/01",  # Formato: YYYY/MM
-    date_to="2024/12",
-    measurement_type=0,   # 0=hora, 1=cuarto hora
-    point_type=1
-)
-
-# Obtener potencias máximas
-max_powers = client.get_max_power(
-    cups="ES001234567890123456AB", 
-    distributor_code="2",
-    date_from="2024/01",
-    date_to="2024/12"
-)
-```
-
-## Funcionalidades
-
-### Autenticación
-- Login automático con NIF y contraseña
-- Renovación automática de tokens
-- Manejo de sesiones seguras
-
-### Endpoints Disponibles (API v2)
-- ✅ **Distribuidores**: Lista de códigos de distribuidores disponibles
-- ✅ **Puntos de suministro**: Datos CUPS e información básica
-- ✅ **Contratos**: Información detallada de contratos de suministro
-- ✅ **Consumos**: Datos de consumo energético (horario/cuarto horario)
-- ✅ **Potencia máxima**: Mediciones de potencia demandada
-- ⏳ **Energía reactiva**: Datos de energía reactiva (próximamente)
-
-### Validaciones
-- Formato CUPS correcto (ES + 18 dígitos + 2 letras)
-- Rangos de fechas válidos (máximo 2 años hacia atrás)
-- Códigos de distribuidor válidos (1-8)
-- Parámetros requeridos por la API
-
-### Códigos de Distribuidor
-- 1: Viesgo
-- 2: E-distribución  
-- 3: E-redes
-- 4: ASEME
-- 5: UFD
-- 6: EOSA
-- 7: CIDE
-- 8: IDE
-
-## Documentación Completa
-
-### Cliente Principal
-
-```python
-from datadis_python import DatadisClient
-
-client = DatadisClient(
-    username="12345678A",  # NIF registrado en Datadis
-    password="password",
-    timeout=30,   # timeout en segundos
-    retries=3     # reintentos automáticos
-)
-```
-
-### Métodos Disponibles
-
-#### Obtener Distribuidores
-```python
-distributors = client.get_distributors()
-# Devuelve: ['2', '8'] (ejemplo)
-```
-
-#### Obtener Puntos de Suministro
-```python
-supplies = client.get_supplies()
-# Opcionalmente filtrar por distribuidor:
-supplies = client.get_supplies(distributor_code="2")
-```
-
-#### Obtener Detalle de Contrato
-```python
+# Get contract details
 contract = client.get_contract_detail(
     cups="ES001234567890123456AB",
     distributor_code="2"
 )
-# Devuelve información completa del contrato
-```
 
-#### Obtener Consumos
-```python
+# Get consumption data
 consumptions = client.get_consumption(
     cups="ES001234567890123456AB",
-    distributor_code="2", 
-    date_from="2024/01",      # Formato YYYY/MM
-    date_to="2024/02",
-    measurement_type=0,       # 0=hora, 1=cuarto hora
-    point_type=1             # Obtenido de supplies
-)
-```
-
-#### Obtener Potencias Máximas
-```python
-max_powers = client.get_max_power(
-    cups="ES001234567890123456AB",
     distributor_code="2",
-    date_from="2024/01",     # Formato YYYY/MM
-    date_to="2024/02"
+    date_from="2024/01",
+    date_to="2024/02",
+    measurement_type=0,
+    point_type=1
 )
 ```
 
-### Modelos de Datos
+## API Reference
 
-Los datos se devuelven como objetos Python tipados con Pydantic:
+### Authentication
 
-```python
-# Ejemplo de datos de suministro
-supply = supplies[0]
-print(f"CUPS: {supply.cups}")
-print(f"Dirección: {supply.address}")
-print(f"Distribuidor: {supply.distributor}")
+The client automatically handles authentication using your Datadis credentials:
 
-# Ejemplo de datos de consumo
-consumption = consumptions[0]
-print(f"Fecha: {consumption.date} {consumption.time}")
-print(f"Consumo: {consumption.consumption_kwh} kWh")
-print(f"Método: {consumption.obtain_method}")
-```
+- **Username**: Your NIF (National Identity Document) registered in Datadis
+- **Password**: Your Datadis account password
 
-### Manejo de Errores
+### Available Methods
+
+#### `get_distributors() -> List[str]`
+
+Retrieves the list of available distributor codes for your account.
+
+**Returns**: List of distributor codes (e.g., ['2', '8'])
+
+#### `get_supplies(distributor_code: Optional[str] = None) -> List[SupplyData]`
+
+Retrieves supply points information.
+
+**Parameters**:
+- `distributor_code` (optional): Filter by specific distributor
+
+**Returns**: List of SupplyData objects containing CUPS, address, and distributor information
+
+#### `get_contract_detail(cups: str, distributor_code: str) -> Optional[ContractData]`
+
+Retrieves detailed contract information for a specific CUPS.
+
+**Parameters**:
+- `cups`: CUPS code (format: ES + 18 digits + 2 letters)
+- `distributor_code`: Distributor code (1-8)
+
+**Returns**: ContractData object with complete contract information
+
+#### `get_consumption(cups: str, distributor_code: str, date_from: str, date_to: str, measurement_type: int = 0, point_type: Optional[int] = None) -> List[ConsumptionData]`
+
+Retrieves consumption data for a specific CUPS and date range.
+
+**Parameters**:
+- `cups`: CUPS code
+- `distributor_code`: Distributor code
+- `date_from`: Start date (format: YYYY/MM)
+- `date_to`: End date (format: YYYY/MM)
+- `measurement_type`: 0 for hourly, 1 for quarter-hourly
+- `point_type`: Point type (obtained from supplies)
+
+**Returns**: List of ConsumptionData objects
+
+#### `get_max_power(cups: str, distributor_code: str, date_from: str, date_to: str) -> List[MaxPowerData]`
+
+Retrieves maximum power demand data.
+
+**Parameters**:
+- `cups`: CUPS code
+- `distributor_code`: Distributor code
+- `date_from`: Start date (format: YYYY/MM)
+- `date_to`: End date (format: YYYY/MM)
+
+**Returns**: List of MaxPowerData objects
+
+### Data Models
+
+All API responses are returned as typed Pydantic models:
+
+- `SupplyData`: Supply point information
+- `ContractData`: Contract details
+- `ConsumptionData`: Energy consumption data
+- `MaxPowerData`: Maximum power demand data
+
+### Error Handling
+
+The SDK provides specific exceptions for different error scenarios:
 
 ```python
 from datadis_python.exceptions import DatadisError, AuthenticationError, APIError
@@ -183,90 +149,116 @@ from datadis_python.exceptions import DatadisError, AuthenticationError, APIErro
 try:
     supplies = client.get_supplies()
 except AuthenticationError:
-    print("Error de autenticación - verifica NIF y contraseña")
+    print("Authentication failed - check credentials")
 except APIError as e:
-    print(f"Error de API: {e.message} (código: {e.status_code})")
+    print(f"API error: {e.message} (status: {e.status_code})")
 except DatadisError as e:
-    print(f"Error general: {e}")
+    print(f"General error: {e}")
 ```
 
-### Limitaciones Importantes
+### Distributor Codes
 
-⚠️ **Limitaciones de la API de Datadis:**
-- Datos disponibles solo para los **últimos 2 años**
-- Requiere **código de distribuidor** para la mayoría de consultas
-- Formato de fechas específico: **YYYY/MM** (mensual) 
-- Rate limiting aplicado por Datadis
+- 1: Viesgo
+- 2: E-distribución
+- 3: E-redes
+- 4: ASEME
+- 5: UFD
+- 6: EOSA
+- 7: CIDE
+- 8: IDE
 
-## Desarrollo
+## API Limitations
 
-### Setup de Desarrollo
+**Important limitations imposed by the Datadis API**:
+
+- Data is available for the **last 2 years only**
+- Most operations require a **distributor code**
+- Date format must be **YYYY/MM** (monthly)
+- Rate limiting is applied by Datadis
+
+## Development
+
+### Setup
 
 ```bash
-# Clonar repositorio
-git clone https://github.com/tu-usuario/datadis-python.git
+# Clone the repository
+git clone https://github.com/your-username/datadis-python.git
 cd datadis-python
 
-# Instalar con Poetry
+# Install with Poetry
 poetry install
 
-# Activar entorno virtual
+# Activate virtual environment
 poetry shell
-
-# Ejecutar tests
-poetry run pytest
-
-# Ejecutar ejemplo
-poetry run python examples/basic_usage.py
 ```
 
-### Ejecutar Tests
+### Testing
 
 ```bash
-# Tests unitarios
-poetry run pytest tests/
+# Run tests
+poetry run pytest
 
-# Tests con cobertura
-poetry run pytest --cov=datadis_python tests/
+# Run tests with coverage
+poetry run pytest --cov=datadis_python
+
+# Run specific test file
+poetry run pytest tests/test_basic.py -v
 ```
 
-## Contribuir
+### Code Quality
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -am 'Añade nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Abre un Pull Request
+```bash
+# Format code
+poetry run black .
+
+# Sort imports
+poetry run isort .
+
+# Type checking
+poetry run mypy datadis_python
+
+# Linting
+poetry run flake8 datadis_python
+```
+
+## Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes and add tests
+4. Ensure all tests pass
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+Please ensure your code follows the existing style and includes appropriate tests.
 
 ## Changelog
 
-### v0.1.0 (Actual)
-- ✅ Implementación inicial basada en API v2 real de Datadis
-- ✅ Endpoints: distribuidores, suministros, contratos, consumos, potencia máxima
-- ✅ Validaciones completas de parámetros
-- ✅ Modelos tipados con Pydantic
-- ✅ Manejo robusto de errores
-- ✅ Documentación completa
+### 0.1.0 (2024-01-XX)
 
-## Roadmap
+- Initial release
+- Full implementation of Datadis API v2
+- Support for all major endpoints
+- Comprehensive error handling and validation
+- Complete test suite and documentation
 
-- [ ] Endpoint de energía reactiva
-- [ ] Cliente asíncrono (async/await)
-- [ ] Cache de respuestas
-- [ ] CLI para uso desde terminal
-- [ ] Exportación a CSV/Excel
-- [ ] Integración con pandas
+## Documentation
 
-## Licencia
+Complete documentation is available at [https://datadis-python.readthedocs.io/](https://datadis-python.readthedocs.io/)
 
-MIT License - ver archivo [LICENSE](LICENSE) para detalles.
+## License
 
-## Soporte
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- 📚 [Documentación oficial de Datadis](https://datadis.es)
-- 🐛 [Issues en GitHub](https://github.com/tu-usuario/datadis-python/issues)
-- 💬 [Discusiones](https://github.com/tu-usuario/datadis-python/discussions)
+## Support
 
-## Descargo de Responsabilidad
+- **Documentation**: [https://datadis-python.readthedocs.io/](https://datadis-python.readthedocs.io/)
+- **Issues**: [GitHub Issues](https://github.com/your-username/datadis-python/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/datadis-python/discussions)
 
-Este proyecto no está oficialmente afiliado con Datadis. Es una implementación independiente del SDK para facilitar el acceso a su API pública siguiendo la documentación oficial disponible.
+## Disclaimer
+
+This project is not officially affiliated with Datadis. It is an independent implementation created to facilitate access to the public Datadis API following the official documentation.
