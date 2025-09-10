@@ -13,18 +13,19 @@ def validate_cups(cups: str) -> str:
     """
     Valida formato CUPS (Código Universal del Punto de Suministro)
     
-    Formato: ES + 16 dígitos + 2 letras (ej: ES001234567890123456AB)
+    Formato real: ES + 16 dígitos + 4 caracteres alfanuméricos (ej: ES0031607515707001RC0F)
     """
     if not cups:
         raise ValidationError("CUPS no puede estar vacío")
     
     cups = cups.upper().strip()
     
-    cups_pattern = r"^ES\d{18}[A-Z]{2}$"
+    # Formato real observado: ES + 16 dígitos + 4 caracteres alfanuméricos
+    cups_pattern = r"^ES\d{16}[A-Z0-9]{4}$"
     
     if not re.match(cups_pattern, cups):
         raise ValidationError(
-            "Formato CUPS inválido. Debe ser: ES + 18 dígitos + 2 letras mayúsculas"
+            "Formato CUPS inválido. Debe ser: ES + 16 dígitos + 4 caracteres alfanuméricos"
         )
     
     return cups

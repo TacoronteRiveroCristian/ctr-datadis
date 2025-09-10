@@ -3,7 +3,7 @@ Cliente actualizado para la API de Datadis (versión corregida)
 """
 
 import time
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 import requests
 from datetime import datetime
 
@@ -69,8 +69,9 @@ class DatadisClient:
         endpoint: str, 
         data: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, Any]] = None,
-        authenticated: bool = True
-    ) -> Dict[str, Any]:
+        authenticated: bool = True,
+        use_form_data: bool = False
+    ) -> Union[Dict[str, Any], str]:
         """
         Realiza una petición HTTP a la API
         
@@ -80,9 +81,10 @@ class DatadisClient:
             data: Datos para el body de la petición
             params: Parámetros de query string
             authenticated: Si requiere autenticación
+            use_form_data: Si usar form data en lugar de JSON
             
         Returns:
-            Respuesta JSON de la API
+            Respuesta JSON de la API o texto plano
         """
         if authenticated:
             self._ensure_authenticated()
@@ -93,26 +95,53 @@ class DatadisClient:
         else:
             url = f"{self.api_base}{endpoint}"
         
+        # Agregar delay entre peticiones para evitar rate limiting
+        # (excepto para autenticación)
+        if not endpoint.startswith('/nikola-auth'):
+            time.sleep(0.5)  # 500ms entre peticiones normales
+        
         # Reintentos automáticos
         for attempt in range(self.retries + 1):
             try:
-                response = self.session.request(
-                    method=method,
-                    url=url,
-                    json=data,
-                    params=params,
-                    timeout=self.timeout
-                )
+                # Configurar la petición según el tipo de datos
+                if use_form_data and data:
+                    # Para autenticación usar form data con headers específicos
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json',
+                        'User-Agent': 'datadis-python-sdk/0.1.0'
+                    }
+                    response = requests.request(
+                        method=method,
+                        url=url,
+                        data=data,
+                        params=params,
+                        headers=headers,
+                        timeout=self.timeout
+                    )
+                else:
+                    # Para peticiones normales usar la sesión con JSON
+                    response = self.session.request(
+                        method=method,
+                        url=url,
+                        json=data,
+                        params=params,
+                        timeout=self.timeout
+                    )
                 
                 # Manejar respuestas de la API
                 if response.status_code == 200:
+                    # Para autenticación, la respuesta es texto plano (JWT)
+                    if endpoint.startswith('/nikola-auth'):
+                        return response.text.strip()
+                    
+                    # Para otras peticiones, esperamos JSON
                     try:
                         return response.json()
                     except ValueError:
-                        raise APIError(
-                            f"Respuesta no válida del servidor: {response.text}",
-                            response.status_code
-                        )
+                        # Si no es JSON válido, devolver como texto
+                        return response.text
+                        
                 elif response.status_code == 401:
                     # Token expirado, intentar renovar
                     self.token = None
@@ -122,11 +151,13 @@ class DatadisClient:
                     else:
                         raise AuthenticationError("Credenciales inválidas")
                 elif response.status_code == 429:
-                    # Rate limiting
+                    # Rate limiting - esperar más tiempo progresivamente
                     if attempt < self.retries:
-                        time.sleep(2 ** attempt)
+                        wait_time = min(30, (2 ** attempt) * 2)  # Máximo 30 segundos
+                        print(f"Rate limit alcanzado. Esperando {wait_time} segundos...")
+                        time.sleep(wait_time)
                         continue
-                    raise APIError("Límite de peticiones excedido", 429)
+                    raise APIError("Límite de peticiones excedido después de varios reintentos", 429)
                 else:
                     # Otros errores HTTP
                     error_msg = f"Error HTTP {response.status_code}"
@@ -134,8 +165,12 @@ class DatadisClient:
                         error_data = response.json()
                         if 'message' in error_data:
                             error_msg = error_data['message']
+                        elif 'error' in error_data:
+                            error_msg = error_data['error']
                     except ValueError:
-                        pass
+                        # Si no es JSON, usar el texto de la respuesta
+                        if response.text:
+                            error_msg = response.text
                     
                     raise APIError(error_msg, response.status_code)
                     
@@ -154,23 +189,26 @@ class DatadisClient:
         }
         
         try:
-            response = self._make_request(
+            # La API de Datadis requiere form data, no JSON
+            token = self._make_request(
                 "POST", 
                 API_ENDPOINTS["login"], 
                 data=login_data,
-                authenticated=False
+                authenticated=False,
+                use_form_data=True
             )
             
-            if "token" in response:
-                self.token = response["token"]
+            # La respuesta es directamente el token JWT como texto
+            if isinstance(token, str) and token:
+                self.token = token
                 self.session.headers["Authorization"] = f"Bearer {self.token}"
-                # Asumir que el token expira en 1 hora
-                self.token_expiry = time.time() + 3600
+                # Asumir que el token expira en 24 horas (valor típico para JWT)
+                self.token_expiry = time.time() + (24 * 3600)
             else:
-                raise AuthenticationError("No se recibió token en la respuesta")
+                raise AuthenticationError("No se recibió token válido en la respuesta")
                 
         except APIError as e:
-            if e.status_code == 401:
+            if e.status_code == 401 or e.status_code == 500:
                 raise AuthenticationError("Credenciales inválidas")
             raise
     
@@ -182,75 +220,64 @@ class DatadisClient:
             (self.token_expiry and time.time() >= self.token_expiry - 300)):  # Renovar 5 min antes
             self._authenticate()
     
-    def get_distributors(self) -> List[str]:
+    def get_distributors(self) -> List[Dict[str, Any]]:
         """
-        Obtiene la lista de códigos de distribuidores disponibles
+        Obtiene la lista de distribuidores disponibles usando API v1
         
         Returns:
-            Lista de códigos de distribuidoras
+            Lista de distribuidores (raw response de la API)
         """
-        response = self._make_request("GET", API_ENDPOINTS["distributors_v2"])
+        response = self._make_request("GET", API_ENDPOINTS["distributors"])
         
-        if isinstance(response, dict) and "distExistenceUser" in response:
-            distributor_codes = response["distExistenceUser"].get("distributorCodes", [])
-            return distributor_codes
+        # Devolver la respuesta directa de la API v1
+        if isinstance(response, list):
+            return response
+        elif isinstance(response, dict):
+            return [response] if response else []
         
         return []
     
-    def get_supplies(self, distributor_code: Optional[str] = None) -> List[SupplyData]:
+    def get_supplies(self) -> List[Dict[str, Any]]:
         """
-        Obtiene la lista de puntos de suministro disponibles
+        Obtiene la lista de puntos de suministro disponibles usando API v1
         
-        Args:
-            distributor_code: Código del distribuidor (opcional)
-            
         Returns:
-            Lista de datos de suministros
+            Lista de datos de suministros (raw response de la API)
         """
-        params = {}
-        if distributor_code:
-            params["distributorCode"] = validate_distributor_code(distributor_code)
-            
-        response = self._make_request("GET", API_ENDPOINTS["supplies_v2"], params=params)
+        response = self._make_request("GET", API_ENDPOINTS["supplies"])
         
-        supplies = []
-        if isinstance(response, dict) and "supplies" in response:
-            for supply_data in response["supplies"]:
-                supplies.append(SupplyData(**supply_data))
+        # Devolver la respuesta directa de la API v1
+        if isinstance(response, list):
+            return response
+        elif isinstance(response, dict) and "supplies" in response:
+            return response["supplies"]
         
-        return supplies
+        return []
     
     def get_contract_detail(
         self,
         cups: str,
         distributor_code: str
-    ) -> Optional[ContractData]:
+    ) -> Dict[str, Any]:
         """
-        Obtiene el detalle del contrato para un CUPS específico
+        Obtiene el detalle del contrato para un CUPS específico usando API v1
         
         Args:
             cups: Código CUPS del punto de suministro
             distributor_code: Código del distribuidor
             
         Returns:
-            Datos del contrato o None si no se encuentra
+            Datos del contrato (raw response de la API)
         """
-        cups = validate_cups(cups)
-        distributor_code = validate_distributor_code(distributor_code)
-        
         params = {
             "cups": cups,
             "distributorCode": distributor_code
         }
         
-        response = self._make_request("GET", API_ENDPOINTS["contracts_v2"], params=params)
+        response = self._make_request("GET", API_ENDPOINTS["contracts"], params=params)
         
-        if isinstance(response, dict) and "contract" in response:
-            contracts = response["contract"]
-            if contracts:
-                return ContractData(**contracts[0])
-        
-        return None
+        # Devolver la respuesta directa de la API v1
+        return response if isinstance(response, dict) else {}
     
     def get_consumption(
         self,
@@ -260,9 +287,9 @@ class DatadisClient:
         date_to: str,
         measurement_type: int = 0,
         point_type: Optional[int] = None
-    ) -> List[ConsumptionData]:
+    ) -> List[Dict[str, Any]]:
         """
-        Obtiene datos de consumo para un CUPS y rango de fechas
+        Obtiene datos de consumo para un CUPS y rango de fechas usando API v1
         
         Args:
             cups: Código CUPS del punto de suministro
@@ -273,13 +300,8 @@ class DatadisClient:
             point_type: Tipo de punto (obtenido de supplies)
             
         Returns:
-            Lista de datos de consumo
+            Lista de datos de consumo (raw response de la API)
         """
-        cups = validate_cups(cups)
-        distributor_code = validate_distributor_code(distributor_code)
-        date_from, date_to = validate_date_range(date_from, date_to, "monthly")
-        measurement_type = validate_measurement_type(measurement_type)
-        
         params = {
             "cups": cups,
             "distributorCode": distributor_code,
@@ -289,16 +311,17 @@ class DatadisClient:
         }
         
         if point_type is not None:
-            params["pointType"] = str(validate_point_type(point_type))
+            params["pointType"] = str(point_type)
         
-        response = self._make_request("GET", API_ENDPOINTS["consumption_v2"], params=params)
+        response = self._make_request("GET", API_ENDPOINTS["consumption"], params=params)
         
-        consumptions = []
-        if isinstance(response, dict) and "timeCurve" in response:
-            for consumption_data in response["timeCurve"]:
-                consumptions.append(ConsumptionData(**consumption_data))
+        # Devolver la respuesta directa de la API v1
+        if isinstance(response, list):
+            return response
+        elif isinstance(response, dict) and "timeCurve" in response:
+            return response["timeCurve"]
         
-        return consumptions
+        return []
     
     def get_max_power(
         self,
@@ -306,9 +329,9 @@ class DatadisClient:
         distributor_code: str,
         date_from: str,
         date_to: str
-    ) -> List[MaxPowerData]:
+    ) -> List[Dict[str, Any]]:
         """
-        Obtiene datos de potencia máxima para un CUPS y rango de fechas
+        Obtiene datos de potencia máxima para un CUPS y rango de fechas usando API v1
         
         Args:
             cups: Código CUPS del punto de suministro
@@ -317,12 +340,8 @@ class DatadisClient:
             date_to: Fecha final (YYYY/MM)
             
         Returns:
-            Lista de datos de potencia máxima
+            Lista de datos de potencia máxima (raw response de la API)
         """
-        cups = validate_cups(cups)
-        distributor_code = validate_distributor_code(distributor_code)
-        date_from, date_to = validate_date_range(date_from, date_to, "monthly")
-        
         params = {
             "cups": cups,
             "distributorCode": distributor_code,
@@ -330,14 +349,15 @@ class DatadisClient:
             "endDate": date_to
         }
         
-        response = self._make_request("GET", API_ENDPOINTS["max_power_v2"], params=params)
+        response = self._make_request("GET", API_ENDPOINTS["max_power"], params=params)
         
-        max_powers = []
-        if isinstance(response, dict) and "maxPower" in response:
-            for power_data in response["maxPower"]:
-                max_powers.append(MaxPowerData(**power_data))
+        # Devolver la respuesta directa de la API v1
+        if isinstance(response, list):
+            return response
+        elif isinstance(response, dict) and "maxPower" in response:
+            return response["maxPower"]
         
-        return max_powers
+        return []
     
     def close(self) -> None:
         """
