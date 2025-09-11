@@ -16,6 +16,10 @@ from ...utils.validators import (
 from ...models import (
     ConsumptionData, ContractData, SupplyData, MaxPowerData
 )
+from ...models.contract import (
+    ContractResponse, ConsumptionResponse, SuppliesResponse, 
+    MaxPowerResponse, DistributorsResponse
+)
 
 
 class DatadisClientV2(BaseDatadisClient):
@@ -29,7 +33,7 @@ class DatadisClientV2(BaseDatadisClient):
     - Type hints completos para IDE
     """
     
-    def get_supplies(self, distributor_code: Optional[str] = None) -> List[SupplyData]:
+    def get_supplies(self, distributor_code: Optional[str] = None) -> SuppliesResponse:
         """
         Obtiene la lista de puntos de suministro disponibles
         
@@ -37,7 +41,7 @@ class DatadisClientV2(BaseDatadisClient):
             distributor_code: Código del distribuidor (opcional)
             
         Returns:
-            Lista de objetos SupplyData tipados
+            SuppliesResponse con supplies y errores de distribuidor (datos raw)
         """
         params = {}
         if distributor_code:
@@ -46,35 +50,63 @@ class DatadisClientV2(BaseDatadisClient):
         response = self.make_authenticated_request("GET", API_V2_ENDPOINTS["supplies"], params=params)
         
         supplies = []
-        if isinstance(response, dict) and "supplies" in response:
-            for supply_data in response["supplies"]:
-                supplies.append(SupplyData(**supply_data))
-        elif isinstance(response, list):
-            for supply_data in response:
-                supplies.append(SupplyData(**supply_data))
+        distributor_errors = []
         
-        return supplies
+        if isinstance(response, dict):
+            # Procesar supplies
+            if "supplies" in response:
+                supply_list = response["supplies"]
+                if isinstance(supply_list, list):
+                    supplies = supply_list  # Raw data sin validación
+            
+            # Procesar errores de distribuidor
+            if "distributorError" in response:
+                error_list = response["distributorError"]
+                if isinstance(error_list, list):
+                    distributor_errors = error_list  # Raw data sin validación
+        
+        return SuppliesResponse(
+            supplies=supplies,
+            distributor_errors=distributor_errors
+        )
     
-    def get_distributors(self) -> List[str]:
+    def get_distributors(self) -> DistributorsResponse:
         """
         Obtiene la lista de códigos de distribuidores disponibles
         
         Returns:
-            Lista de códigos de distribuidoras
+            DistributorsResponse con códigos y errores de distribuidor (datos raw)
         """
         response = self.make_authenticated_request("GET", API_V2_ENDPOINTS["distributors"])
         
-        if isinstance(response, dict) and "distExistenceUser" in response:
-            distributor_codes = response["distExistenceUser"].get("distributorCodes", [])
-            return distributor_codes
+        distributor_codes = []
+        distributor_errors = []
         
-        return []
+        if isinstance(response, dict):
+            # Procesar códigos de distribuidores
+            if "distExistenceUser" in response:
+                dist_data = response["distExistenceUser"]
+                if isinstance(dist_data, dict) and "distributorCodes" in dist_data:
+                    codes = dist_data["distributorCodes"]
+                    if isinstance(codes, list):
+                        distributor_codes = codes
+            
+            # Procesar errores de distribuidor
+            if "distributorError" in response:
+                error_list = response["distributorError"]
+                if isinstance(error_list, list):
+                    distributor_errors = error_list  # Raw data sin validación
+        
+        return DistributorsResponse(
+            distributor_codes=distributor_codes,
+            distributor_errors=distributor_errors
+        )
     
     def get_contract_detail(
         self,
         cups: str,
         distributor_code: str
-    ) -> Optional[ContractData]:
+    ) -> ContractResponse:
         """
         Obtiene el detalle del contrato para un CUPS específico
         
@@ -83,7 +115,7 @@ class DatadisClientV2(BaseDatadisClient):
             distributor_code: Código del distribuidor
             
         Returns:
-            Objeto ContractData tipado o None si no se encuentra
+            ContractResponse con contratos y errores de distribuidor (datos raw)
         """
         cups = validate_cups(cups)
         distributor_code = validate_distributor_code(distributor_code)
@@ -95,12 +127,28 @@ class DatadisClientV2(BaseDatadisClient):
         
         response = self.make_authenticated_request("GET", API_V2_ENDPOINTS["contracts"], params=params)
         
-        if isinstance(response, dict) and "contract" in response:
-            contracts = response["contract"]
-            if contracts:
-                return ContractData(**contracts[0])
+        contracts = []
+        distributor_errors = []
         
-        return None
+        if isinstance(response, dict):
+            # Procesar contratos
+            if "contract" in response:
+                contract_list = response["contract"]
+                if isinstance(contract_list, list):
+                    contracts = contract_list  # Raw data sin validación
+                elif isinstance(contract_list, dict) and contract_list:
+                    contracts = [contract_list]  # Envolver dict en lista
+            
+            # Procesar errores de distribuidor
+            if "distributorError" in response:
+                error_list = response["distributorError"]
+                if isinstance(error_list, list):
+                    distributor_errors = error_list  # Raw data sin validación
+        
+        return ContractResponse(
+            contracts=contracts,
+            distributor_errors=distributor_errors
+        )
     
     def get_consumption(
         self,
@@ -110,7 +158,7 @@ class DatadisClientV2(BaseDatadisClient):
         date_to: str,
         measurement_type: int = 0,
         point_type: Optional[int] = None
-    ) -> List[ConsumptionData]:
+    ) -> ConsumptionResponse:
         """
         Obtiene datos de consumo para un CUPS y rango de fechas
         
@@ -123,7 +171,7 @@ class DatadisClientV2(BaseDatadisClient):
             point_type: Tipo de punto (obtenido de supplies)
             
         Returns:
-            Lista de objetos ConsumptionData tipados
+            ConsumptionResponse con datos de consumo y errores de distribuidor (datos raw)
         """
         cups = validate_cups(cups)
         distributor_code = validate_distributor_code(distributor_code)
@@ -143,12 +191,26 @@ class DatadisClientV2(BaseDatadisClient):
         
         response = self.make_authenticated_request("GET", API_V2_ENDPOINTS["consumption"], params=params)
         
-        consumptions = []
-        if isinstance(response, dict) and "timeCurve" in response:
-            for consumption_data in response["timeCurve"]:
-                consumptions.append(ConsumptionData(**consumption_data))
+        consumption_data = []
+        distributor_errors = []
         
-        return consumptions
+        if isinstance(response, dict):
+            # Procesar datos de consumo
+            if "timeCurve" in response:
+                time_curve = response["timeCurve"]
+                if isinstance(time_curve, list):
+                    consumption_data = time_curve  # Raw data sin validación
+            
+            # Procesar errores de distribuidor
+            if "distributorError" in response:
+                error_list = response["distributorError"]
+                if isinstance(error_list, list):
+                    distributor_errors = error_list  # Raw data sin validación
+        
+        return ConsumptionResponse(
+            consumption_data=consumption_data,
+            distributor_errors=distributor_errors
+        )
     
     def get_max_power(
         self,
@@ -156,7 +218,7 @@ class DatadisClientV2(BaseDatadisClient):
         distributor_code: str,
         date_from: str,
         date_to: str
-    ) -> List[MaxPowerData]:
+    ) -> MaxPowerResponse:
         """
         Obtiene datos de potencia máxima para un CUPS y rango de fechas
         
@@ -167,7 +229,7 @@ class DatadisClientV2(BaseDatadisClient):
             date_to: Fecha final (YYYY/MM)
             
         Returns:
-            Lista de objetos MaxPowerData tipados
+            MaxPowerResponse con datos de potencia máxima y errores de distribuidor (datos raw)
         """
         cups = validate_cups(cups)
         distributor_code = validate_distributor_code(distributor_code)
@@ -182,12 +244,26 @@ class DatadisClientV2(BaseDatadisClient):
         
         response = self.make_authenticated_request("GET", API_V2_ENDPOINTS["max_power"], params=params)
         
-        max_powers = []
-        if isinstance(response, dict) and "maxPower" in response:
-            for power_data in response["maxPower"]:
-                max_powers.append(MaxPowerData(**power_data))
+        max_power_data = []
+        distributor_errors = []
         
-        return max_powers
+        if isinstance(response, dict):
+            # Procesar datos de potencia máxima
+            if "maxPower" in response:
+                max_power = response["maxPower"]
+                if isinstance(max_power, list):
+                    max_power_data = max_power  # Raw data sin validación
+            
+            # Procesar errores de distribuidor
+            if "distributorError" in response:
+                error_list = response["distributorError"]
+                if isinstance(error_list, list):
+                    distributor_errors = error_list  # Raw data sin validación
+        
+        return MaxPowerResponse(
+            max_power_data=max_power_data,
+            distributor_errors=distributor_errors
+        )
     
     def get_reactive_data(
         self,

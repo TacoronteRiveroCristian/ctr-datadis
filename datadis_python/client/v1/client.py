@@ -73,7 +73,7 @@ class DatadisClientV1(BaseDatadisClient):
         self,
         cups: str,
         distributor_code: str
-    ) -> Dict[str, Any]:
+    ) -> List[Dict[str, Any]]:
         """
         Obtiene el detalle del contrato para un CUPS específico
         
@@ -82,7 +82,7 @@ class DatadisClientV1(BaseDatadisClient):
             distributor_code: Código del distribuidor (1-8)
             
         Returns:
-            Datos del contrato como diccionario raw
+            Lista de datos del contrato como diccionarios raw (según API spec)
         """
         params = {
             "cups": cups,
@@ -95,8 +95,17 @@ class DatadisClientV1(BaseDatadisClient):
             params=params
         )
         
-        # Devolver la respuesta directa
-        return response if isinstance(response, dict) else {}
+        # Según la documentación de la API, siempre debe devolver una lista de diccionarios
+        if isinstance(response, list):
+            # Ya es una lista, devolverla directamente
+            return response
+        elif isinstance(response, dict):
+            # Si viene un objeto, envolverlo en una lista
+            if response:  # Solo si tiene contenido
+                return [response]
+        
+        # Si no hay datos válidos, devolver lista vacía
+        return []
     
     def get_consumption(
         self,

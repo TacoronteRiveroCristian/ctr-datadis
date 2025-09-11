@@ -2,7 +2,8 @@
 Modelos de datos para contratos
 """
 
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
+from dataclasses import dataclass
 from pydantic import BaseModel, Field
 
 
@@ -109,3 +110,41 @@ class ContractData(BaseModel):
     
     class Config:
         allow_population_by_field_name = True
+
+@dataclass
+class DistributorError:
+    """Error de distribuidor según API de Datadis"""
+    distributor_code: str
+    distributor_name: str
+    error_code: str
+    error_description: str
+
+@dataclass
+class ContractResponse:
+    """Respuesta completa del endpoint get_contract_detail V2 - Raw data"""
+    contracts: List[Dict[str, Any]]  # Raw dicts from API
+    distributor_errors: List[Dict[str, Any]]  # Raw error dicts
+
+@dataclass
+class ConsumptionResponse:
+    """Respuesta completa del endpoint get_consumption V2 - Raw data"""
+    consumption_data: List[Dict[str, Any]]  # Raw dicts from API
+    distributor_errors: List[Dict[str, Any]]  # Raw error dicts
+
+@dataclass
+class SuppliesResponse:
+    """Respuesta completa del endpoint get_supplies V2 - Raw data"""
+    supplies: List[Dict[str, Any]]  # Raw supply dicts from API
+    distributor_errors: List[Dict[str, Any]]  # Raw error dicts
+
+@dataclass
+class MaxPowerResponse:
+    """Respuesta completa del endpoint get_max_power V2 - Raw data"""
+    max_power_data: List[Dict[str, Any]]  # Raw max power dicts from API
+    distributor_errors: List[Dict[str, Any]]  # Raw error dicts
+
+@dataclass
+class DistributorsResponse:
+    """Respuesta completa del endpoint get_distributors V2 - Raw data"""
+    distributor_codes: List[str]  # List of distributor codes
+    distributor_errors: List[Dict[str, Any]]  # Raw error dicts

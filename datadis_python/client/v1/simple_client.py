@@ -173,12 +173,23 @@ class SimpleDatadisClientV1:
             return [response] if response else []
         return []
     
-    def get_contract_detail(self, cups: str, distributor_code: str) -> Dict[str, Any]:
-        """Obtiene detalle del contrato"""
+    def get_contract_detail(self, cups: str, distributor_code: str) -> List[Dict[str, Any]]:
+        """Obtiene detalle del contrato - devuelve lista de diccionarios según API spec"""
         print(f"📋 Obteniendo contrato para {cups}...")
         params = {"cups": cups, "distributorCode": distributor_code}
         response = self._make_authenticated_request(API_V1_ENDPOINTS["contracts"], params)
-        return response if isinstance(response, dict) else {}
+        
+        # Según la documentación de la API, siempre debe devolver una lista de diccionarios
+        if isinstance(response, list):
+            # Ya es una lista, devolverla directamente
+            return response
+        elif isinstance(response, dict):
+            # Si viene un objeto, envolverlo en una lista
+            if response:  # Solo si tiene contenido
+                return [response]
+        
+        # Si no hay datos válidos, devolver lista vacía
+        return []
     
     def get_consumption(
         self, 
