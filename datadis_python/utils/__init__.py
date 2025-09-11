@@ -6,6 +6,7 @@ from .constants import (
     DEFAULT_TIMEOUT, MAX_RETRIES
 )
 from .http import HTTPClient
+from .text_utils import normalize_text, normalize_api_response
 
 __all__ = [
     # Validadores
@@ -26,5 +27,9 @@ __all__ = [
     "MAX_RETRIES",
     
     # Cliente HTTP
-    "HTTPClient"
+    "HTTPClient",
+    
+    # Utilidades de texto
+    "normalize_text",
+    "normalize_api_response"
 ]

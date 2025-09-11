@@ -116,7 +116,10 @@ class HTTPClient:
             
             # Para otras peticiones, esperamos JSON
             try:
-                return response.json()
+                json_response = response.json()
+                # Normalizar texto para evitar problemas de caracteres especiales
+                from ..utils.text_utils import normalize_api_response
+                return normalize_api_response(json_response)
             except ValueError:
                 # Si no es JSON válido, devolver como texto
                 return response.text

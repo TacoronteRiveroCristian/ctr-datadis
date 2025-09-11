@@ -7,6 +7,7 @@ import requests
 from typing import List, Dict, Any, Optional
 
 from ...utils.constants import API_V1_ENDPOINTS, AUTH_ENDPOINTS, DATADIS_BASE_URL, DATADIS_API_BASE
+from ...utils.text_utils import normalize_api_response
 from ...exceptions import DatadisError, AuthenticationError, APIError
 
 
@@ -109,7 +110,9 @@ class SimpleDatadisClientV1:
                 
                 if response.status_code == 200:
                     print(f"✅ Respuesta exitosa ({len(response.text)} chars)")
-                    return response.json()
+                    json_response = response.json()
+                    # Normalizar texto para evitar problemas de caracteres especiales
+                    return normalize_api_response(json_response)
                 elif response.status_code == 401:
                     # Token expirado, renovar
                     print("🔄 Token expirado, renovando...")

@@ -63,6 +63,12 @@ poetry run pre-commit run --all-files    # Run all pre-commit hooks
 - **Import Sort**: isort with Black profile
 - **Linter**: flake8 with flake8-docstrings
 
+### Text Encoding and Character Handling
+- **No Accents**: Remove all accents and tildes from text data to avoid encoding issues
+- **ASCII Safe**: Convert "ñ" to "n", "á" to "a", "é" to "e", "í" to "i", "ó" to "o", "ú" to "u"
+- **Encoding**: Always use UTF-8 encoding but normalize special characters
+- **API Responses**: Apply text normalization to all string fields from Datadis API
+
 ### Documentation
 - **Format**: Google-style docstrings for all public APIs
 - **Required**: Args, Returns, Raises sections
