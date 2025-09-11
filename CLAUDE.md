@@ -70,9 +70,27 @@ poetry run pre-commit run --all-files    # Run all pre-commit hooks
 - **API Responses**: Apply text normalization to all string fields from Datadis API
 
 ### Documentation
-- **Format**: Google-style docstrings for all public APIs
+- **Format**: Sphinx-style docstrings for all public APIs
 - **Required**: Args, Returns, Raises sections
 - **Type Hints**: Mandatory for all function parameters and returns
+
+#### Ejemplo de docstring en formato Sphinx:
+```python
+    def ejemplo_funcion(param1: int, param2: str) -> bool:
+        """
+        Descripcion breve de la funcion.
+
+        :param param1: Descripcion del primer parametro.
+        :type param1: int
+        :param param2: Descripcion del segundo parametro.
+        :type param2: str
+        :return: Descripcion del valor de retorno.
+        :rtype: bool
+        :raises ValueError: Explicacion de cuando se lanza esta excepcion.
+        """
+        # Implementación de la función
+        pass
+```
 
 ### Testing
 - **Framework**: pytest with coverage

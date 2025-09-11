@@ -8,45 +8,44 @@ import sys
 
 # -- Path setup --------------------------------------------------------------
 
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath(".."))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Datadis Python SDK'
-copyright = '2024, Cristian Tacoronte Rivero'
-author = 'Cristian Tacoronte Rivero'
-release = '0.1.0'
+project = "Datadis Python SDK"
+copyright = "2024, Cristian Tacoronte Rivero"
+release = "0.1.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    'sphinx_rtd_theme',
-    'myst_parser',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "sphinx_rtd_theme",
+    "myst_parser",
 ]
 
-templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+html_theme = "sphinx_rtd_theme"
+html_static_path = ["_static"]
 
 # -- Options for autodoc -----------------------------------------------------
 
 autodoc_default_options = {
-    'members': True,
-    'undoc-members': True,
-    'show-inheritance': True,
-    'special-members': '__init__',
+    "members": True,
+    "undoc-members": True,
+    "show-inheritance": True,
+    "special-members": "__init__",
 }
 
 # -- Options for napoleon ----------------------------------------------------
@@ -66,9 +65,9 @@ napoleon_use_rtype = True
 # -- Options for intersphinx -------------------------------------------------
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'requests': ('https://requests.readthedocs.io/en/stable/', None),
-    'pydantic': ('https://docs.pydantic.dev/', None),
+    "python": ("https://docs.python.org/3", None),
+    "requests": ("https://requests.readthedocs.io/en/stable/", None),
+    "pydantic": ("https://docs.pydantic.dev/", None),
 }
 
 # -- Options for todo extension ----------------------------------------------

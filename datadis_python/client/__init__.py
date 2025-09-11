@@ -1,6 +1,11 @@
 """
-Clientes para la API de Datladis - Todas las versiones
+Clientes para la API de Datadis - Todas las versiones.
+
+Este módulo proporciona clientes para interactuar con las diferentes versiones de la API de Datadis.
 """
+
+# Cliente legacy (compatibilidad hacia atrás)
+from .datadis_client import DatadisClient as DatadisClientLegacy
 
 # Cliente unificado (recomendado)
 from .unified import DatadisClient
@@ -9,12 +14,9 @@ from .unified import DatadisClient
 from .v1 import DatadisClientV1
 from .v2 import DatadisClientV2
 
-# Cliente legacy (compatibilidad hacia atrás)
-from .datadis_client import DatadisClient as DatadisClientLegacy
-
 __all__ = [
-    "DatadisClient",          # Cliente unificado (recomendado)
-    "DatadisClientV1",        # API v1 (raw responses)
-    "DatadisClientV2",        # API v2 (typed responses) 
-    "DatadisClientLegacy",    # Cliente original (deprecated)
+    "DatadisClient",  # Cliente unificado (recomendado)
+    "DatadisClientV1",  # API v1 (raw responses)
+    "DatadisClientV2",  # API v2 (typed responses)
+    "DatadisClientLegacy",  # Cliente original (deprecated)
 ]
