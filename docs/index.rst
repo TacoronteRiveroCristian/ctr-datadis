@@ -13,6 +13,12 @@ A comprehensive Python SDK for interacting with the official Datadis API (Distri
    examples
    changelog
 
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference:
+
+   modules
+
 Overview
 --------
 
