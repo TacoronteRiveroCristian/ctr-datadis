@@ -4,6 +4,7 @@ Excepciones personalizadas para el SDK de Datadis.
 :author: TacoronteRiveroCristian
 """
 
+
 class DatadisError(Exception):
     """Base exception for Datadis SDK"""
 

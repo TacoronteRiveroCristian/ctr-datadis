@@ -25,9 +25,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.todo",
     "sphinx_rtd_theme",
-    "myst_parser",
 ]
 
 templates_path = ["_templates"]
@@ -67,26 +65,4 @@ napoleon_use_rtype = True
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "requests": ("https://requests.readthedocs.io/en/stable/", None),
-    "pydantic": ("https://docs.pydantic.dev/", None),
 }
-
-# -- Options for todo extension ----------------------------------------------
-
-todo_include_todos = True
-
-# -- MyST options -------------------------------------------------------------
-
-myst_enable_extensions = [
-    "amsmath",
-    "colon_fence",
-    "deflist",
-    "dollarmath",
-    "fieldlist",
-    "html_admonition",
-    "html_image",
-    "replacements",
-    "smartquotes",
-    "strikethrough",
-    "substitution",
-    "tasklist",
-]

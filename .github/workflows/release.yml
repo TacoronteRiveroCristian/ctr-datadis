@@ -1,0 +1,133 @@
+name: Release to PyPI
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version increment type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+        - prepatch
+        - preminor
+        - premajor
+        - prerelease
+
+jobs:
+  test-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
+
+    - name: Install project
+      run: poetry install --no-interaction
+
+    - name: Run tests
+      run: |
+        poetry run pytest --cov=datadis_python --cov-report=xml
+
+    - name: Run code quality checks
+      run: |
+        poetry run black --check .
+        poetry run isort --check-only .
+        poetry run flake8 datadis_python
+        poetry run mypy datadis_python
+
+    - name: Bump version (manual trigger only)
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        OLD_VERSION=$(poetry version --short)
+        poetry version ${{ github.event.inputs.version_type }}
+        NEW_VERSION=$(poetry version --short)
+        
+        echo "OLD_VERSION=$OLD_VERSION" >> $GITHUB_ENV
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+        
+        git add pyproject.toml
+        git commit -m "chore: bump version to $NEW_VERSION"
+        git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
+        git push origin develop
+        git push origin "v$NEW_VERSION"
+
+    - name: Extract version from tag
+      if: github.event_name == 'push'
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "NEW_VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Build package
+      run: poetry build
+
+    - name: Publish to PyPI
+      env:
+        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        poetry config pypi-token.pypi $POETRY_PYPI_TOKEN_PYPI
+        poetry publish
+
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.NEW_VERSION }}
+        release_name: Release v${{ env.NEW_VERSION }}
+        body: |
+          ## Changelog
+          
+          Please see [CHANGELOG.md](./CHANGELOG.md) for detailed changes.
+          
+          ## Installation
+          
+          ```bash
+          pip install datadis-python==${{ env.NEW_VERSION }}
+          ```
+          
+          ## PyPI
+          
+          https://pypi.org/project/datadis-python/${{ env.NEW_VERSION }}/
+        draft: false
+        prerelease: ${{ contains(env.NEW_VERSION, 'a') || contains(env.NEW_VERSION, 'b') || contains(env.NEW_VERSION, 'rc') }}
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-files
+        path: dist/
