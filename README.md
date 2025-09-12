@@ -5,7 +5,7 @@ SDK Python sencillo para la API oficial de Datadis (plataforma de datos de sumin
 ## Instalación
 
 ```bash
-pip install datadis-python
+pip install ctr-datadis
 ```
 
 ## Uso Básico

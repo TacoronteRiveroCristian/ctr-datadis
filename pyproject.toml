@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "datadis-python"
+name = "ctr-datadis"
 version = "0.1.3"
 description = "SDK Python sencillo para la API oficial de Datadis"
 authors = ["CristianTacoronteRivero <tacoronteriverocristian@gmail.com>"]
 readme = "README.md"
 homepage = "https://github.com/cristiantr/datadis-python"
 repository = "https://github.com/cristiantr/datadis-python"
-documentation = "https://datadis-python.readthedocs.io"
+documentation = "https://ctr-datadis.readthedocs.io"
 keywords = ["datadis", "api", "sdk", "energy", "consumption", "spain"]
 classifiers = [
     "Development Status :: 4 - Beta",
