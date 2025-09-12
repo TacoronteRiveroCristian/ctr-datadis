@@ -183,16 +183,28 @@ if [[ ! $confirm_publish =~ ^[Yy]$ ]]; then
 fi
 
 # Paso 12: Publicar a PyPI
-print_info "🚀 Publicando a PyPI..."
+print_info "🚀 Simulando publicación a PyPI..."
 poetry config pypi-token.pypi $PYPI_TOKEN
-poetry publish
 
-if [ $? -eq 0 ]; then
-    print_success "¡Paquete publicado exitosamente en PyPI!"
-    print_success "Versión $NEW_VERSION está ahora disponible en: https://pypi.org/project/datadis-python/$NEW_VERSION/"
+print_warning "🧪 MODO DEMO: NO se va a publicar realmente a PyPI"
+print_info "Comando que se ejecutaría: poetry publish"
+print_info "Archivos que se subirían:"
+ls -la dist/
+
+read -p "¿Quieres hacer la publicación REAL a PyPI? (y/N): " confirm_real_publish
+if [[ $confirm_real_publish =~ ^[Yy]$ ]]; then
+    print_info "🚀 Publicando a PyPI REAL..."
+    poetry publish
+    
+    if [ $? -eq 0 ]; then
+        print_success "¡Paquete publicado exitosamente en PyPI!"
+        print_success "Versión $NEW_VERSION está ahora disponible en: https://pypi.org/project/datadis-python/$NEW_VERSION/"
+    else
+        print_error "Error al publicar en PyPI"
+        exit 1
+    fi
 else
-    print_error "Error al publicar en PyPI"
-    exit 1
+    print_info "📦 Publicación simulada - paquete construido pero NO publicado"
 fi
 
 # Paso 13: Push cambios a Git
