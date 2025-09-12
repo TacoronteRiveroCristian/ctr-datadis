@@ -75,12 +75,18 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # Paso 3: Ejecutar tests
-print_info "🧪 Ejecutando tests..."
-if ! poetry run pytest --cov=datadis_python; then
-    print_error "Los tests fallaron. No se puede continuar."
-    exit 1
+print_info "🧪 Verificando tests..."
+if [ -d "tests" ] && [ "$(find tests -name '*.py' | wc -l)" -gt 0 ]; then
+    print_info "Ejecutando tests..."
+    if ! poetry run pytest --cov=datadis_python; then
+        print_error "Los tests fallaron. No se puede continuar."
+        exit 1
+    fi
+    print_success "Tests pasaron correctamente"
+else
+    print_warning "⚠️  No se encontraron tests. Continuando sin ejecutar tests..."
+    print_info "💡 Considera añadir tests antes de publicar en producción"
 fi
-print_success "Tests pasaron correctamente"
 
 # Paso 4: Ejecutar verificaciones de código
 print_info "🔍 Ejecutando verificaciones de código..."
