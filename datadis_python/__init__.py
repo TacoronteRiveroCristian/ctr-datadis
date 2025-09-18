@@ -5,7 +5,7 @@ Un SDK modular para interactuar con la API oficial de Datadis.
 Soporta tanto API v1 (respuestas raw) como v2 (respuestas tipadas).
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.3"
 
 # Cliente legacy (compatibilidad hacia atrás)
 # Clientes específicos por versión

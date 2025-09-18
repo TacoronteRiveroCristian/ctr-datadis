@@ -1,53 +1,89 @@
 ctr-datadis Documentation
 =========================
 
-A comprehensive Python SDK for interacting with the official Datadis API (Spanish electricity supply data platform).
+**ctr-datadis** es un SDK completo de Python para interactuar con la API oficial de Datadis, la plataforma española de datos de suministro eléctrico. Proporciona acceso type-safe a datos de consumo eléctrico, información de suministro y utilidades relacionadas para consumidores de energía españoles.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+Características principales:
 
-   modules
+✅ **Type-safe**: Modelos Pydantic para validación automática de datos
+✅ **Fácil de usar**: API simple y pythónica
+✅ **Robusto**: Manejo automático de errores y reintentos
+✅ **Completo**: Acceso a todos los endpoints de Datadis
+✅ **Bien documentado**: Documentación completa con ejemplos
 
-Installation
-------------
+Inicio Rápido
+--------------
 
 .. code-block:: bash
 
    pip install ctr-datadis
 
-Quick Start
------------
-
 .. code-block:: python
 
-   from datadis_python.client.v1.simple_client import DatadisClient
+   from datadis_python.client.v1.simple_client import SimpleDatadisClientV1
 
-   # Initialize client
-   client = DatadisClient(username="your_nif", password="your_password")
+   # Inicializar cliente
+   with SimpleDatadisClientV1("tu_nif", "tu_contraseña") as client:
+       # Obtener puntos de suministro
+       supplies = client.get_supplies()
 
-   # Get supply points
-   supplies = client.get_supplies()
+       # Obtener datos de consumo
+       consumption = client.get_consumption(
+           cups="ES1234000000000001JN0F",
+           distributor_code="2",
+           date_from="2024/01/01",
+           date_to="2024/01/31"
+       )
 
-   # Get consumption data
-   consumption = client.get_consumption(
-       cups="ES1234000000000001JN0F",
-       distributor_code="2", 
-       start_date="2024/01",
-       end_date="2024/02"
-   )
+       print(f"Consumo total: {sum(c.consumption_kwh for c in consumption)} kWh")
 
-API Reference
+Documentación
 =============
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
+   :caption: Guía del Usuario
 
+   installation
+   quickstart
+   examples
+   models
+   exceptions
+   troubleshooting
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Referencia de la API
+
+   api
    modules
 
-Indices and tables
-==================
+Índices y Tablas
+================
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+Licencia
+========
+
+Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles.
+
+Contribuir
+==========
+
+Las contribuciones son bienvenidas. Por favor:
+
+1. Fork el repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit tus cambios (`git commit -am 'Añadir nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Crea un Pull Request
+
+Soporte
+=======
+
+- **Documentación**: https://ctr-datadis.readthedocs.io
+- **Issues**: https://github.com/TacoronteRiveroCristian/datadis/issues
+- **PyPI**: https://pypi.org/project/ctr-datadis
