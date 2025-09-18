@@ -4,10 +4,17 @@ Cliente Datadis API v1 - Respuestas raw para máxima compatibilidad.
 Este módulo proporciona un cliente para interactuar con la versión 1 de la API de Datadis.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from ...utils.constants import API_V1_ENDPOINTS
 from ..base import BaseDatadisClient
+
+if TYPE_CHECKING:
+    from ...models.consumption import ConsumptionData
+    from ...models.contract import ContractData
+    from ...models.distributor import DistributorData
+    from ...models.max_power import MaxPowerData
+    from ...models.supply import SupplyData
 
 
 class DatadisClientV1(BaseDatadisClient):
@@ -24,69 +31,98 @@ class DatadisClientV1(BaseDatadisClient):
     :type retries: int
     """
 
-    def get_supplies(self) -> List[Dict[str, Any]]:
+    def get_supplies(self) -> List["SupplyData"]:
         """
-        Obtiene la lista de puntos de suministro disponibles.
+        Obtiene la lista de puntos de suministro disponibles validados con Pydantic.
 
-        :return: Lista de suministros como diccionarios raw.
-        :rtype: List[Dict[str, Any]]
+        :return: Lista de suministros como objetos SupplyData validados.
+        :rtype: List[SupplyData]
 
         :Example:
             [
-                {
-                    "address": "CAMINO DEL HIERRO 2",
-                    "cups": "ES0031607515707001RC0F",
-                    "postalCode": "38009",
-                    "province": "Santa Cruz de Tenerife",
-                    "municipality": "SANTA CRUZ DE TENERIFE",
-                    "distributor": "EDISTRIBUCIÓN",
-                    "validDateFrom": "2024/11/01",
-                    "validDateTo": "",
-                    "pointType": 3,
-                    "distributorCode": "2"
-                }
+                SupplyData(
+                    address="CAMINO DEL HIERRO 2",
+                    cups="ES0031607515707001RC0F",
+                    postal_code="38009",
+                    province="Santa Cruz de Tenerife",
+                    municipality="SANTA CRUZ DE TENERIFE",
+                    distributor="EDISTRIBUCIÓN",
+                    valid_date_from="2024/11/01",
+                    valid_date_to="",
+                    point_type=3,
+                    distributor_code="2"
+                )
             ]
         """
         response = self.make_authenticated_request("GET", API_V1_ENDPOINTS["supplies"])
 
         # API v1 devuelve directamente una lista
+        raw_supplies = []
         if isinstance(response, list):
-            return response
+            raw_supplies = response
         elif isinstance(response, dict) and "supplies" in response:
-            return response["supplies"]
+            raw_supplies = response["supplies"]
 
-        return []
+        # Validar datos con Pydantic
+        from ...models.supply import SupplyData
 
-    def get_distributors(self) -> List[Dict[str, Any]]:
+        validated_supplies = []
+        for supply_data in raw_supplies:
+            try:
+                validated_supply = SupplyData(**supply_data)
+                validated_supplies.append(validated_supply)
+            except Exception as e:
+                # Log del error pero continúa procesando
+                print(f"Error validando suministro: {e}")
+                continue
+
+        return validated_supplies
+
+    def get_distributors(self) -> List["DistributorData"]:
         """
-        Obtiene la lista de distribuidores disponibles.
+        Obtiene la lista de distribuidores disponibles validados con Pydantic.
 
-        :return: Lista de distribuidores como diccionarios raw.
-        :rtype: List[Dict[str, Any]]
+        :return: Lista de distribuidores como objetos DistributorData validados.
+        :rtype: List[DistributorData]
         """
         response = self.make_authenticated_request(
             "GET", API_V1_ENDPOINTS["distributors"]
         )
 
         # Manejar diferentes formatos de respuesta
+        raw_distributors = []
         if isinstance(response, list):
-            return response
+            raw_distributors = response
         elif isinstance(response, dict):
-            return [response] if response else []
+            if response:
+                raw_distributors = [response]
 
-        return []
+        # Validar datos con Pydantic
+        from ...models.distributor import DistributorData
+
+        validated_distributors = []
+        for distributor_data in raw_distributors:
+            try:
+                validated_distributor = DistributorData(**distributor_data)
+                validated_distributors.append(validated_distributor)
+            except Exception as e:
+                # Log del error pero continúa procesando
+                print(f"Error validando distribuidor: {e}")
+                continue
+
+        return validated_distributors
 
     def get_contract_detail(
         self, cups: str, distributor_code: str
-    ) -> List[Dict[str, Any]]:
+    ) -> List["ContractData"]:
         """
-        Obtiene el detalle del contrato para un CUPS específico.
+        Obtiene el detalle del contrato para un CUPS específico validado con Pydantic.
 
         :param cups: Código CUPS del punto de suministro.
         :param distributor_code: Código del distribuidor (1-8).
 
-        :return: Lista de datos del contrato como diccionarios raw (según API spec).
-        :rtype: List[Dict[str, Any]]
+        :return: Lista de datos del contrato como objetos ContractData validados.
+        :rtype: List[ContractData]
         """
         params = {"cups": cups, "distributorCode": distributor_code}
 
@@ -94,17 +130,28 @@ class DatadisClientV1(BaseDatadisClient):
             "GET", API_V1_ENDPOINTS["contracts"], params=params
         )
 
-        # Según la documentación de la API, siempre debe devolver una lista de diccionarios
+        # Manejar diferentes estructuras de respuesta
+        raw_contracts = []
         if isinstance(response, list):
-            # Ya es una lista, devolverla directamente
-            return response
+            raw_contracts = response
         elif isinstance(response, dict):
-            # Si viene un objeto, envolverlo en una lista
-            if response:  # Solo si tiene contenido
-                return [response]
+            if response:
+                raw_contracts = [response]
 
-        # Si no hay datos válidos, devolver lista vacía
-        return []
+        # Validar datos con Pydantic
+        from ...models.contract import ContractData
+
+        validated_contracts = []
+        for contract_data in raw_contracts:
+            try:
+                validated_contract = ContractData(**contract_data)
+                validated_contracts.append(validated_contract)
+            except Exception as e:
+                # Log del error pero continúa procesando
+                print(f"Error validando contrato: {e}")
+                continue
+
+        return validated_contracts
 
     def get_consumption(
         self,
@@ -114,9 +161,9 @@ class DatadisClientV1(BaseDatadisClient):
         date_to: str,
         measurement_type: int = 0,
         point_type: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> List["ConsumptionData"]:
         """
-        Obtiene datos de consumo para un CUPS y rango de fechas.
+        Obtiene datos de consumo para un CUPS y rango de fechas validados con Pydantic.
 
         :param cups: Código CUPS del punto de suministro.
         :param distributor_code: Código del distribuidor (1-8).
@@ -125,8 +172,8 @@ class DatadisClientV1(BaseDatadisClient):
         :param measurement_type: Tipo de medida (0=hora, 1=cuarto hora).
         :param point_type: Tipo de punto (1-5, opcional).
 
-        :return: Lista de datos de consumo como diccionarios raw.
-        :rtype: List[Dict[str, Any]]
+        :return: Lista de datos de consumo como objetos ConsumptionData validados.
+        :rtype: List[ConsumptionData]
         """
         params = {
             "cups": cups,
@@ -144,26 +191,40 @@ class DatadisClientV1(BaseDatadisClient):
         )
 
         # Manejar diferentes formatos de respuesta
+        raw_consumption = []
         if isinstance(response, list):
-            return response
+            raw_consumption = response
         elif isinstance(response, dict) and "timeCurve" in response:
-            return response["timeCurve"]
+            raw_consumption = response["timeCurve"]
 
-        return []
+        # Validar datos con Pydantic
+        from ...models.consumption import ConsumptionData
+
+        validated_consumption = []
+        for consumption_data in raw_consumption:
+            try:
+                validated_consumption_item = ConsumptionData(**consumption_data)
+                validated_consumption.append(validated_consumption_item)
+            except Exception as e:
+                # Log del error pero continúa procesando
+                print(f"Error validando consumo: {e}")
+                continue
+
+        return validated_consumption
 
     def get_max_power(
         self, cups: str, distributor_code: str, date_from: str, date_to: str
-    ) -> List[Dict[str, Any]]:
+    ) -> List["MaxPowerData"]:
         """
-        Obtiene datos de potencia máxima para un CUPS y rango de fechas.
+        Obtiene datos de potencia máxima para un CUPS y rango de fechas validados con Pydantic.
 
         :param cups: Código CUPS del punto de suministro.
         :param distributor_code: Código del distribuidor (1-8).
         :param date_from: Fecha inicial (YYYY/MM).
         :param date_to: Fecha final (YYYY/MM).
 
-        :return: Lista de datos de potencia máxima como diccionarios raw.
-        :rtype: List[Dict[str, Any]]
+        :return: Lista de datos de potencia máxima como objetos MaxPowerData validados.
+        :rtype: List[MaxPowerData]
         """
         params = {
             "cups": cups,
@@ -177,12 +238,26 @@ class DatadisClientV1(BaseDatadisClient):
         )
 
         # Manejar diferentes formatos de respuesta
+        raw_max_power = []
         if isinstance(response, list):
-            return response
+            raw_max_power = response
         elif isinstance(response, dict) and "maxPower" in response:
-            return response["maxPower"]
+            raw_max_power = response["maxPower"]
 
-        return []
+        # Validar datos con Pydantic
+        from ...models.max_power import MaxPowerData
+
+        validated_max_power = []
+        for max_power_data in raw_max_power:
+            try:
+                validated_max_power_item = MaxPowerData(**max_power_data)
+                validated_max_power.append(validated_max_power_item)
+            except Exception as e:
+                # Log del error pero continúa procesando
+                print(f"Error validando potencia máxima: {e}")
+                continue
+
+        return validated_max_power
 
     # Métodos de conveniencia para acceso rápido
 
@@ -194,7 +269,7 @@ class DatadisClientV1(BaseDatadisClient):
         :rtype: List[str]
         """
         supplies = self.get_supplies()
-        return [supply.get("cups", "") for supply in supplies if supply.get("cups")]
+        return [supply.cups for supply in supplies if supply.cups]
 
     def get_distributor_codes(self) -> List[str]:
         """
@@ -206,6 +281,6 @@ class DatadisClientV1(BaseDatadisClient):
         supplies = self.get_supplies()
         codes = set()
         for supply in supplies:
-            if supply.get("distributorCode"):
-                codes.add(supply["distributorCode"])
+            if supply.distributor_code:
+                codes.add(supply.distributor_code)
         return list(codes)

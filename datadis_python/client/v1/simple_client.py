@@ -3,9 +3,16 @@ Cliente V1 simplificado y robusto para Datadis
 """
 
 import time
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import requests
+
+if TYPE_CHECKING:
+    from ...models.consumption import ConsumptionData
+    from ...models.contract import ContractData
+    from ...models.distributor import DistributorData
+    from ...models.max_power import MaxPowerData
+    from ...models.supply import SupplyData
 
 from ...exceptions import APIError, AuthenticationError, DatadisError
 from ...utils.constants import (
@@ -161,59 +168,117 @@ class SimpleDatadisClientV1:
 
         raise DatadisError("Se agotaron todos los reintentos")
 
-    def get_supplies(self) -> List[Dict[str, Any]]:
+    def get_supplies(self) -> List["SupplyData"]:
         """
-        Obtiene la lista de puntos de suministro
+        Obtiene la lista de puntos de suministro validados con Pydantic
 
         Returns:
-            Lista de suministros como diccionarios
+            Lista de suministros como objetos SupplyData validados
         """
         print("🏠 Obteniendo lista de suministros...")
         response = self._make_authenticated_request(API_V1_ENDPOINTS["supplies"])
 
+        raw_supplies = []
         if isinstance(response, list):
-            print(f"✅ {len(response)} suministros obtenidos")
-            return response
+            raw_supplies = response
         elif isinstance(response, dict) and "supplies" in response:
-            supplies = response["supplies"]
-            print(f"✅ {len(supplies)} suministros obtenidos")
-            return supplies
+            raw_supplies = response["supplies"]
         else:
             print("⚠️ Respuesta inesperada de la API")
             return []
 
-    def get_distributors(self) -> List[Dict[str, Any]]:
-        """Obtiene distribuidores"""
+        # Validar datos con Pydantic
+        from ...models.supply import SupplyData
+
+        validated_supplies = []
+        for supply_data in raw_supplies:
+            try:
+                validated_supply = SupplyData(**supply_data)
+                validated_supplies.append(validated_supply)
+            except Exception as e:
+                print(f"⚠️ Error validando suministro: {e}")
+                # Continúa con el siguiente sin fallar completamente
+                continue
+
+        print(f"✅ {len(validated_supplies)} suministros validados")
+        return validated_supplies
+
+    def get_distributors(self) -> List["DistributorData"]:
+        """
+        Obtiene distribuidores validados con Pydantic
+
+        Returns:
+            Lista de distribuidores como objetos DistributorData validados
+        """
         print("🔌 Obteniendo distribuidores...")
         response = self._make_authenticated_request(API_V1_ENDPOINTS["distributors"])
 
+        # Manejar diferentes estructuras de respuesta
+        raw_distributors = []
         if isinstance(response, list):
-            return response
+            raw_distributors = response
         elif isinstance(response, dict):
-            return [response] if response else []
-        return []
+            if response:
+                raw_distributors = [response]
+
+        # Validar datos con Pydantic
+        from ...models.distributor import DistributorData
+
+        validated_distributors = []
+        for distributor_data in raw_distributors:
+            try:
+                validated_distributor = DistributorData(**distributor_data)
+                validated_distributors.append(validated_distributor)
+            except Exception as e:
+                print(f"⚠️ Error validando distribuidor: {e}")
+                # Continúa con el siguiente sin fallar completamente
+                continue
+
+        print(f"✅ {len(validated_distributors)} distribuidores validados")
+        return validated_distributors
 
     def get_contract_detail(
         self, cups: str, distributor_code: str
-    ) -> List[Dict[str, Any]]:
-        """Obtiene detalle del contrato - devuelve lista de diccionarios según API spec"""
+    ) -> List["ContractData"]:
+        """
+        Obtiene detalle del contrato validado con Pydantic
+
+        Args:
+            cups: Código CUPS del punto de suministro
+            distributor_code: Código de la distribuidora
+
+        Returns:
+            Lista de contratos como objetos ContractData validados
+        """
         print(f"📋 Obteniendo contrato para {cups}...")
         params = {"cups": cups, "distributorCode": distributor_code}
         response = self._make_authenticated_request(
             API_V1_ENDPOINTS["contracts"], params
         )
 
-        # Según la documentación de la API, siempre debe devolver una lista de diccionarios
+        # Manejar diferentes estructuras de respuesta
+        raw_contracts = []
         if isinstance(response, list):
-            # Ya es una lista, devolverla directamente
-            return response
+            raw_contracts = response
         elif isinstance(response, dict):
-            # Si viene un objeto, envolverlo en una lista
-            if response:  # Solo si tiene contenido
-                return [response]
+            if response:
+                raw_contracts = [response]
 
-        # Si no hay datos válidos, devolver lista vacía
-        return []
+        # Validar datos con Pydantic
+        from ...models.contract import ContractData
+
+        validated_contracts = []
+        for contract_data in raw_contracts:
+            try:
+                validated_contract = ContractData(**contract_data)
+                validated_contracts.append(validated_contract)
+            except Exception as e:
+                print(f"⚠️ Error validando contrato: {e}")
+                # Continúa con el siguiente sin fallar completamente
+                continue
+
+        print(f"✅ {len(validated_contracts)} contratos validados")
+        return validated_contracts
 
     def get_consumption(
         self,
@@ -223,8 +288,21 @@ class SimpleDatadisClientV1:
         date_to: str,
         measurement_type: int = 0,
         point_type: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
-        """Obtiene datos de consumo"""
+    ) -> List["ConsumptionData"]:
+        """
+        Obtiene datos de consumo validados con Pydantic
+
+        Args:
+            cups: Código CUPS del punto de suministro
+            distributor_code: Código de la distribuidora
+            date_from: Fecha de inicio (YYYY/MM/DD)
+            date_to: Fecha de fin (YYYY/MM/DD)
+            measurement_type: Tipo de medición (default: 0)
+            point_type: Tipo de punto de medida (opcional)
+
+        Returns:
+            Lista de datos de consumo como objetos ConsumptionData validados
+        """
         print(f"⚡ Obteniendo consumo para {cups} ({date_from} - {date_to})...")
         params = {
             "cups": cups,
@@ -241,16 +319,44 @@ class SimpleDatadisClientV1:
             API_V1_ENDPOINTS["consumption"], params
         )
 
+        # Manejar diferentes estructuras de respuesta
+        raw_consumption = []
         if isinstance(response, list):
-            return response
+            raw_consumption = response
         elif isinstance(response, dict) and "timeCurve" in response:
-            return response["timeCurve"]
-        return []
+            raw_consumption = response["timeCurve"]
+
+        # Validar datos con Pydantic
+        from ...models.consumption import ConsumptionData
+
+        validated_consumption = []
+        for consumption_data in raw_consumption:
+            try:
+                validated_consumption_item = ConsumptionData(**consumption_data)
+                validated_consumption.append(validated_consumption_item)
+            except Exception as e:
+                print(f"⚠️ Error validando consumo: {e}")
+                # Continúa con el siguiente sin fallar completamente
+                continue
+
+        print(f"✅ {len(validated_consumption)} registros de consumo validados")
+        return validated_consumption
 
     def get_max_power(
         self, cups: str, distributor_code: str, date_from: str, date_to: str
-    ) -> List[Dict[str, Any]]:
-        """Obtiene datos de potencia máxima"""
+    ) -> List["MaxPowerData"]:
+        """
+        Obtiene datos de potencia máxima validados con Pydantic
+
+        Args:
+            cups: Código CUPS del punto de suministro
+            distributor_code: Código de la distribuidora
+            date_from: Fecha de inicio (YYYY/MM/DD)
+            date_to: Fecha de fin (YYYY/MM/DD)
+
+        Returns:
+            Lista de datos de potencia máxima como objetos MaxPowerData validados
+        """
         print(f"🔋 Obteniendo potencia máxima para {cups} ({date_from} - {date_to})...")
         params = {
             "cups": cups,
@@ -263,11 +369,28 @@ class SimpleDatadisClientV1:
             API_V1_ENDPOINTS["max_power"], params
         )
 
+        # Manejar diferentes estructuras de respuesta
+        raw_max_power = []
         if isinstance(response, list):
-            return response
+            raw_max_power = response
         elif isinstance(response, dict) and "maxPower" in response:
-            return response["maxPower"]
-        return []
+            raw_max_power = response["maxPower"]
+
+        # Validar datos con Pydantic
+        from ...models.max_power import MaxPowerData
+
+        validated_max_power = []
+        for max_power_data in raw_max_power:
+            try:
+                validated_max_power_item = MaxPowerData(**max_power_data)
+                validated_max_power.append(validated_max_power_item)
+            except Exception as e:
+                print(f"⚠️ Error validando potencia máxima: {e}")
+                # Continúa con el siguiente sin fallar completamente
+                continue
+
+        print(f"✅ {len(validated_max_power)} registros de potencia máxima validados")
+        return validated_max_power
 
     def close(self):
         """Cierra la sesión"""

@@ -4,11 +4,21 @@ Cliente unificado que expone ambas versiones de la API de Datadis.
 Este módulo proporciona un cliente que permite interactuar con ambas versiones de la API de Datadis.
 """
 
-from typing import Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from ..utils.constants import DEFAULT_TIMEOUT, MAX_RETRIES
 from .v1.client import DatadisClientV1
 from .v2.client import DatadisClientV2
+
+if TYPE_CHECKING:
+    from ..models.reactive import ReactiveData
+    from ..models.responses import (
+        ConsumptionResponse,
+        ContractResponse,
+        DistributorsResponse,
+        MaxPowerResponse,
+        SuppliesResponse,
+    )
 
 
 class DatadisClient:
@@ -79,7 +89,9 @@ class DatadisClient:
 
     # Métodos de conveniencia que delegan a v2 por defecto
 
-    def get_supplies(self, distributor_code: Optional[str] = None):
+    def get_supplies(
+        self, distributor_code: Optional[str] = None
+    ) -> "SuppliesResponse":
         """
         Obtiene puntos de suministro (usa API v2)
 
@@ -87,7 +99,7 @@ class DatadisClient:
         """
         return self.v2.get_supplies(distributor_code)
 
-    def get_distributors(self):
+    def get_distributors(self) -> "DistributorsResponse":
         """
         Obtiene distribuidores (usa API v2)
 
@@ -95,7 +107,9 @@ class DatadisClient:
         """
         return self.v2.get_distributors()
 
-    def get_contract_detail(self, cups: str, distributor_code: str):
+    def get_contract_detail(
+        self, cups: str, distributor_code: str
+    ) -> "ContractResponse":
         """
         Obtiene detalle del contrato (usa API v2)
 
@@ -111,7 +125,7 @@ class DatadisClient:
         date_to: str,
         measurement_type: int = 0,
         point_type: Optional[int] = None,
-    ):
+    ) -> "ConsumptionResponse":
         """
         Obtiene datos de consumo (usa API v2)
 
@@ -123,7 +137,7 @@ class DatadisClient:
 
     def get_max_power(
         self, cups: str, distributor_code: str, date_from: str, date_to: str
-    ):
+    ) -> "MaxPowerResponse":
         """
         Obtiene datos de potencia máxima (usa API v2)
 
@@ -135,31 +149,21 @@ class DatadisClient:
 
     def get_reactive_data(
         self, cups: str, distributor_code: str, date_from: str, date_to: str
-    ):
+    ) -> List["ReactiveData"]:
         """
         Obtiene datos de energía reactiva (solo disponible en v2)
         """
         return self.v2.get_reactive_data(cups, distributor_code, date_from, date_to)
 
-    def get_consumption_summary(
-        self, cups: str, distributor_code: str, date_from: str, date_to: str
-    ):
-        """
-        Obtiene resumen de consumo con estadísticas (solo disponible en v2)
-        """
-        return self.v2.get_consumption_summary(
-            cups, distributor_code, date_from, date_to
-        )
-
     # Métodos únicos de v1
 
-    def get_cups_list(self):
+    def get_cups_list(self) -> List[str]:
         """
         Obtiene solo códigos CUPS (método de conveniencia de v1)
         """
         return self.v1.get_cups_list()
 
-    def get_distributor_codes(self):
+    def get_distributor_codes(self) -> List[str]:
         """
         Obtiene solo códigos de distribuidores (método de conveniencia de v1)
         """
