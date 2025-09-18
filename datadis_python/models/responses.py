@@ -5,7 +5,7 @@ Modelos de respuesta de la API de Datadis (versiones v2)
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DistributorError(BaseModel):
@@ -22,8 +22,7 @@ class DistributorError(BaseModel):
         alias="errorDescription", description="Descripción del error"
     )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class SuppliesResponse(BaseModel):
@@ -34,8 +33,7 @@ class SuppliesResponse(BaseModel):
         default_factory=list, alias="distributorError"
     )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ContractResponse(BaseModel):
@@ -46,8 +44,7 @@ class ContractResponse(BaseModel):
         default_factory=list, alias="distributorError"
     )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ConsumptionResponse(BaseModel):
@@ -58,8 +55,7 @@ class ConsumptionResponse(BaseModel):
         default_factory=list, alias="distributorError"
     )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class MaxPowerResponse(BaseModel):
@@ -70,8 +66,7 @@ class MaxPowerResponse(BaseModel):
         default_factory=list, alias="distributorError"
     )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class DistributorsResponse(BaseModel):
@@ -82,8 +77,7 @@ class DistributorsResponse(BaseModel):
         default_factory=list, alias="distributorError"
     )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 from .consumption import ConsumptionData

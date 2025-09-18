@@ -83,7 +83,10 @@ class SimpleDatadisClientV1:
             )
 
             if response.status_code == 200:
-                self.token = response.text.strip()
+                token = response.text.strip()
+                if not token:
+                    raise AuthenticationError("Error de autenticación: respuesta vacía del servidor")
+                self.token = token
                 self.session.headers["Authorization"] = f"Bearer {self.token}"
                 print(f"✅ Autenticación exitosa")
                 return True
@@ -145,6 +148,9 @@ class SimpleDatadisClientV1:
                         response.status_code,
                     )
 
+            except APIError:
+                # Los errores HTTP (4xx, 5xx) no deben ser reintentados, propagarlos directamente
+                raise
             except requests.Timeout:
                 if attempt < self.retries:
                     wait_time = min(30, (2**attempt) * 5)
@@ -157,6 +163,7 @@ class SimpleDatadisClientV1:
                         f"Timeout después de {self.retries + 1} intentos. La API de Datadis puede estar lenta."
                     )
             except Exception as e:
+                # Solo reintentar errores de red/conexión, no errores de aplicación
                 if attempt < self.retries:
                     wait_time = (2**attempt) * 2
                     print(f"❌ Error: {e}. Reintentando en {wait_time}s...")

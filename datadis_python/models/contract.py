@@ -5,7 +5,7 @@ Modelos de datos para contratos
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DateOwner(BaseModel):
@@ -14,8 +14,7 @@ class DateOwner(BaseModel):
     start_date: str = Field(alias="startDate", description="Fecha de inicio propiedad")
     end_date: str = Field(alias="endDate", description="Fecha de fin propiedad")
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ContractData(BaseModel):
@@ -93,8 +92,7 @@ class ContractData(BaseModel):
         description="Potencia máxima de la instalación",
     )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 @dataclass

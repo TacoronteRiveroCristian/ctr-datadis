@@ -4,7 +4,7 @@ Modelos de datos para energía reactiva
 
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ReactiveEnergyPeriod(BaseModel):
@@ -30,8 +30,7 @@ class ReactiveEnergyPeriod(BaseModel):
         default=None, description="Energía reactiva en el Periodo 6"
     )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ReactiveEnergyData(BaseModel):
@@ -42,8 +41,7 @@ class ReactiveEnergyData(BaseModel):
         description="Lista de datos de energía reactiva por período"
     )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ReactiveData(BaseModel):
@@ -53,5 +51,4 @@ class ReactiveData(BaseModel):
         alias="reactiveEnergy", description="Datos de energía reactiva"
     )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)

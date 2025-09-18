@@ -4,7 +4,7 @@ Modelos de datos para potencia máxima
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MaxPowerData(BaseModel):
@@ -22,5 +22,4 @@ class MaxPowerData(BaseModel):
     )
     period: str = Field(description="Periodo (VALLE, LLANO, PUNTA, 1-6)")
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
