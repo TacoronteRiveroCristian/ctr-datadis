@@ -1,53 +1,53 @@
-# Arquitectura del SDK Datadis - Guía Completa
+# Datadis SDK Architecture - Complete Guide
 
-## [ARQUITECTURA] Arquitectura General
+## [ARCHITECTURE] General Architecture
 
-### Estructura del Proyecto
+### Project Structure
 ```
 datadis_python/
-├── client/                    # Clientes API
-│   ├── base.py               # Cliente base abstracto
-│   ├── unified.py            # Cliente unificado multi-versión
-│   ├── v1/                   # Cliente API v1
-│   │   ├── client.py         # Cliente v1 estándar
-│   │   └── simple_client.py  # Cliente v1 simplificado (principal)
-│   └── v2/                   # Cliente API v2
-│       └── client.py         # Cliente v2 (futuro)
-├── models/                   # Modelos Pydantic
-│   ├── consumption.py        # Datos de consumo
-│   ├── contract.py          # Datos de contrato
-│   ├── distributor.py       # Datos de distribuidor
-│   ├── max_power.py         # Datos de potencia máxima
-│   ├── reactive.py          # Datos de energía reactiva
-│   ├── responses.py         # Modelos de respuesta
-│   └── supply.py            # Datos de suministro
-├── exceptions/              # Jerarquía de excepciones
-├── utils/                   # Utilidades
-│   ├── constants.py         # Constantes y endpoints
-│   ├── http.py             # Cliente HTTP base
-│   ├── text_utils.py       # Normalización de texto
-│   └── validators.py       # Validadores
-└── __init__.py             # API pública
+├── client/                    # API clients
+│   ├── base.py               # Abstract base client
+│   ├── unified.py            # Multi-version unified client
+│   ├── v1/                   # API v1 client
+│   │   ├── client.py         # Standard v1 client
+│   │   └── simple_client.py  # Simplified v1 client (main)
+│   └── v2/                   # API v2 client
+│       └── client.py         # v2 client (future)
+├── models/                   # Pydantic models
+│   ├── consumption.py        # Consumption data
+│   ├── contract.py          # Contract data
+│   ├── distributor.py       # Distributor data
+│   ├── max_power.py         # Maximum power data
+│   ├── reactive.py          # Reactive energy data
+│   ├── responses.py         # Response models
+│   └── supply.py            # Supply data
+├── exceptions/              # Exception hierarchy
+├── utils/                   # Utilities
+│   ├── constants.py         # Constants and endpoints
+│   ├── http.py             # Base HTTP client
+│   ├── text_utils.py       # Text normalization
+│   └── validators.py       # Validators
+└── __init__.py             # Public API
 ```
 
-## [COMPONENTES] Componentes Principales
+## [COMPONENTS] Main Components
 
-### 1. **Cliente Principal: SimpleDatadisClientV1**
-**Archivo**: `datadis_python/client/v1/simple_client.py`
+### 1. **Main Client: SimpleDatadisClientV1**
+**File**: `datadis_python/client/v1/simple_client.py`
 
-**Responsabilidades**:
-- Autenticación automática con Datadis
-- Gestión de tokens y renovación
-- Retry logic para requests fallidos
-- Normalización de respuestas
-- Validación con modelos Pydantic
+**Responsibilities**:
+- Automatic authentication with Datadis
+- Token management and renewal
+- Retry logic for failed requests
+- Response normalization
+- Validation with Pydantic models
 
-**Métodos Principales**:
+**Main Methods**:
 ```python
-# Autenticación
+# Authentication
 authenticate() -> str
 
-# Obtener datos
+# Get data
 get_supplies(distributor_code: Optional[str] = None) -> List[SupplyData]
 get_consumption(cups: str, distributor_code: str, date_from: str, date_to: str, measurement_type: int = 0) -> List[ConsumptionData]
 get_contract_detail(cups: str, distributor_code: str) -> List[ContractData]
@@ -55,33 +55,33 @@ get_max_power(cups: str, distributor_code: str, date_from: str, date_to: str) ->
 get_distributors() -> List[DistributorData]
 ```
 
-**Características**:
-- [OK] **Robusto**: Manejo completo de errores + retry logic
-- [OK] **Type-safe**: Respuestas validadas con Pydantic
-- [OK] **Auto-healing**: Renovación automática de tokens
-- [OK] **Logging**: Output informativo para debugging
+**Characteristics**:
+- [OK] **Robust**: Complete error handling + retry logic
+- [OK] **Type-safe**: Responses validated with Pydantic
+- [OK] **Auto-healing**: Automatic token renewal
+- [OK] **Logging**: Informative output for debugging
 
-### 2. **Modelos Pydantic (Type-Safe)**
-**Directorio**: `datadis_python/models/`
+### 2. **Pydantic Models (Type-Safe)**
+**Directory**: `datadis_python/models/`
 
-**Validación Automática**:
-- Todos los datos de la API se validan automáticamente
-- Conversión de tipos automática
-- Alias para nombres de campos (snake_case ↔ camelCase)
-- Normalización de texto (tildes, caracteres especiales)
+**Automatic Validation**:
+- All API data is automatically validated
+- Automatic type conversion
+- Aliases for field names (snake_case ↔ camelCase)
+- Text normalization (accents, special characters)
 
-**Modelos Principales**:
+**Main Models**:
 ```python
-# Punto de suministro
+# Supply point
 SupplyData:
     - address: str
-    - cups: str (validado formato CUPS)
-    - distributor: str (normalizado)
+    - cups: str (validated CUPS format)
+    - distributor: str (normalized)
     - distributor_code: str
     - point_type: int
     - province: str, municipality: str
 
-# Consumo eléctrico
+# Electric consumption
 ConsumptionData:
     - cups: str
     - date: str, time: str
@@ -89,7 +89,7 @@ ConsumptionData:
     - obtain_method: str
     - generation_energy_kwh: Optional[float]
 
-# Contrato
+# Contract
 ContractData:
     - cups: str
     - distributor: str, marketer: str
@@ -104,30 +104,30 @@ ContractData:
 **Jerarquía**:
 ```python
 DatadisError (base)
-├── AuthenticationError      # Errores de autenticación
-├── APIError                # Errores HTTP de la API
-├── ValidationError         # Errores de validación
-├── NetworkError           # Errores de red/timeout
-└── ConfigurationError     # Errores de configuración
+├── AuthenticationError      # Authentication errors
+├── APIError                # HTTP API errors
+├── ValidationError         # Validation errors
+├── NetworkError           # Network/timeout errors
+└── ConfigurationError     # Configuration errors
 ```
 
-**Uso en Cliente**:
-- `APIError`: Se propaga directamente en primer intento
-- `DatadisError`: Wrapper final después de agotar retries
-- `AuthenticationError`: Token inválido/expirado
-- `ValidationError`: Datos de entrada inválidos
+**Client Usage**:
+- `APIError`: Propagated directly on first attempt
+- `DatadisError`: Final wrapper after exhausting retries
+- `AuthenticationError`: Invalid/expired token
+- `ValidationError`: Invalid input data
 
-### 4. **Utilidades y Validadores**
+### 4. **Utilities and Validators**
 **Archivos**: `datladis_python/utils/`
 
-**Validadores Principales** (`validators.py`):
+**Main Validators** (`validators.py`):
 ```python
 validate_cups(cups: str) -> str:
-    # Formato: ES + 22 dígitos + 2 alfanuméricos
+    # Format: ES + 22 digits + 2 alphanumeric
     # Ejemplo: "ES0123456789012345678901AB"
 
 validate_date_range(date_from: str, date_to: str) -> tuple:
-    # Formato: "YYYY/MM/DD"
+    # Format: "YYYY/MM/DD"
     # Validaciones: rango válido, no futuro, no >2 años atrás
 
 validate_distributor_code(code: str) -> str:
@@ -144,7 +144,7 @@ normalize_text(text: str) -> str:
 
 normalize_api_response(response) -> dict/list:
     # Normaliza toda la respuesta recursivamente
-    # Aplicado automáticamente por el cliente
+    # Applied automatically by the client
 ```
 
 **Cliente HTTP Base** (`http.py`):

@@ -1,49 +1,49 @@
-# Estrategia de Testing - SDK Datadis
+# Testing Strategy - Datadis SDK
 
-## [ESTADO] Estado Actual (Completado)
+## [STATUS] Current Status (Completed)
 
-### Suite de Tests Completamente Funcional
-- [OK] **243 tests pasando** (100% success rate)
-- [OK] **0 tests fallando**
-- [OK] **Cobertura completa** de todos los componentes del SDK
+### Fully Functional Test Suite
+- [OK] **243 tests passing** (100% success rate)
+- [OK] **0 tests failing**
+- [OK] **Complete coverage** of all SDK components
 
-### Estructura de Tests
+### Test Structure
 ```
 tests/
-├── test_auth.py              # Tests de autenticación
-├── test_client_v1.py         # Tests del cliente V1
-├── test_client_v2.py         # Tests del cliente V2
-├── test_models.py            # Tests de modelos Pydantic
-├── test_utils.py             # Tests de utilidades
-├── test_exceptions.py        # Tests de manejo de errores
-├── test_integration.py       # Tests de integración
-├── test_coverage_and_quality.py  # Meta-tests de calidad
-├── conftest.py               # Fixtures compartidas
-└── pytest.ini               # Configuración de pytest
+├── test_auth.py              # Authentication tests
+├── test_client_v1.py         # V1 client tests
+├── test_client_v2.py         # V2 client tests
+├── test_models.py            # Pydantic model tests
+├── test_utils.py             # Utility tests
+├── test_exceptions.py        # Error handling tests
+├── test_integration.py       # Integration tests
+├── test_coverage_and_quality.py  # Quality meta-tests
+├── conftest.py               # Shared fixtures
+└── pytest.ini               # Pytest configuration
 ```
 
-## [REGLA] **REGLA FUNDAMENTAL: Test-First Development**
+## [RULE] **FUNDAMENTAL RULE: Test-First Development**
 
-### **OBLIGATORIO para Nuevas Funcionalidades**
-Cada nueva feature, método, clase o funcionalidad **DEBE** ir acompañada de tests antes del merge:
+### **MANDATORY for New Features**
+Every new feature, method, class or functionality **MUST** be accompanied by tests before merge:
 
-1. **Nuevos Métodos de Cliente**: Tests unitarios + integración
-2. **Nuevos Modelos Pydantic**: Tests de validación + serialización
-3. **Nuevas Utilidades**: Tests de edge cases + error handling
-4. **Nuevas Excepciones**: Tests de propagación correcta
-5. **Nuevos Endpoints**: Mocks + tests de respuesta
+1. **New Client Methods**: Unit tests + integration
+2. **New Pydantic Models**: Validation + serialization tests
+3. **New Utilities**: Edge cases + error handling tests
+4. **New Exceptions**: Correct propagation tests
+5. **New Endpoints**: Mocks + response tests
 
-### **Flujo de Desarrollo Requerido**
+### **Required Development Flow**
 ```
-1. Diseñar API/método
-2. [OK] Escribir tests PRIMERO
-3. Implementar funcionalidad
-4. [OK] Tests deben pasar
+1. Design API/method
+2. [OK] Write tests FIRST
+3. Implement functionality
+4. [OK] Tests must pass
 5. Code review + tests review
-6. Merge solo si 100% tests passing
+6. Merge only if 100% tests passing
 ```
 
-## [CONFIGURACION] Configuración de Testing
+## [CONFIGURATION] Testing Configuration
 
 ### Pytest Configuration (pytest.ini)
 ```ini
@@ -53,7 +53,7 @@ python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
 
-# Marcadores obligatorios
+# Mandatory markers
 markers =
     unit: Unit tests (fast, isolated)
     integration: Integration tests
@@ -66,46 +66,46 @@ markers =
     errors: Error handling tests
 ```
 
-### Ejecutor de Tests (run_tests.py)
+### Test Runner (run_tests.py)
 ```bash
-# Tests rápidos (solo unit)
+# Fast tests (unit only)
 python run_tests.py --fast
 
-# Tests completos
+# Complete tests
 python run_tests.py --full
 
-# Tests específicos por componente
+# Specific tests by component
 python run_tests.py --component auth
 python run_tests.py --component models
 
-# Con coverage
+# With coverage
 python run_tests.py --coverage
 
-# Suite completa
+# Complete suite
 python run_tests.py --all
 ```
 
-## [PATRONES] Patrones de Testing Establecidos
+## [PATTERNS] Established Testing Patterns
 
-### 1. **Tests de Modelos Pydantic**
+### 1. **Pydantic Model Tests**
 ```python
 def test_model_validation():
-    """Test validación de modelo."""
+    """Test model validation."""
     data = {"field": "value"}
     model = MyModel(**data)
     assert model.field == "value"
 
 def test_model_invalid_data():
-    """Test datos inválidos."""
+    """Test invalid data."""
     with pytest.raises(ValidationError):
         MyModel(invalid_field="value")
 ```
 
-### 2. **Tests de Cliente con Mocks**
+### 2. **Client Tests with Mocks**
 ```python
 @pytest.mark.client_v1
 def test_get_method_success(authenticated_v1_client):
-    """Test método exitoso."""
+    """Test successful method."""
     with responses.RequestsMock() as rsps:
         rsps.add(
             responses.GET,
@@ -119,10 +119,10 @@ def test_get_method_success(authenticated_v1_client):
         assert len(result) > 0
 ```
 
-### 3. **Tests de Manejo de Errores**
+### 3. **Error Handling Tests**
 ```python
 def test_api_error_handling():
-    """Test manejo de errores HTTP."""
+    """Test HTTP error handling."""
     with responses.RequestsMock() as rsps:
         rsps.add(
             responses.GET,
@@ -136,99 +136,99 @@ def test_api_error_handling():
         assert "404" in str(exc_info.value)
 ```
 
-## [FIXTURES] Fixtures Centralizadas (conftest.py)
+## [FIXTURES] Centralized Fixtures (conftest.py)
 
-### Fixtures de Autenticación
-- `test_credentials`: Credenciales de prueba
-- `test_token`: Token JWT válido
-- `authenticated_v1_client`: Cliente V1 autenticado
-- `authenticated_v2_client`: Cliente V2 autenticado
+### Authentication Fixtures
+- `test_credentials`: Test credentials
+- `test_token`: Valid JWT token
+- `authenticated_v1_client`: Authenticated V1 client
+- `authenticated_v2_client`: Authenticated V2 client
 
-### Fixtures de Datos
-- `sample_supply_data`: Datos de punto de suministro
-- `sample_consumption_data`: Datos de consumo
-- `sample_contract_data`: Datos de contrato
-- `sample_distributor_data`: Datos de distribuidor
+### Data Fixtures
+- `sample_supply_data`: Supply point data
+- `sample_consumption_data`: Consumption data
+- `sample_contract_data`: Contract data
+- `sample_distributor_data`: Distributor data
 
-### Fixtures de Mocking
-- `mock_auth_success`: Mock de autenticación exitosa
-- `mock_v1_api_responses`: Mocks completos para API V1
-- `mock_v2_api_responses`: Mocks completos para API V2
+### Mocking Fixtures
+- `mock_auth_success`: Successful authentication mock
+- `mock_v1_api_responses`: Complete mocks for V1 API
+- `mock_v2_api_responses`: Complete mocks for V2 API
 
-## [PROBLEMAS] Problemas Resueltos y Lecciones Aprendidas
+## [PROBLEMS] Resolved Problems and Lessons Learned
 
-### 1. **Validación CUPS**
-- **Problema**: Formato incorrecto (16 vs 22 dígitos)
-- **Solución**: Patrón correcto `^ES\d{22}[A-Z0-9]{2}$`
-- **Lección**: Validar con datos reales de la API
+### 1. **CUPS Validation**
+- **Problem**: Incorrect format (16 vs 22 digits)
+- **Solution**: Correct pattern `^ES\d{22}[A-Z0-9]{2}$`
+- **Lesson**: Validate with real API data
 
 ### 2. **Error Wrapping**
-- **Problema**: APIError wrapeado incorrectamente en DatadisError
-- **Solución**: Propagar APIError directamente en primer intento
-- **Lección**: Tests deben verificar tipos de excepción exactos
+- **Problem**: APIError incorrectly wrapped in DatadisError
+- **Solution**: Propagate APIError directly on first attempt
+- **Lesson**: Tests should verify exact exception types
 
 ### 3. **Mock Configuration**
-- **Problema**: "Not all requests executed" por retry mechanisms
-- **Solución**: Configurar mocks = número de intentos (retries + 1)
-- **Lección**: Alinear mocks con lógica de reintentos
+- **Problem**: "Not all requests executed" due to retry mechanisms
+- **Solution**: Configure mocks = number of attempts (retries + 1)
+- **Lesson**: Align mocks with retry logic
 
 ### 4. **URL Encoding**
-- **Problema**: Tests esperaban URLs sin encoding
-- **Solución**: Verificar URLs encoded (`%2F` en lugar de `/`)
-- **Lección**: Tests deben reflejar comportamiento real de HTTP
+- **Problem**: Tests expected unencoded URLs
+- **Solution**: Verify encoded URLs (`%2F` instead of `/`)
+- **Lesson**: Tests should reflect real HTTP behavior
 
-### 5. **Normalización de Texto**
-- **Problema**: Fixtures con tildes vs API normalizada
-- **Solución**: Usar texto normalizado en fixtures
-- **Lección**: Fixtures deben simular respuesta real de API
+### 5. **Text Normalization**
+- **Problem**: Fixtures with accents vs normalized API
+- **Solution**: Use normalized text in fixtures
+- **Lesson**: Fixtures should simulate real API response
 
-## [CHECKLIST] Checklist para Nuevas Features
+## [CHECKLIST] Checklist for New Features
 
-### Antes de Implementar:
-- [ ] ¿Los tests están escritos ANTES de la implementación?
-- [ ] ¿Se cubren casos happy path + edge cases?
-- [ ] ¿Se prueban diferentes tipos de errores?
-- [ ] ¿Los mocks están configurados correctamente?
+### Before Implementation:
+- [ ] Are tests written BEFORE implementation?
+- [ ] Are happy path + edge cases covered?
+- [ ] Are different error types tested?
+- [ ] Are mocks configured correctly?
 
-### Durante Implementación:
-- [ ] ¿Los tests pasan localmente?
-- [ ] ¿Se mantiene 100% pass rate?
-- [ ] ¿Los nuevos tests usan fixtures existentes?
-- [ ] ¿Se siguen patrones establecidos?
+### During Implementation:
+- [ ] Do tests pass locally?
+- [ ] Is 100% pass rate maintained?
+- [ ] Do new tests use existing fixtures?
+- [ ] Are established patterns followed?
 
-### Antes de Merge:
-- [ ] ¿Todos los tests pasan en CI?
-- [ ] ¿Coverage se mantiene alto?
-- [ ] ¿Tests son comprensibles y mantenibles?
-- [ ] ¿Se documentaron casos especiales?
+### Before Merge:
+- [ ] Do all tests pass in CI?
+- [ ] Is coverage maintained high?
+- [ ] Are tests understandable and maintainable?
+- [ ] Are special cases documented?
 
-## [COMANDOS] Comandos de Testing Frecuentes
+## [COMMANDS] Frequent Testing Commands
 
 ```bash
-# Desarrollo día a día
+# Day-to-day development
 python run_tests.py --fast
 
-# Antes de commit
+# Before commit
 python run_tests.py --coverage
 
-# Testing de nueva feature
+# Testing new feature
 python run_tests.py --component [component]
 
-# Validación completa pre-release
+# Complete pre-release validation
 python run_tests.py --all
 
-# Debug de test específico
+# Debug specific test
 poetry run pytest tests/test_file.py::test_method -v -s
 ```
 
-## [METRICAS] Métricas de Calidad
+## [METRICS] Quality Metrics
 
-### Objetivos Mantenidos:
+### Maintained Objectives:
 - **Pass Rate**: 100% (243/243 tests)
-- **Coverage**: >90% (configurado en run_tests.py)
-- **Performance**: Tests rápidos <30s, completos <60s
-- **Mantenibilidad**: Fixtures reutilizables, patrones consistentes
+- **Coverage**: >90% (configured in run_tests.py)
+- **Performance**: Fast tests <30s, complete <60s
+- **Maintainability**: Reusable fixtures, consistent patterns
 
 ---
 
-**IMPORTANTE**: Esta estrategia de testing asegura que el SDK mantenga su robustez y confiabilidad. No se debe comprometer la calidad de tests por velocidad de desarrollo.
+**IMPORTANT**: This testing strategy ensures the SDK maintains its robustness and reliability. Test quality should not be compromised for development speed.

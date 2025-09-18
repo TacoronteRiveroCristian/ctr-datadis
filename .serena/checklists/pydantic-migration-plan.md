@@ -1,152 +1,152 @@
-# Plan de Migración: Tipado Pydantic para SDK Datadis
+# Migration Plan: Pydantic Typing for Datadis SDK
 
-## [OBJETIVO] Objetivo
-Implementar validación Pydantic automática en todos los métodos del SDK que devuelven datos de la API, garantizando type safety y mejor developer experience.
+## [OBJECTIVE] Objective
+Implement automatic Pydantic validation in all SDK methods that return API data, ensuring type safety and better developer experience.
 
-## [ESTADO] Estado Actual
-- [RESUELTO] **SupplyData**: Ya implementado en `get_supplies()`
-- [RESUELTO] **Modelos existentes**: ConsumptionData, ContractData, MaxPowerData
-- [RESUELTO] **Modelos nuevos**: DistributorData, ReactiveData con subfamiliares
-- [RESUELTO] **Migración completa**: 100% de métodos migrados a Pydantic validation
+## [STATUS] Current Status
+- [RESOLVED] **SupplyData**: Already implemented in `get_supplies()`
+- [RESOLVED] **Existing models**: ConsumptionData, ContractData, MaxPowerData
+- [RESOLVED] **New models**: DistributorData, ReactiveData with subfamilies
+- [RESOLVED] **Complete migration**: 100% of methods migrated to Pydantic validation
 
-## [INVENTARIO] Inventario de Métodos por Cliente
+## [INVENTORY] Method Inventory by Client
 
 ### SimpleDatadisClientV1 (`datadis_python/client/v1/simple_client.py`)
-- [RESUELTO] `get_supplies()` → `List[SupplyData]`
-- [RESUELTO] `get_distributors()` → `List[DistributorData]`
-- [RESUELTO] `get_contract_detail()` → `List[ContractData]`
-- [RESUELTO] `get_consumption()` → `List[ConsumptionData]`
-- [RESUELTO] `get_max_power()` → `List[MaxPowerData]`
+- [RESOLVED] `get_supplies()` → `List[SupplyData]`
+- [RESOLVED] `get_distributors()` → `List[DistributorData]`
+- [RESOLVED] `get_contract_detail()` → `List[ContractData]`
+- [RESOLVED] `get_consumption()` → `List[ConsumptionData]`
+- [RESOLVED] `get_max_power()` → `List[MaxPowerData]`
 
 ### DatadisClientV1 (`datadis_python/client/v1/client.py`)
-- [RESUELTO] `get_supplies()` → `List[SupplyData]`
-- [RESUELTO] `get_distributors()` → `List[DistributorData]`
-- [RESUELTO] `get_contract_detail()` → `List[ContractData]`
-- [RESUELTO] `get_consumption()` → `List[ConsumptionData]`
-- [RESUELTO] `get_max_power()` → `List[MaxPowerData]`
-- [RESUELTO] `get_cups_list()` → `List[str]` (simple, no necesita Pydantic)
-- [RESUELTO] `get_distributor_codes()` → `List[str]` (simple, códigos únicos)
+- [RESOLVED] `get_supplies()` → `List[SupplyData]`
+- [RESOLVED] `get_distributors()` → `List[DistributorData]`
+- [RESOLVED] `get_contract_detail()` → `List[ContractData]`
+- [RESOLVED] `get_consumption()` → `List[ConsumptionData]`
+- [RESOLVED] `get_max_power()` → `List[MaxPowerData]`
+- [RESOLVED] `get_cups_list()` → `List[str]` (simple, doesn't need Pydantic)
+- [RESOLVED] `get_distributor_codes()` → `List[str]` (simple, unique codes)
 
 ### DatadisClientV2 (`datadis_python/client/v2/client.py`)
-- [RESUELTO] `get_supplies()` → `SuppliesResponse`
-- [RESUELTO] `get_distributors()` → `DistributorsResponse`
-- [RESUELTO] `get_contract_detail()` → `ContractResponse`
-- [RESUELTO] `get_consumption()` → `ConsumptionResponse`
-- [RESUELTO] `get_max_power()` → `MaxPowerResponse`
-- [RESUELTO] `get_reactive_data()` → `List[ReactiveData]`
+- [RESOLVED] `get_supplies()` → `SuppliesResponse`
+- [RESOLVED] `get_distributors()` → `DistributorsResponse`
+- [RESOLVED] `get_contract_detail()` → `ContractResponse`
+- [RESOLVED] `get_consumption()` → `ConsumptionResponse`
+- [RESOLVED] `get_max_power()` → `MaxPowerResponse`
+- [RESOLVED] `get_reactive_data()` → `List[ReactiveData]`
 
 ### DatadisClient Unified (`datadis_python/client/unified.py`)
-- [RESUELTO] Todos los métodos con type hints correctos (delegan a v1/v2 clients)
+- [RESOLVED] All methods with correct type hints (delegate to v1/v2 clients)
 
-## [PLAN] Plan de Implementación
+## [PLAN] Implementation Plan
 
-### Fase 1: Modelos Faltantes
-**Duración estimada: 1-2 horas**
+### Phase 1: Missing Models
+**Estimated duration: 1-2 hours**
 
-#### 1.1 Crear DistributorData
-- [x] **Archivo**: `datadis_python/models/distributor.py`
-- [x] **Campos**: `distributor_codes` (lista de códigos)
-- [x] **Validaciones**: Lista de strings con alias camelCase
+#### 1.1 Create DistributorData
+- [x] **File**: `datadis_python/models/distributor.py`
+- [x] **Fields**: `distributor_codes` (list of codes)
+- [x] **Validations**: List of strings with camelCase alias
 
-#### 1.2 Crear ReactiveData
-- [x] **Archivo**: `datadis_python/models/reactive.py`
-- [x] **Campos**: `ReactiveEnergyPeriod`, `ReactiveEnergyData`, `ReactiveData`
-- [x] **Validaciones**: Fechas, valores numéricos opcionales
+#### 1.2 Create ReactiveData
+- [x] **File**: `datadis_python/models/reactive.py`
+- [x] **Fields**: `ReactiveEnergyPeriod`, `ReactiveEnergyData`, `ReactiveData`
+- [x] **Validations**: Dates, optional numeric values
 
-#### 1.3 Actualizar __init__.py
-- [x] **Archivo**: `datadis_python/models/__init__.py`
-- [x] **Acción**: Exportar nuevos modelos
-- [x] **Verificar**: Importaciones en clientes
+#### 1.3 Update __init__.py
+- [x] **File**: `datadis_python/models/__init__.py`
+- [x] **Action**: Export new models
+- [x] **Verify**: Imports in clients
 
-### Fase 2: Cliente V1 Simple
-**Duración estimada: 2-3 horas**
+### Phase 2: Simple V1 Client
+**Estimated duration: 2-3 hours**
 
 #### 2.1 get_distributors()
 - [x] **Return type**: `List[Dict[str, Any]]` → `List[DistributorData]`
-- [x] **Implementar**: Validación Pydantic con error handling
-- [x] **Testear**: Patrón validado contra estructura API
+- [x] **Implement**: Pydantic validation with error handling
+- [x] **Test**: Pattern validated against API structure
 
 #### 2.2 get_contract_detail()
 - [x] **Return type**: `List[Dict[str, Any]]` → `List[ContractData]`
-- [x] **Verificar**: Modelo ContractData compatible con API
-- [x] **Implementar**: Validación + error handling
+- [x] **Verify**: ContractData model compatible with API
+- [x] **Implement**: Validation + error handling
 
 #### 2.3 get_consumption()
 - [x] **Return type**: `List[Dict[str, Any]]` → `List[ConsumptionData]`
-- [x] **Verificar**: Modelo ConsumptionData compatible
-- [x] **Implementar**: Validación + error handling
+- [x] **Verify**: ConsumptionData model compatible
+- [x] **Implement**: Validation + error handling
 
 #### 2.4 get_max_power()
 - [x] **Return type**: `List[Dict[str, Any]]` → `List[MaxPowerData]`
-- [x] **Verificar**: Modelo MaxPowerData compatible
-- [x] **Implementar**: Validación + error handling
+- [x] **Verify**: MaxPowerData model compatible
+- [x] **Implement**: Validation + error handling
 
-### Fase 3: Cliente V1 Base
-**Duración estimada: 2-3 horas**
+### Phase 3: Base V1 Client
+**Estimated duration: 2-3 hours**
 
-#### 3.1 Replicar cambios de SimpleClient
+#### 3.1 Replicate SimpleClient changes
 - [x] **get_distributors()** → `List[DistributorData]`
 - [x] **get_contract_detail()** → `List[ContractData]`
 - [x] **get_consumption()** → `List[ConsumptionData]`
 - [x] **get_max_power()** → `List[MaxPowerData]`
 
-#### 3.2 Métodos adicionales
-- [x] **get_distributor_codes()** → Mantener `List[str]` (códigos simples)
-- [x] **get_cups_list()** → Mantener `List[str]` (códigos simples)
+#### 3.2 Additional methods
+- [x] **get_distributor_codes()** → Keep `List[str]` (simple codes)
+- [x] **get_cups_list()** → Keep `List[str]` (simple codes)
 
-### Fase 4: Cliente V2
-**Duración estimada: 3-4 horas**
+### Phase 4: V2 Client
+**Estimated duration: 3-4 hours**
 
-#### 4.1 Todos los métodos V1 equivalentes
-- [x] **get_supplies()** → `SuppliesResponse` (respuesta completa V2)
-- [x] **get_distributors()** → `DistributorsResponse` (respuesta completa V2)
-- [x] **get_contract_detail()** → `ContractResponse` (respuesta completa V2)
-- [x] **get_consumption()** → `ConsumptionResponse` (respuesta completa V2)
-- [x] **get_max_power()** → `MaxPowerResponse` (respuesta completa V2)
+#### 4.1 All equivalent V1 methods
+- [x] **get_supplies()** → `SuppliesResponse` (complete V2 response)
+- [x] **get_distributors()** → `DistributorsResponse` (complete V2 response)
+- [x] **get_contract_detail()** → `ContractResponse` (complete V2 response)
+- [x] **get_consumption()** → `ConsumptionResponse` (complete V2 response)
+- [x] **get_max_power()** → `MaxPowerResponse` (complete V2 response)
 
-#### 4.2 Método específico V2
+#### 4.2 V2-specific method
 - [x] **get_reactive_data()** → `List[ReactiveData]`
-- [x] **Verificar**: V2 devuelve respuestas estructuradas con errores de distribuidor
+- [x] **Verify**: V2 returns structured responses with distributor errors
 
-### Fase 5: Cliente Unified
-**Duración estimada: 1 hora**
+### Phase 5: Unified Client
+**Estimated duration: 1 hour**
 
-#### 5.1 Actualizar type hints
-- [x] **Todos los métodos**: Heredan tipado de v1/v2 clients
-- [x] **Verificar**: Consistency entre versiones
-- [x] **Documentar**: V2 devuelve responses completas, V1 devuelve listas simples
+#### 5.1 Update type hints
+- [x] **All methods**: Inherit typing from v1/v2 clients
+- [x] **Verify**: Consistency between versions
+- [x] **Document**: V2 returns complete responses, V1 returns simple lists
 
-### Fase 6: Testing y Validación
-**Duración estimada: 2-3 horas**
+### Phase 6: Testing and Validation
+**Estimated duration: 2-3 hours**
 
-#### 6.1 Tests unitarios
-- [x] **Crear**: Modelos nuevos creados con validaciones
-- [x] **Verificar**: Validaciones Pydantic incluidas en modelos
-- [x] **Edge cases**: Error handling implementado con continue en loops
+#### 6.1 Unit tests
+- [x] **Create**: New models created with validations
+- [x] **Verify**: Pydantic validations included in models
+- [x] **Edge cases**: Error handling implemented with continue in loops
 
-#### 6.2 Tests de integración
-- [x] **Verificar**: Código formateado y lintado correctamente
-- [x] **Testear**: Error handling implementado para fallos de validación
-- [x] **Performance**: Overhead mínimo con imports locales en métodos
+#### 6.2 Integration tests
+- [x] **Verify**: Code formatted and linted correctly
+- [x] **Test**: Error handling implemented for validation failures
+- [x] **Performance**: Minimal overhead with local imports in methods
 
-#### 6.3 Documentación
-- [x] **Actualizar**: Docstrings actualizados con nuevos return types
-- [x] **Ejemplos**: Patrones establecidos y documentados en código
-- [x] **Migration guide**: Plan completo documentado con estado final
+#### 6.3 Documentation
+- [x] **Update**: Docstrings updated with new return types
+- [x] **Examples**: Patterns established and documented in code
+- [x] **Migration guide**: Complete plan documented with final state
 
-## [PATRON] Patrón de Implementación
+## [PATTERN] Implementation Pattern
 
 ```python
-# [ANTES] Antes (raw data)
+# [BEFORE] Before (raw data)
 def get_supplies(self) -> List[Dict[str, Any]]:
     response = self._make_authenticated_request(...)
     return response
 
-# [DESPUES] Después (Pydantic validated)
+# [AFTER] After (Pydantic validated)
 def get_supplies(self) -> List["SupplyData"]:
     response = self._make_authenticated_request(...)
 
-    # Validar con Pydantic
+    # Validate with Pydantic
     from ...models.supply import SupplyData
     validated_data = []
     for item in response:
@@ -154,47 +154,47 @@ def get_supplies(self) -> List["SupplyData"]:
             validated_item = SupplyData(**item)
             validated_data.append(validated_item)
         except Exception as e:
-            print(f"Error validando datos: {e}")
+            print(f"Error validating data: {e}")
             continue
 
     return validated_data
 ```
 
-## [CONSIDERACIONES] Consideraciones
+## [CONSIDERATIONS] Considerations
 
 ### Breaking Changes
-- **Impact**: Cambia return types de `Dict` a objetos Pydantic
-- **Migration**: Users necesitarán actualizar código (`dict["key"]` → `obj.key`)
-- **Versioning**: Considerar major version bump
+- **Impact**: Changes return types from `Dict` to Pydantic objects
+- **Migration**: Users will need to update code (`dict["key"]` → `obj.key`)
+- **Versioning**: Consider major version bump
 
 ### Error Handling
-- **Filosofía**: Continuar procesando si un item falla validación
-- **Logging**: Informar errores pero no fallar completamente
-- **Fallback**: Considerar modo "raw" como opción
+- **Philosophy**: Continue processing if an item fails validation
+- **Logging**: Report errors but don't fail completely
+- **Fallback**: Consider "raw" mode as option
 
 ### Performance
-- **Overhead**: Validación Pydantic añade ~microsegundos por objeto
-- **Memory**: Objetos Pydantic usan más memoria que dicts
-- **Beneficio**: Type safety vale el costo mínimo
+- **Overhead**: Pydantic validation adds ~microseconds per object
+- **Memory**: Pydantic objects use more memory than dicts
+- **Benefit**: Type safety is worth the minimal cost
 
-## [METRICAS] Métricas de Éxito
+## [METRICS] Success Metrics
 
-- [ ] **100%** métodos con return types Pydantic
-- [ ] **0** errores de validación en tests con API real
-- [ ] **<5%** overhead en performance vs raw dicts
-- [ ] **Todos** los tests pasando
-- [ ] **Documentación** actualizada
+- [ ] **100%** methods with Pydantic return types
+- [ ] **0** validation errors in tests with real API
+- [ ] **<5%** performance overhead vs raw dicts
+- [ ] **All** tests passing
+- [ ] **Documentation** updated
 
-## [ORDEN] Orden de Ejecución Recomendado
+## [ORDER] Recommended Execution Order
 
-1. **Modelos faltantes** (Fase 1)
-2. **SimpleClientV1** (Fase 2) - Base estable para testear
-3. **ClientV1** (Fase 3) - Replicar patrón probado
-4. **ClientV2** (Fase 4) - Adaptar a V2
-5. **Unified** (Fase 5) - Consolidar
-6. **Testing** (Fase 6) - Validar todo
+1. **Missing models** (Phase 1)
+2. **SimpleClientV1** (Phase 2) - Stable base for testing
+3. **ClientV1** (Phase 3) - Replicate proven pattern
+4. **ClientV2** (Phase 4) - Adapt to V2
+5. **Unified** (Phase 5) - Consolidate
+6. **Testing** (Phase 6) - Validate everything
 
 ---
-**Estimación total**: 10-15 horas de desarrollo
-**Impacto**: Major improvement en DX y type safety
-**Risk**: Low (patrón ya probado en get_supplies)
+**Total estimation**: 10-15 hours of development
+**Impact**: Major improvement in DX and type safety
+**Risk**: Low (pattern already proven in get_supplies)
