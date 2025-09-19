@@ -5,11 +5,11 @@ ctr-datadis Documentation
 
 Características principales:
 
-✅ **Type-safe**: Modelos Pydantic para validación automática de datos
-✅ **Fácil de usar**: API simple y pythónica
-✅ **Robusto**: Manejo automático de errores y reintentos
-✅ **Completo**: Acceso a todos los endpoints de Datadis
-✅ **Bien documentado**: Documentación completa con ejemplos
+* **Type-safe**: Modelos Pydantic para validación automática de datos
+* **Fácil de usar**: API simple y pythónica
+* **Robusto**: Manejo automático de errores y reintentos
+* **Completo**: Acceso a todos los endpoints de Datadis
+* **Bien documentado**: Documentación completa con ejemplos
 
 Inicio Rápido
 --------------
@@ -58,11 +58,6 @@ Documentación
    api
    modules
 
-Índices y Tablas
-================
-
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 
 Licencia

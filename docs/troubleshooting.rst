@@ -19,7 +19,7 @@ Error: "Error de autenticación"
 
    .. code-block:: python
 
-      # ❌ Incorrecto
+    # Incorrecto
       client = SimpleDatadisClientV1("12345678A", "password_incorrecto")
 
    **Solución:** Verifica que tu NIF y contraseña sean correctos en `datadis.es <https://datadis.es>`_
@@ -31,7 +31,7 @@ Error: "Error de autenticación"
       # ❌ Incorrecto
       client = SimpleDatadisClientV1("12345678", "password")  # Sin letra
 
-      # ✅ Correcto
+    # Correcto
       client = SimpleDatadisClientV1("12345678A", "password")
 
 3. **Cuenta bloqueada o inactiva**

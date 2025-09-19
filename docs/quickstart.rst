@@ -85,32 +85,32 @@ Este ejemplo muestra cómo obtener y procesar todos los tipos de datos:
        password = "tu_contraseña"
 
        with SimpleDatadisClientV1(username, password) as client:
-           print("🔌 Obteniendo datos de Datadis...")
+           print("Obteniendo datos de Datadis...")
 
            # 1. Obtener distribuidores
            distributors = client.get_distributors()
-           print(f"📍 Distribuidores disponibles: {len(distributors)}")
+           print(f"Distribuidores disponibles: {len(distributors)}")
 
            # 2. Obtener puntos de suministro
            supplies = client.get_supplies()
-           print(f"🏠 Puntos de suministro: {len(supplies)}")
+           print(f"Puntos de suministro: {len(supplies)}")
 
            if not supplies:
-               print("❌ No se encontraron puntos de suministro")
+               print("No se encontraron puntos de suministro")
                return
 
            # Usar el primer suministro
            supply = supplies[0]
            distributor_code = distributors[0].code if distributors else "2"
 
-           print(f"📊 Procesando datos para CUPS: {supply.cups}")
+           print(f"Procesando datos para CUPS: {supply.cups}")
 
            # 3. Obtener detalle del contrato
            contracts = client.get_contract_detail(
                cups=supply.cups,
                distributor_code=distributor_code
            )
-           print(f"📋 Contratos: {len(contracts)}")
+           print(f"Contratos: {len(contracts)}")
 
            # 4. Obtener consumo (último mes)
            end_date = datetime.now()
@@ -122,7 +122,7 @@ Este ejemplo muestra cómo obtener y procesar todos los tipos de datos:
                date_from=start_date.strftime("%Y/%m/%d"),
                date_to=end_date.strftime("%Y/%m/%d")
            )
-           print(f"⚡ Registros de consumo: {len(consumption)}")
+           print(f"Registros de consumo: {len(consumption)}")
 
            # 5. Obtener potencia máxima
            max_power = client.get_max_power(
@@ -131,14 +131,14 @@ Este ejemplo muestra cómo obtener y procesar todos los tipos de datos:
                date_from=start_date.strftime("%Y/%m/%d"),
                date_to=end_date.strftime("%Y/%m/%d")
            )
-           print(f"🔋 Registros de potencia máxima: {len(max_power)}")
+           print(f"Registros de potencia máxima: {len(max_power)}")
 
            # Mostrar algunos datos de ejemplo
            if consumption:
                total_kwh = sum(c.consumption_kwh for c in consumption)
-               print(f"💡 Consumo total: {total_kwh:.2f} kWh")
+               print(f"Consumo total: {total_kwh:.2f} kWh")
 
-           print("✅ Proceso completado")
+           print("Proceso completado")
 
    if __name__ == "__main__":
        main()
@@ -163,11 +163,11 @@ El SDK incluye manejo robusto de errores:
            print(f"Obtenidos {len(supplies)} suministros")
 
    except AuthenticationError as e:
-       print(f"❌ Error de autenticación: {e}")
+    print(f"Error de autenticación: {e}")
    except APIError as e:
-       print(f"❌ Error de API: {e}")
+    print(f"Error de API: {e}")
    except DatadisError as e:
-       print(f"❌ Error general: {e}")
+    print(f"Error general: {e}")
 
 Configuración avanzada
 ----------------------

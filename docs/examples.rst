@@ -24,7 +24,7 @@ Análisis de Consumo Mensual
            fecha_inicio = inicio_mes_anterior.strftime("%Y/%m/%d")
            fecha_fin = fin_mes_anterior.strftime("%Y/%m/%d")
 
-           print(f"📊 Analizando consumo: {fecha_inicio} - {fecha_fin}")
+           print(f"Analizando consumo: {fecha_inicio} - {fecha_fin}")
 
            # Obtener datos de consumo
            consumo = client.get_consumption(
@@ -35,7 +35,7 @@ Análisis de Consumo Mensual
            )
 
            if not consumo:
-               print("❌ No se encontraron datos de consumo")
+               print("No se encontraron datos de consumo")
                return
 
            # Análisis básico
