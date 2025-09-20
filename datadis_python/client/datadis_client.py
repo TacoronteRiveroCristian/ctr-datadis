@@ -74,8 +74,8 @@ class DatadisClient:
         self.base_url = DATADIS_BASE_URL
         self.api_base = DATADIS_API_BASE
         self.session = requests.Session()
-        self.token = None
-        self.token_expiry = None
+        self.token: Optional[str] = None
+        self.token_expiry: Optional[float] = None
 
         # Headers por defecto
         self.session.headers.update(
@@ -204,6 +204,9 @@ class DatadisClient:
                 if attempt == self.retries:
                     raise DatadisError(f"Error de conexión: {str(e)}")
                 time.sleep(1)
+
+        # Este punto nunca debería alcanzarse, pero MyPy requiere retorno explícito
+        raise DatadisError("Error inesperado: se agotaron todos los reintentos")
 
     def _authenticate(self) -> None:
         """

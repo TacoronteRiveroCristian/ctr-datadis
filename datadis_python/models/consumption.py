@@ -1,5 +1,7 @@
 """
-Modelos de datos para consumos
+Modelos de datos para consumos.
+
+Este módulo define los modelos de datos para los consumos energéticos.
 """
 
 from typing import Optional
@@ -8,7 +10,26 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ConsumptionData(BaseModel):
-    """Modelo para datos de consumo energético"""
+    """
+    Modelo para datos de consumo energético.
+
+    :param cups: Código CUPS del punto de suministro
+    :type cups: str
+    :param date: Fecha de la medición (YYYY/MM/DD)
+    :type date: str
+    :param time: Hora de la medición (HH:MM)
+    :type time: str
+    :param consumption_kwh: Energía consumida (kWh)
+    :type consumption_kwh: float
+    :param obtain_method: Método de obtención de la energía (Real/Estimada)
+    :type obtain_method: str
+    :param surplus_energy_kwh: Energía vertida (neteada/facturada) (kWh)
+    :type surplus_energy_kwh: Optional[float]
+    :param generation_energy_kwh: Energía generada (neteada/facturada) (kWh)
+    :type generation_energy_kwh: Optional[float]
+    :param self_consumption_energy_kwh: Energía autoconsumida (neteada/facturada) (kWh)
+    :type self_consumption_energy_kwh: Optional[float]
+    """
 
     cups: str = Field(description="Código CUPS del punto de suministro")
     date: str = Field(description="Fecha de la medición (YYYY/MM/DD)")

@@ -8,7 +8,12 @@ from .consumption import ConsumptionData
 from .contract import ContractData, DateOwner
 from .distributor import DistributorData
 from .max_power import MaxPowerData
-from .reactive import ReactiveData, ReactiveEnergyData, ReactiveEnergyPeriod
+from .reactive import (
+    ReactiveData,
+    ReactiveEnergyData,
+    ReactiveEnergyPeriod,
+    ReactiveResponse,
+)
 from .responses import (
     ConsumptionResponse,
     ContractResponse,
@@ -28,6 +33,7 @@ __all__ = [
     "ReactiveData",
     "ReactiveEnergyData",
     "ReactiveEnergyPeriod",
+    "ReactiveResponse",
     "SupplyData",
     "SuppliesResponse",
     "ContractResponse",

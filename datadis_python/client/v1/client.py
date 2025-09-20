@@ -31,30 +31,31 @@ class DatadisClientV1(BaseDatadisClient):
     :type retries: int
     """
 
-    def get_supplies(self) -> List["SupplyData"]:
+    def get_supplies(
+        self,
+        authorized_nif: Optional[str] = None,
+        distributor_code: Optional[str] = None,
+    ) -> List["SupplyData"]:
         """
-        Obtiene la lista de puntos de suministro disponibles validados con Pydantic.
+        Buscar todos los suministros.
 
-        :return: Lista de suministros como objetos SupplyData validados.
+        :param authorized_nif: NIF de la persona autorizada para buscar sus suministros
+        :type authorized_nif: Optional[str]
+        :param distributor_code: Código del distribuidor para filtrar suministros de una distribuidora específica
+        :type distributor_code: Optional[str]
+        :return: Lista de suministros como objetos SupplyData validados
         :rtype: List[SupplyData]
-
-        :Example:
-            [
-                SupplyData(
-                    address="CAMINO DEL HIERRO 2",
-                    cups="ES0031607515707001RC0F",
-                    postal_code="38009",
-                    province="Santa Cruz de Tenerife",
-                    municipality="SANTA CRUZ DE TENERIFE",
-                    distributor="EDISTRIBUCIÓN",
-                    valid_date_from="2024/11/01",
-                    valid_date_to="",
-                    point_type=3,
-                    distributor_code="2"
-                )
-            ]
         """
-        response = self.make_authenticated_request("GET", API_V1_ENDPOINTS["supplies"])
+        # Construir parámetros de query
+        params = {}
+        if authorized_nif is not None:
+            params["authorizedNif"] = authorized_nif
+        if distributor_code is not None:
+            params["distributorCode"] = distributor_code
+
+        response = self.make_authenticated_request(
+            "GET", API_V1_ENDPOINTS["supplies"], params=params
+        )
 
         # API v1 devuelve directamente una lista
         raw_supplies = []
@@ -78,15 +79,24 @@ class DatadisClientV1(BaseDatadisClient):
 
         return validated_supplies
 
-    def get_distributors(self) -> List["DistributorData"]:
+    def get_distributors(
+        self, authorized_nif: Optional[str] = None
+    ) -> List["DistributorData"]:
         """
-        Obtiene la lista de distribuidores disponibles validados con Pydantic.
+        Obtiene una lista de códigos de distribuidores en los que el usuario tiene suministros.
 
-        :return: Lista de distribuidores como objetos DistributorData validados.
+        :param authorized_nif: NIF autorizado para obtener distribuidoras del NIF autorizado
+        :type authorized_nif: Optional[str]
+        :return: Lista de distribuidores como objetos DistributorData validados
         :rtype: List[DistributorData]
+        :note: Códigos de distribuidora: (1: Viesgo, 2: E-distribución, 3: E-redes, 4: ASEME, 5: UFD, 6: EOSA, 7:CIDE, 8: IDE)
         """
+        params = {}
+        if authorized_nif is not None:
+            params["authorizedNif"] = authorized_nif
+
         response = self.make_authenticated_request(
-            "GET", API_V1_ENDPOINTS["distributors"]
+            "GET", API_V1_ENDPOINTS["distributors"], params=params
         )
 
         # Manejar diferentes formatos de respuesta
@@ -113,18 +123,23 @@ class DatadisClientV1(BaseDatadisClient):
         return validated_distributors
 
     def get_contract_detail(
-        self, cups: str, distributor_code: str
+        self, cups: str, distributor_code: str, authorized_nif: Optional[str] = None
     ) -> List["ContractData"]:
         """
-        Obtiene el detalle del contrato para un CUPS específico validado con Pydantic.
+        Buscar el detalle del contrato.
 
-        :param cups: Código CUPS del punto de suministro.
-        :param distributor_code: Código del distribuidor (1-8).
-
-        :return: Lista de datos del contrato como objetos ContractData validados.
+        :param cups: Código CUPS del punto de suministro para obtener detalles del contrato
+        :type cups: str
+        :param distributor_code: Código del distribuidor obtenido de la solicitud de suministros
+        :type distributor_code: str
+        :param authorized_nif: NIF autorizado para obtener el detalle del contrato del NIF autorizado
+        :type authorized_nif: Optional[str]
+        :return: Lista de datos del contrato como objetos ContractData validados
         :rtype: List[ContractData]
         """
         params = {"cups": cups, "distributorCode": distributor_code}
+        if authorized_nif is not None:
+            params["authorizedNif"] = authorized_nif
 
         response = self.make_authenticated_request(
             "GET", API_V1_ENDPOINTS["contracts"], params=params
@@ -161,18 +176,26 @@ class DatadisClientV1(BaseDatadisClient):
         date_to: str,
         measurement_type: int = 0,
         point_type: Optional[int] = None,
+        authorized_nif: Optional[str] = None,
     ) -> List["ConsumptionData"]:
         """
-        Obtiene datos de consumo para un CUPS y rango de fechas validados con Pydantic.
+        Buscar los datos de consumo.
 
-        :param cups: Código CUPS del punto de suministro.
-        :param distributor_code: Código del distribuidor (1-8).
-        :param date_from: Fecha inicial (YYYY/MM).
-        :param date_to: Fecha final (YYYY/MM).
-        :param measurement_type: Tipo de medida (0=hora, 1=cuarto hora).
-        :param point_type: Tipo de punto (1-5, opcional).
-
-        :return: Lista de datos de consumo como objetos ConsumptionData validados.
+        :param cups: Código CUPS del punto de suministro para obtener datos de consumo
+        :type cups: str
+        :param distributor_code: Código del distribuidor obtenido de la solicitud de suministros
+        :type distributor_code: str
+        :param date_from: Fecha de inicio en formato AAAA/MM (ejemplo: 2020/02)
+        :type date_from: str
+        :param date_to: Fecha de finalización en formato AAAA/MM (ejemplo: 2020/02)
+        :type date_to: str
+        :param measurement_type: Tipo de medida: 0 para consumo horario, 1 para consumo por cuarto de hora
+        :type measurement_type: int
+        :param point_type: Código de tipo de punto obtenido de la solicitud de suministros
+        :type point_type: Optional[int]
+        :param authorized_nif: NIF autorizado para obtener datos de consumo del NIF autorizado
+        :type authorized_nif: Optional[str]
+        :return: Lista de datos de consumo como objetos ConsumptionData validados
         :rtype: List[ConsumptionData]
         """
         params = {
@@ -185,6 +208,8 @@ class DatadisClientV1(BaseDatadisClient):
 
         if point_type is not None:
             params["pointType"] = str(point_type)
+        if authorized_nif is not None:
+            params["authorizedNif"] = authorized_nif
 
         response = self.make_authenticated_request(
             "GET", API_V1_ENDPOINTS["consumption"], params=params
@@ -213,17 +238,27 @@ class DatadisClientV1(BaseDatadisClient):
         return validated_consumption
 
     def get_max_power(
-        self, cups: str, distributor_code: str, date_from: str, date_to: str
+        self,
+        cups: str,
+        distributor_code: str,
+        date_from: str,
+        date_to: str,
+        authorized_nif: Optional[str] = None,
     ) -> List["MaxPowerData"]:
         """
-        Obtiene datos de potencia máxima para un CUPS y rango de fechas validados con Pydantic.
+        Busca la potencia máxima y devuelve el resultado en kW.
 
-        :param cups: Código CUPS del punto de suministro.
-        :param distributor_code: Código del distribuidor (1-8).
-        :param date_from: Fecha inicial (YYYY/MM).
-        :param date_to: Fecha final (YYYY/MM).
-
-        :return: Lista de datos de potencia máxima como objetos MaxPowerData validados.
+        :param cups: Código CUPS del punto de suministro para obtener potencia máxima
+        :type cups: str
+        :param distributor_code: Código del distribuidor obtenido de la solicitud de suministros
+        :type distributor_code: str
+        :param date_from: Fecha de inicio en formato AAAA/MM (ejemplo: 2020/02)
+        :type date_from: str
+        :param date_to: Fecha de finalización en formato AAAA/MM (ejemplo: 2020/02)
+        :type date_to: str
+        :param authorized_nif: NIF autorizado para obtener potencia máxima del NIF autorizado
+        :type authorized_nif: Optional[str]
+        :return: Lista de datos de potencia máxima como objetos MaxPowerData validados
         :rtype: List[MaxPowerData]
         """
         params = {
@@ -232,6 +267,8 @@ class DatadisClientV1(BaseDatadisClient):
             "startDate": date_from,
             "endDate": date_to,
         }
+        if authorized_nif is not None:
+            params["authorizedNif"] = authorized_nif
 
         response = self.make_authenticated_request(
             "GET", API_V1_ENDPOINTS["max_power"], params=params

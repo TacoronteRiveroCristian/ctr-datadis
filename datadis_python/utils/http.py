@@ -82,7 +82,7 @@ class HTTPClient:
                 if headers:
                     request_headers = {**self.session.headers, **headers}
                 else:
-                    request_headers = self.session.headers
+                    request_headers = dict(self.session.headers)
 
                 # Configurar la petición según el tipo de datos
                 if use_form_data and data:
@@ -117,18 +117,23 @@ class HTTPClient:
                 )
                 time.sleep(wait_time)
 
+        # Este punto nunca debería alcanzarse, pero MyPy requiere retorno explícito
+        raise DatadisError("Error inesperado: se agotaron todos los reintentos")
+
     def _handle_response(
         self, response: requests.Response, url: str
     ) -> Union[Dict[str, Any], str, list]:
         """
-        Maneja la respuesta HTTP
+        Maneja la respuesta HTTP.
 
-        Args:
-            response: Respuesta HTTP
-            url: URL de la petición
-
-        Returns:
-            Respuesta procesada
+        :param response: Respuesta HTTP
+        :type response: requests.Response
+        :param url: URL de la petición
+        :type url: str
+        :return: Respuesta procesada
+        :rtype: Union[Dict[str, Any], str, list]
+        :raises AuthenticationError: Si las credenciales son inválidas
+        :raises APIError: Si hay errores en la API
         """
         if response.status_code == 200:
             # Para autenticación, la respuesta es texto plano (JWT)
@@ -167,15 +172,24 @@ class HTTPClient:
             raise APIError(error_msg, response.status_code)
 
     def close(self) -> None:
-        """Cierra la sesión HTTP"""
+        """
+        Cierra la sesión HTTP.
+        """
         if self.session:
             self.session.close()
 
     def set_auth_header(self, token: str) -> None:
-        """Establece el header de autorización"""
+        """
+        Establece el header de autorización.
+
+        :param token: Token de autorización
+        :type token: str
+        """
         self.session.headers["Authorization"] = f"Bearer {token}"
 
     def remove_auth_header(self) -> None:
-        """Remueve el header de autorización"""
+        """
+        Remueve el header de autorización.
+        """
         if "Authorization" in self.session.headers:
             del self.session.headers["Authorization"]

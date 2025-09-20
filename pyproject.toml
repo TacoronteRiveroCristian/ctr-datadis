@@ -47,6 +47,7 @@ myst-parser = "^2.0.0"
 jupyter = "^1.1.1"
 load-dotenv = "^0.1.0"
 freezegun = "^1.2.0"
+types-requests = "<2.32"
 
 [tool.poetry.group.test.dependencies]
 pytest-asyncio = "^0.21.0"

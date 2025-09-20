@@ -62,7 +62,7 @@ def normalize_dict_strings(data: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(data, dict):
         return data
 
-    normalized = {}
+    normalized: Dict[str, Any] = {}
     for key, value in data.items():
         if isinstance(value, str):
             normalized[key] = normalize_text(value)
@@ -88,7 +88,7 @@ def normalize_list_strings(data: List[Any]) -> List[Any]:
     if not isinstance(data, list):
         return data
 
-    normalized = []
+    normalized: List[Any] = []
     for item in data:
         if isinstance(item, str):
             normalized.append(normalize_text(item))

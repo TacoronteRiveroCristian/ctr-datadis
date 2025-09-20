@@ -1,5 +1,7 @@
 """
-Cliente V1 simplificado y robusto para Datadis
+Cliente V1 simplificado y robusto para Datadis.
+
+Este módulo proporciona un cliente simplificado para la versión 1 de la API de Datadis.
 """
 
 import time
@@ -26,26 +28,38 @@ from ...utils.text_utils import normalize_api_response
 
 class SimpleDatadisClientV1:
     """
-    Cliente V1 simplificado que maneja mejor los timeouts de Datadis
+    Cliente V1 simplificado que maneja mejor los timeouts de Datadis.
+
+    :param username: NIF del usuario registrado en Datadis.
+    :type username: str
+    :param password: Contraseña de acceso a Datadis.
+    :type password: str
+    :param timeout: Timeout para requests en segundos (120s por defecto para Datadis).
+    :type timeout: int
+    :param retries: Número de reintentos automáticos.
+    :type retries: int
     """
 
     def __init__(
         self, username: str, password: str, timeout: int = 120, retries: int = 3
     ):
         """
-        Inicializa el cliente simplificado
+        Inicializa el cliente simplificado.
 
-        Args:
-            username: NIF del usuario
-            password: Contraseña
-            timeout: Timeout en segundos (120s por defecto para Datadis)
-            retries: Número de reintentos
+        :param username: NIF del usuario
+        :type username: str
+        :param password: Contraseña
+        :type password: str
+        :param timeout: Timeout en segundos (120s por defecto para Datadis)
+        :type timeout: int
+        :param retries: Número de reintentos
+        :type retries: int
         """
         self.username = username
         self.password = password
         self.timeout = timeout
         self.retries = retries
-        self.token = None
+        self.token: Optional[str] = None
         self.session = requests.Session()
 
         # Headers básicos (desactivar compresión para evitar problemas de gzip)
@@ -59,12 +73,14 @@ class SimpleDatadisClientV1:
 
     def authenticate(self) -> bool:
         """
-        Autentica con la API de Datadis
+        Autentica con la API de Datadis.
 
-        Returns:
-            True si la autenticación fue exitosa
+        :return: True si la autenticación fue exitosa
+        :rtype: bool
+        :raises AuthenticationError: Si las credenciales son inválidas
+        :raises DatadisError: Si ocurre un error de conexión
         """
-        print("🔐 Autenticando con Datadis...")
+        print("Autenticando con Datadis...")
 
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -85,10 +101,12 @@ class SimpleDatadisClientV1:
             if response.status_code == 200:
                 token = response.text.strip()
                 if not token:
-                    raise AuthenticationError("Error de autenticación: respuesta vacía del servidor")
+                    raise AuthenticationError(
+                        "Error de autenticación: respuesta vacía del servidor"
+                    )
                 self.token = token
                 self.session.headers["Authorization"] = f"Bearer {self.token}"
-                print(f"✅ Autenticación exitosa")
+                print("Autenticación exitosa")
                 return True
             else:
                 raise AuthenticationError(
@@ -104,14 +122,16 @@ class SimpleDatadisClientV1:
         self, endpoint: str, params: Optional[Dict] = None
     ) -> Any:
         """
-        Realiza una petición autenticada con manejo robusto de timeouts
+        Realiza una petición autenticada con manejo robusto de timeouts.
 
-        Args:
-            endpoint: Endpoint de la API (ej: '/get-supplies')
-            params: Parámetros de query
-
-        Returns:
-            Respuesta de la API
+        :param endpoint: Endpoint de la API (ej: '/get-supplies')
+        :type endpoint: str
+        :param params: Parámetros de query
+        :type params: Optional[Dict]
+        :return: Respuesta de la API
+        :rtype: Any
+        :raises AuthenticationError: Si no se puede autenticar
+        :raises DatadisError: Si se agotan los reintentos
         """
         if not self.token:
             if not self.authenticate():
@@ -122,7 +142,7 @@ class SimpleDatadisClientV1:
         for attempt in range(self.retries + 1):
             try:
                 print(
-                    f"📡 Petición a {endpoint} (intento {attempt + 1}/{self.retries + 1})..."
+                    f"Petición a {endpoint} (intento {attempt + 1}/{self.retries + 1})..."
                 )
 
                 response = self.session.get(
@@ -130,13 +150,13 @@ class SimpleDatadisClientV1:
                 )
 
                 if response.status_code == 200:
-                    print(f"✅ Respuesta exitosa ({len(response.text)} chars)")
+                    print(f"Respuesta exitosa ({len(response.text)} chars)")
                     json_response = response.json()
                     # Normalizar texto para evitar problemas de caracteres especiales
                     return normalize_api_response(json_response)
                 elif response.status_code == 401:
                     # Token expirado, renovar
-                    print("🔄 Token expirado, renovando...")
+                    print("Token expirado, renovando...")
                     self.token = None
                     if self.authenticate():
                         continue
@@ -155,7 +175,7 @@ class SimpleDatadisClientV1:
                 if attempt < self.retries:
                     wait_time = min(30, (2**attempt) * 5)
                     print(
-                        f"⏰ Timeout. Esperando {wait_time}s antes del siguiente intento..."
+                        f"Timeout. Esperando {wait_time}s antes del siguiente intento..."
                     )
                     time.sleep(wait_time)
                 else:
@@ -166,7 +186,7 @@ class SimpleDatadisClientV1:
                 # Solo reintentar errores de red/conexión, no errores de aplicación
                 if attempt < self.retries:
                     wait_time = (2**attempt) * 2
-                    print(f"❌ Error: {e}. Reintentando en {wait_time}s...")
+                    print(f"Error: {e}. Reintentando en {wait_time}s...")
                     time.sleep(wait_time)
                 else:
                     raise DatadisError(
@@ -175,15 +195,33 @@ class SimpleDatadisClientV1:
 
         raise DatadisError("Se agotaron todos los reintentos")
 
-    def get_supplies(self) -> List["SupplyData"]:
+    def get_supplies(
+        self,
+        authorized_nif: Optional[str] = None,
+        distributor_code: Optional[str] = None,
+    ) -> List["SupplyData"]:
         """
-        Obtiene la lista de puntos de suministro validados con Pydantic
+        Obtiene la lista de puntos de suministro validados con Pydantic.
 
-        Returns:
-            Lista de suministros como objetos SupplyData validados
+        :param authorized_nif: NIF de la persona autorizada para buscar sus suministros
+        :type authorized_nif: Optional[str]
+        :param distributor_code: Código del distribuidor para filtrar suministros
+        :type distributor_code: Optional[str]
+        :return: Lista de suministros como objetos SupplyData validados
+        :rtype: List[SupplyData]
         """
-        print("🏠 Obteniendo lista de suministros...")
-        response = self._make_authenticated_request(API_V1_ENDPOINTS["supplies"])
+        print("Obteniendo lista de suministros...")
+
+        # Construir parámetros de query
+        params = {}
+        if authorized_nif is not None:
+            params["authorizedNif"] = authorized_nif
+        if distributor_code is not None:
+            params["distributorCode"] = distributor_code
+
+        response = self._make_authenticated_request(
+            API_V1_ENDPOINTS["supplies"], params=params
+        )
 
         raw_supplies = []
         if isinstance(response, list):
@@ -191,7 +229,7 @@ class SimpleDatadisClientV1:
         elif isinstance(response, dict) and "supplies" in response:
             raw_supplies = response["supplies"]
         else:
-            print("⚠️ Respuesta inesperada de la API")
+            print("Respuesta inesperada de la API")
             return []
 
         # Validar datos con Pydantic
@@ -203,21 +241,21 @@ class SimpleDatadisClientV1:
                 validated_supply = SupplyData(**supply_data)
                 validated_supplies.append(validated_supply)
             except Exception as e:
-                print(f"⚠️ Error validando suministro: {e}")
+                print(f"Error validando suministro: {e}")
                 # Continúa con el siguiente sin fallar completamente
                 continue
 
-        print(f"✅ {len(validated_supplies)} suministros validados")
+        print(f"{len(validated_supplies)} suministros validados")
         return validated_supplies
 
     def get_distributors(self) -> List["DistributorData"]:
         """
-        Obtiene distribuidores validados con Pydantic
+        Obtiene distribuidores validados con Pydantic.
 
-        Returns:
-            Lista de distribuidores como objetos DistributorData validados
+        :return: Lista de distribuidores como objetos DistributorData validados
+        :rtype: List[DistributorData]
         """
-        print("🔌 Obteniendo distribuidores...")
+        print("Obteniendo distribuidores...")
         response = self._make_authenticated_request(API_V1_ENDPOINTS["distributors"])
 
         # Manejar diferentes estructuras de respuesta
@@ -237,27 +275,27 @@ class SimpleDatadisClientV1:
                 validated_distributor = DistributorData(**distributor_data)
                 validated_distributors.append(validated_distributor)
             except Exception as e:
-                print(f"⚠️ Error validando distribuidor: {e}")
+                print(f"Error validando distribuidor: {e}")
                 # Continúa con el siguiente sin fallar completamente
                 continue
 
-        print(f"✅ {len(validated_distributors)} distribuidores validados")
+        print(f"{len(validated_distributors)} distribuidores validados")
         return validated_distributors
 
     def get_contract_detail(
         self, cups: str, distributor_code: str
     ) -> List["ContractData"]:
         """
-        Obtiene detalle del contrato validado con Pydantic
+        Obtiene detalle del contrato validado con Pydantic.
 
-        Args:
-            cups: Código CUPS del punto de suministro
-            distributor_code: Código de la distribuidora
-
-        Returns:
-            Lista de contratos como objetos ContractData validados
+        :param cups: Código CUPS del punto de suministro
+        :type cups: str
+        :param distributor_code: Código de la distribuidora
+        :type distributor_code: str
+        :return: Lista de contratos como objetos ContractData validados
+        :rtype: List[ContractData]
         """
-        print(f"📋 Obteniendo contrato para {cups}...")
+        print(f"Obteniendo contrato para {cups}...")
         params = {"cups": cups, "distributorCode": distributor_code}
         response = self._make_authenticated_request(
             API_V1_ENDPOINTS["contracts"], params
@@ -280,11 +318,11 @@ class SimpleDatadisClientV1:
                 validated_contract = ContractData(**contract_data)
                 validated_contracts.append(validated_contract)
             except Exception as e:
-                print(f"⚠️ Error validando contrato: {e}")
+                print(f"Error validando contrato: {e}")
                 # Continúa con el siguiente sin fallar completamente
                 continue
 
-        print(f"✅ {len(validated_contracts)} contratos validados")
+        print(f"{len(validated_contracts)} contratos validados")
         return validated_contracts
 
     def get_consumption(
@@ -297,20 +335,24 @@ class SimpleDatadisClientV1:
         point_type: Optional[int] = None,
     ) -> List["ConsumptionData"]:
         """
-        Obtiene datos de consumo validados con Pydantic
+        Obtiene datos de consumo validados con Pydantic.
 
-        Args:
-            cups: Código CUPS del punto de suministro
-            distributor_code: Código de la distribuidora
-            date_from: Fecha de inicio (YYYY/MM/DD)
-            date_to: Fecha de fin (YYYY/MM/DD)
-            measurement_type: Tipo de medición (default: 0)
-            point_type: Tipo de punto de medida (opcional)
-
-        Returns:
-            Lista de datos de consumo como objetos ConsumptionData validados
+        :param cups: Código CUPS del punto de suministro
+        :type cups: str
+        :param distributor_code: Código de la distribuidora
+        :type distributor_code: str
+        :param date_from: Fecha de inicio (YYYY/MM/DD)
+        :type date_from: str
+        :param date_to: Fecha de fin (YYYY/MM/DD)
+        :type date_to: str
+        :param measurement_type: Tipo de medición (default: 0)
+        :type measurement_type: int
+        :param point_type: Tipo de punto de medida (opcional)
+        :type point_type: Optional[int]
+        :return: Lista de datos de consumo como objetos ConsumptionData validados
+        :rtype: List[ConsumptionData]
         """
-        print(f"⚡ Obteniendo consumo para {cups} ({date_from} - {date_to})...")
+        print(f"Obteniendo consumo para {cups} ({date_from} - {date_to})...")
         params = {
             "cups": cups,
             "distributorCode": distributor_code,
@@ -342,29 +384,31 @@ class SimpleDatadisClientV1:
                 validated_consumption_item = ConsumptionData(**consumption_data)
                 validated_consumption.append(validated_consumption_item)
             except Exception as e:
-                print(f"⚠️ Error validando consumo: {e}")
+                print(f"Error validando consumo: {e}")
                 # Continúa con el siguiente sin fallar completamente
                 continue
 
-        print(f"✅ {len(validated_consumption)} registros de consumo validados")
+        print(f"{len(validated_consumption)} registros de consumo validados")
         return validated_consumption
 
     def get_max_power(
         self, cups: str, distributor_code: str, date_from: str, date_to: str
     ) -> List["MaxPowerData"]:
         """
-        Obtiene datos de potencia máxima validados con Pydantic
+        Obtiene datos de potencia máxima validados con Pydantic.
 
-        Args:
-            cups: Código CUPS del punto de suministro
-            distributor_code: Código de la distribuidora
-            date_from: Fecha de inicio (YYYY/MM/DD)
-            date_to: Fecha de fin (YYYY/MM/DD)
-
-        Returns:
-            Lista de datos de potencia máxima como objetos MaxPowerData validados
+        :param cups: Código CUPS del punto de suministro
+        :type cups: str
+        :param distributor_code: Código de la distribuidora
+        :type distributor_code: str
+        :param date_from: Fecha de inicio (YYYY/MM/DD)
+        :type date_from: str
+        :param date_to: Fecha de fin (YYYY/MM/DD)
+        :type date_to: str
+        :return: Lista de datos de potencia máxima como objetos MaxPowerData validados
+        :rtype: List[MaxPowerData]
         """
-        print(f"🔋 Obteniendo potencia máxima para {cups} ({date_from} - {date_to})...")
+        print(f"Obteniendo potencia máxima para {cups} ({date_from} - {date_to})...")
         params = {
             "cups": cups,
             "distributorCode": distributor_code,
@@ -392,21 +436,39 @@ class SimpleDatadisClientV1:
                 validated_max_power_item = MaxPowerData(**max_power_data)
                 validated_max_power.append(validated_max_power_item)
             except Exception as e:
-                print(f"⚠️ Error validando potencia máxima: {e}")
+                print(f"Error validando potencia máxima: {e}")
                 # Continúa con el siguiente sin fallar completamente
                 continue
 
-        print(f"✅ {len(validated_max_power)} registros de potencia máxima validados")
+        print(f"{len(validated_max_power)} registros de potencia máxima validados")
         return validated_max_power
 
     def close(self):
-        """Cierra la sesión"""
+        """
+        Cierra la sesión.
+        """
         if self.session:
             self.session.close()
         self.token = None
 
     def __enter__(self):
+        """
+        Context manager entry.
+
+        :return: Instancia del cliente
+        :rtype: SimpleDatadisClientV1
+        """
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Context manager exit.
+
+        :param exc_type: Tipo de excepción
+        :type exc_type: Optional[type]
+        :param exc_val: Valor de la excepción
+        :type exc_val: Optional[BaseException]
+        :param exc_tb: Traceback de la excepción
+        :type exc_tb: Optional[TracebackType]
+        """
         self.close()

@@ -56,16 +56,16 @@ class DatadisClient:
         self._retries = retries
 
         # Inicialización lazy de los clientes
-        self._v1_client = None
-        self._v2_client = None
+        self._v1_client: Optional[DatadisClientV1] = None
+        self._v2_client: Optional[DatadisClientV2] = None
 
     @property
     def v1(self) -> DatadisClientV1:
         """
-        Acceso al cliente API v1 (respuestas raw)
+        Acceso al cliente API v1 (respuestas raw).
 
-        Returns:
-            Cliente v1 inicializado
+        :return: Cliente v1 inicializado
+        :rtype: DatadisClientV1
         """
         if self._v1_client is None:
             self._v1_client = DatadisClientV1(
@@ -76,10 +76,10 @@ class DatadisClient:
     @property
     def v2(self) -> DatadisClientV2:
         """
-        Acceso al cliente API v2 (respuestas tipadas)
+        Acceso al cliente API v2 (respuestas tipadas).
 
-        Returns:
-            Cliente v2 inicializado
+        :return: Cliente v2 inicializado
+        :rtype: DatadisClientV2
         """
         if self._v2_client is None:
             self._v2_client = DatadisClientV2(
@@ -93,17 +93,25 @@ class DatadisClient:
         self, distributor_code: Optional[str] = None
     ) -> "SuppliesResponse":
         """
-        Obtiene puntos de suministro (usa API v2)
+        Obtiene puntos de suministro (usa API v2).
 
         Para usar v1: client.v1.get_supplies()
+
+        :param distributor_code: Código de la distribuidora
+        :type distributor_code: Optional[str]
+        :return: Respuesta con puntos de suministro
+        :rtype: SuppliesResponse
         """
         return self.v2.get_supplies(distributor_code)
 
     def get_distributors(self) -> "DistributorsResponse":
         """
-        Obtiene distribuidores (usa API v2)
+        Obtiene distribuidores (usa API v2).
 
         Para usar v1: client.v1.get_distributors()
+
+        :return: Respuesta con distribuidores
+        :rtype: DistributorsResponse
         """
         return self.v2.get_distributors()
 
@@ -111,9 +119,16 @@ class DatadisClient:
         self, cups: str, distributor_code: str
     ) -> "ContractResponse":
         """
-        Obtiene detalle del contrato (usa API v2)
+        Obtiene detalle del contrato (usa API v2).
 
         Para usar v1: client.v1.get_contract_detail(cups, distributor_code)
+
+        :param cups: Código CUPS del punto de suministro
+        :type cups: str
+        :param distributor_code: Código de la distribuidora
+        :type distributor_code: str
+        :return: Respuesta con detalle del contrato
+        :rtype: ContractResponse
         """
         return self.v2.get_contract_detail(cups, distributor_code)
 
@@ -127,9 +142,24 @@ class DatadisClient:
         point_type: Optional[int] = None,
     ) -> "ConsumptionResponse":
         """
-        Obtiene datos de consumo (usa API v2)
+        Obtiene datos de consumo (usa API v2).
 
         Para usar v1: client.v1.get_consumption(...)
+
+        :param cups: Código CUPS del punto de suministro
+        :type cups: str
+        :param distributor_code: Código de la distribuidora
+        :type distributor_code: str
+        :param date_from: Fecha de inicio (YYYY-MM-DD)
+        :type date_from: str
+        :param date_to: Fecha de fin (YYYY-MM-DD)
+        :type date_to: str
+        :param measurement_type: Tipo de medida
+        :type measurement_type: int
+        :param point_type: Tipo de punto
+        :type point_type: Optional[int]
+        :return: Respuesta con datos de consumo
+        :rtype: ConsumptionResponse
         """
         return self.v2.get_consumption(
             cups, distributor_code, date_from, date_to, measurement_type, point_type
@@ -139,9 +169,20 @@ class DatadisClient:
         self, cups: str, distributor_code: str, date_from: str, date_to: str
     ) -> "MaxPowerResponse":
         """
-        Obtiene datos de potencia máxima (usa API v2)
+        Obtiene datos de potencia máxima (usa API v2).
 
         Para usar v1: client.v1.get_max_power(...)
+
+        :param cups: Código CUPS del punto de suministro
+        :type cups: str
+        :param distributor_code: Código de la distribuidora
+        :type distributor_code: str
+        :param date_from: Fecha de inicio (YYYY-MM-DD)
+        :type date_from: str
+        :param date_to: Fecha de fin (YYYY-MM-DD)
+        :type date_to: str
+        :return: Respuesta con datos de potencia máxima
+        :rtype: MaxPowerResponse
         """
         return self.v2.get_max_power(cups, distributor_code, date_from, date_to)
 
@@ -151,7 +192,18 @@ class DatadisClient:
         self, cups: str, distributor_code: str, date_from: str, date_to: str
     ) -> List["ReactiveData"]:
         """
-        Obtiene datos de energía reactiva (solo disponible en v2)
+        Obtiene datos de energía reactiva (solo disponible en v2).
+
+        :param cups: Código CUPS del punto de suministro
+        :type cups: str
+        :param distributor_code: Código de la distribuidora
+        :type distributor_code: str
+        :param date_from: Fecha de inicio (YYYY-MM-DD)
+        :type date_from: str
+        :param date_to: Fecha de fin (YYYY-MM-DD)
+        :type date_to: str
+        :return: Lista de datos de energía reactiva
+        :rtype: List[ReactiveData]
         """
         return self.v2.get_reactive_data(cups, distributor_code, date_from, date_to)
 
@@ -159,13 +211,19 @@ class DatadisClient:
 
     def get_cups_list(self) -> List[str]:
         """
-        Obtiene solo códigos CUPS (método de conveniencia de v1)
+        Obtiene solo códigos CUPS (método de conveniencia de v1).
+
+        :return: Lista de códigos CUPS
+        :rtype: List[str]
         """
         return self.v1.get_cups_list()
 
     def get_distributor_codes(self) -> List[str]:
         """
-        Obtiene solo códigos de distribuidores (método de conveniencia de v1)
+        Obtiene solo códigos de distribuidores (método de conveniencia de v1).
+
+        :return: Lista de códigos de distribuidores
+        :rtype: List[str]
         """
         return self.v1.get_distributor_codes()
 
@@ -173,7 +231,7 @@ class DatadisClient:
 
     def close(self) -> None:
         """
-        Cierra ambos clientes y libera recursos
+        Cierra ambos clientes y libera recursos.
         """
         if self._v1_client:
             self._v1_client.close()
@@ -181,21 +239,35 @@ class DatadisClient:
             self._v2_client.close()
 
     def __enter__(self):
-        """Context manager entry"""
+        """
+        Context manager entry.
+
+        :return: Instancia del cliente
+        :rtype: DatadisClient
+        """
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit"""
+        """
+        Context manager exit.
+
+        :param exc_type: Tipo de excepción
+        :type exc_type: Optional[type]
+        :param exc_val: Valor de la excepción
+        :type exc_val: Optional[BaseException]
+        :param exc_tb: Traceback de la excepción
+        :type exc_tb: Optional[TracebackType]
+        """
         self.close()
 
     # Información del cliente
 
     def get_client_info(self) -> dict:
         """
-        Obtiene información sobre el estado de los clientes
+        Obtiene información sobre el estado de los clientes.
 
-        Returns:
-            Diccionario con información de estado
+        :return: Diccionario con información de estado
+        :rtype: dict
         """
         return {
             "v1_initialized": self._v1_client is not None,

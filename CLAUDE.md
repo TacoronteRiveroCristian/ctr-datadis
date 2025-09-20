@@ -6,6 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is `ctr-datadis`, a comprehensive Python SDK for the official Datadis API (Spanish electricity supply data platform). The SDK provides developers with type-safe access to electricity consumption data, supply information, and related utilities for Spanish energy consumers.
 
+
+
+## Additional Development Rules
+
+- **After each feature**: You must always create the corresponding tests for every new feature or bugfix, and verify that they pass before considering the task complete.
+- **Docstrings**: All docstrings must follow the Sphinx (reStructuredText) style, both in classes and in functions/methods.
+- **Emojis**: Emojis must never be used in code, comments, docstrings, or documentation.
+
 ## Development Commands
 
 ### Dependencies
