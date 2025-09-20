@@ -1,7 +1,7 @@
 # ctr-datadis
 
 [![PyPI version](https://badge.fury.io/py/ctr-datadis.svg)](https://badge.fury.io/py/ctr-datadis)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Documentation Status](https://readthedocs.org/projects/ctr-datadis/badge/?version=latest)](https://ctr-datadis.readthedocs.io/en/latest/?badge=latest)
 [![Tests](https://github.com/tu-usuario/datadis/workflows/Tests/badge.svg)](https://github.com/tu-usuario/datadis/actions)
@@ -16,7 +16,7 @@
 - **Complete API Coverage** - Access to all Datadis API endpoints
 - **Type Safety** - Full type hints and Pydantic models for data validation
 - **Error Handling** - Comprehensive error handling with custom exceptions
-- **Python 3.8+** - Compatible with modern Python versions
+- **Python 3.9+** - Compatible with modern Python versions
 - **Text Normalization** - Automatic handling of Spanish accents and special characters
 - **Data Models** - Structured data with Pydantic for consumption, supply, and contract data
 - **Two API Versions** - Support for both V1 and V2 clients (V2 includes reactive energy data)
@@ -122,7 +122,7 @@ except DatadisError as e:
 
 ## Requirements
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - Valid Datadis account credentials
 - Internet connection
 
