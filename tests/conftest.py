@@ -15,6 +15,7 @@ from freezegun import freeze_time
 
 from datadis_python.client.v1.simple_client import SimpleDatadisClientV1
 from datadis_python.client.v2.client import DatadisClientV2
+from datadis_python.client.v2.simple_client import SimpleDatadisClientV2
 from datadis_python.utils.constants import (
     API_V1_ENDPOINTS,
     API_V2_ENDPOINTS,
@@ -106,6 +107,17 @@ def v2_client(test_credentials):
 
 
 @pytest.fixture
+def simple_v2_client(test_credentials):
+    """Cliente V2 simplificado con credenciales de prueba."""
+    return SimpleDatadisClientV2(
+        username=test_credentials["username"],
+        password=test_credentials["password"],
+        timeout=30,
+        retries=1,
+    )
+
+
+@pytest.fixture
 def authenticated_v1_client(v1_client, mock_auth_success):
     """Cliente V1 ya autenticado."""
     v1_client.authenticate()
@@ -117,6 +129,13 @@ def authenticated_v2_client(v2_client, mock_auth_success):
     """Cliente V2 ya autenticado."""
     v2_client.authenticate()
     return v2_client
+
+
+@pytest.fixture
+def authenticated_simple_v2_client(simple_v2_client, mock_auth_success):
+    """Cliente V2 simplificado ya autenticado."""
+    simple_v2_client.authenticate()
+    return simple_v2_client
 
 
 # Fixtures de datos de prueba
@@ -249,6 +268,74 @@ def sample_reactive_data():
 def sample_reactive_response(sample_reactive_data):
     """Respuesta de ejemplo para get-reactive-data-v2."""
     return [sample_reactive_data]
+
+
+# V2 Response fixtures (structured format for SimpleDatadisClientV2)
+@pytest.fixture
+def sample_v2_supplies_response(sample_supplies_response):
+    """Respuesta V2 estructurada para get-supplies-v2."""
+    return {
+        "supplies": sample_supplies_response,
+        "distributorError": []
+    }
+
+
+@pytest.fixture
+def sample_v2_consumption_response(sample_consumption_response):
+    """Respuesta V2 estructurada para get-consumption-data-v2."""
+    return {
+        "timeCurve": sample_consumption_response,
+        "distributorError": []
+    }
+
+
+@pytest.fixture
+def sample_v2_contract_response(sample_contract_response):
+    """Respuesta V2 estructurada para get-contract-detail-v2."""
+    return {
+        "contract": sample_contract_response,
+        "distributorError": []
+    }
+
+
+@pytest.fixture
+def sample_v2_max_power_response(sample_max_power_response):
+    """Respuesta V2 estructurada para get-max-power-v2."""
+    return {
+        "maxPower": sample_max_power_response,
+        "distributorError": []
+    }
+
+
+@pytest.fixture
+def sample_v2_distributors_response(sample_distributor_data):
+    """Respuesta V2 estructurada para get-distributors-with-supplies-v2."""
+    return {
+        "distExistenceUser": sample_distributor_data,
+        "distributorError": []
+    }
+
+
+@pytest.fixture
+def sample_v2_reactive_response(cups_code):
+    """Respuesta V2 estructurada para get-reactive-data-v2."""
+    return {
+        "reactiveEnergy": {
+            "cups": cups_code,
+            "energy": [
+                {
+                    "date": "2024/01",
+                    "energy_p1": 10.5,
+                    "energy_p2": 8.2,
+                    "energy_p3": None,
+                    "energy_p4": None,
+                    "energy_p5": None,
+                    "energy_p6": None,
+                }
+            ]
+        },
+        "distributorError": []
+    }
 
 
 # Fixtures para mocking completo de APIs
@@ -442,6 +529,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "models: Pydantic model tests")
     config.addinivalue_line("markers", "client_v1: V1 client tests")
     config.addinivalue_line("markers", "client_v2: V2 client tests")
+    config.addinivalue_line("markers", "simple_client_v2: Simple V2 client tests")
     config.addinivalue_line("markers", "utils: Utility function tests")
     config.addinivalue_line("markers", "errors: Error handling tests")
 

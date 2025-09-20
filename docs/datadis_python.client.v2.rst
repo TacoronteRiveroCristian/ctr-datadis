@@ -8,6 +8,7 @@ Submodules
    :maxdepth: 4
 
    datadis_python.client.v2.client
+   datadis_python.client.v2.simple_client
 
 Module contents
 ---------------

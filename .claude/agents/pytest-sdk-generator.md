@@ -96,7 +96,7 @@ def auth_headers():
 - Include error scenarios (timeouts, 500 errors, malformed JSON)
 
 ### Data Sources
-- Reference `datadis_python/docs/doc-api.txt` for canonical payloads
+- Reference `datadis_python/docs/20250920-datadis-api-reference.md` for canonical payloads
 - Cite specific sections and line numbers when using documentation examples
 - Create golden sample files for regression testing
 - Use factories for generating synthetic test data
@@ -137,4 +137,4 @@ When generating tests, provide:
 
 Always prioritize test reliability, maintainability, and comprehensive coverage over test quantity. Each test should serve a clear purpose in validating SDK behavior and preventing regressions.
 
-**NOTE: --Documentation Analysis--**: Extract API specifications from `datadis_python/docs/doc-api.txt` as the single source of truth for endpoints, fields, and constraints
+**NOTE: --Documentation Analysis--**: Extract API specifications from `datadis_python/docs/20250920-datadis-api-reference.md` as the single source of truth for endpoints, fields, and constraints

@@ -1,0 +1,158 @@
+name: Auto Publish on Main Push
+
+on:
+  push:
+    branches: [ main ]
+    # Solo se ejecuta si hay cambios importantes
+    paths:
+      - 'pyproject.toml'
+      - 'datadis_python/**'
+      - 'README.md'
+
+  # También permite ejecución manual
+  workflow_dispatch:
+
+jobs:
+  # Job 1: Tests y Quality Checks
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, "3.10", 3.11, 3.12]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --with dev
+
+    - name: Run quality checks
+      run: |
+        poetry run black --check datadis_python/
+        poetry run isort --check-only datadis_python/
+        poetry run flake8 datadis_python/
+        poetry run mypy datadis_python/
+
+    - name: Run tests
+      run: poetry run pytest --cov=datadis_python --cov-report=xml
+
+  # Job 2: Check if version changed
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version-changed: ${{ steps.check.outputs.changed }}
+      new-version: ${{ steps.check.outputs.version }}
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Necesario para comparar con commit anterior
+
+    - name: Check if version changed
+      id: check
+      run: |
+        # Obtener versión actual
+        current_version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+        echo "Current version: $current_version"
+
+        # Verificar si es el primer commit o si hay commits anteriores
+        if git rev-parse HEAD~1 >/dev/null 2>&1; then
+          # Obtener versión del commit anterior
+          git show HEAD~1:pyproject.toml | grep '^version = ' | sed 's/version = "\(.*\)"/\1/' > /tmp/prev_version || echo "none" > /tmp/prev_version
+          previous_version=$(cat /tmp/prev_version)
+          echo "Previous version: $previous_version"
+        else
+          echo "First commit, treating as version change"
+          previous_version="none"
+        fi
+
+        if [ "$current_version" != "$previous_version" ]; then
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "version=$current_version" >> $GITHUB_OUTPUT
+          echo "Version changed from $previous_version to $current_version"
+        else
+          echo "changed=false" >> $GITHUB_OUTPUT
+          echo "Version unchanged: $current_version"
+        fi
+
+  # Job 3: Publish to PyPI (solo si los tests pasan y la versión cambió)
+  publish:
+    needs: [test, check-version]
+    if: needs.check-version.outputs.version-changed == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Build package
+      run: poetry build
+
+    - name: Publish to TestPyPI first
+      env:
+        POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.TESTPYPI_API_TOKEN }}
+      run: |
+        poetry config repositories.testpypi https://test.pypi.org/legacy/
+        poetry publish -r testpypi --skip-existing || echo "TestPyPI publish failed, continuing..."
+
+    - name: Publish to PyPI
+      env:
+        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
+      run: poetry publish
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ needs.check-version.outputs.new-version }}
+        name: Release v${{ needs.check-version.outputs.new-version }}
+        body: |
+          ## 🚀 New Release v${{ needs.check-version.outputs.new-version }}
+
+          Auto-generated release from main branch push.
+
+          ### 📦 Installation
+          ```bash
+          pip install ctr-datadis==${{ needs.check-version.outputs.new-version }}
+          ```
+
+          ### 📚 Documentation
+          - [ReadTheDocs](https://ctr-datadis.readthedocs.io)
+          - [PyPI Package](https://pypi.org/project/ctr-datadis/)
+
+          ### 🔍 Changes
+          Check the [commit history](https://github.com/${{ github.repository }}/commits/v${{ needs.check-version.outputs.new-version }}) for detailed changes.
+        draft: false
+        prerelease: false

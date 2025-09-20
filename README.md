@@ -3,17 +3,23 @@
 [![PyPI version](https://badge.fury.io/py/ctr-datadis.svg)](https://badge.fury.io/py/ctr-datadis)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Documentation Status](https://readthedocs.org/projects/ctr-datadis/badge/?version=latest)](https://ctr-datadis.readthedocs.io/en/latest/?badge=latest)
+[![Tests](https://github.com/tu-usuario/datadis/workflows/Tests/badge.svg)](https://github.com/tu-usuario/datadis/actions)
 
-A comprehensive Python SDK for interacting with the official Datadis API (Spanish electricity supply data platform).
+**A comprehensive Python SDK for interacting with the official Datadis API** (Spanish electricity supply data platform).
+
+**Datadis** is the official platform of the Spanish government that provides access to electricity consumption data for Spanish consumers. This SDK makes it easy to access your electricity data programmatically.
 
 ## Features
 
 - **Automatic Authentication** - Token-based authentication with automatic renewal
 - **Complete API Coverage** - Access to all Datadis API endpoints
-- **Type Safety** - Full type hints and Pydantic models for data validation  
+- **Type Safety** - Full type hints and Pydantic models for data validation
 - **Error Handling** - Comprehensive error handling with custom exceptions
 - **Python 3.8+** - Compatible with modern Python versions
 - **Text Normalization** - Automatic handling of Spanish accents and special characters
+- **Data Models** - Structured data with Pydantic for consumption, supply, and contract data
+- **Two API Versions** - Support for both V1 and V2 clients (V2 includes reactive energy data)
 
 ## Installation
 
@@ -24,10 +30,10 @@ pip install ctr-datadis
 ## Quick Start
 
 ```python
-from datadis_python.client.v1.simple_client import DatadisClient
+from datadis_python.client.v1.simple_client import SimpleDatadisClientV1
 
 # Initialize client with your Datadis credentials
-client = DatadisClient(username="12345678A", password="your_password")
+client = SimpleDatadisClientV1(username="12345678A", password="your_password")
 
 # Get your supply points
 supplies = client.get_supplies()
@@ -41,6 +47,17 @@ consumption = client.get_consumption(
     end_date="2024/02"              # End date (YYYY/MM)
 )
 print(f"Retrieved {len(consumption)} consumption records")
+
+# For V2 client with reactive energy data
+from datadis_python.client.v2.simple_client import SimpleDatadisClientV2
+
+client_v2 = SimpleDatadisClientV2(username="12345678A", password="your_password")
+reactive_data = client_v2.get_reactive_data(
+    cups="ES1234000000000001JN0F",
+    distributor_code="2",
+    start_date="2024/01",
+    end_date="2024/02"
+)
 ```
 
 ## Available Methods
@@ -118,7 +135,22 @@ except DatadisError as e:
 
 ## Documentation
 
-Full documentation is available at: [https://ctr-datadis.readthedocs.io](https://ctr-datadis.readthedocs.io)
+- **Complete Documentation**: [https://ctr-datadis.readthedocs.io](https://ctr-datadis.readthedocs.io)
+- **API Reference**: Detailed API documentation with examples
+- **Examples**: Step-by-step tutorials and use cases
+- **Troubleshooting**: Common issues and solutions
+
+## API Versions
+
+| Feature | V1 Client | V2 Client |
+|---------|-----------|-----------|
+| Consumption Data | ✓ | ✓ |
+| Supply Information | ✓ | ✓ |
+| Contract Details | ✓ | ✓ |
+| Max Power Data | ✓ | ✓ |
+| Reactive Energy Data | ✗ | ✓ |
+
+**Recommendation**: Use V1 for basic consumption data, V2 for advanced reactive energy analysis.
 
 ## Contributing
 

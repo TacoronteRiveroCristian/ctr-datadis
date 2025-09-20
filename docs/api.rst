@@ -6,7 +6,18 @@ Esta sección documenta todas las clases y métodos disponibles en el SDK de Dat
 Cliente Principal
 -----------------
 
+Cliente V1 (Recomendado)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. autoclass:: datadis_python.client.v1.simple_client.SimpleDatadisClientV1
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Cliente V2 (Experimental)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: datadis_python.client.v2.simple_client.SimpleDatadisClientV2
    :members:
    :undoc-members:
    :show-inheritance:
