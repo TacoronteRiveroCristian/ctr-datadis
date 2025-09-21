@@ -27,12 +27,13 @@ def validate_cups(cups: str) -> str:
 
     cups = cups.upper().strip()
 
-    # Formato observado en la API de Datadis: ES + 22 dígitos + 2 caracteres alfanuméricos
-    cups_pattern = r"^ES\d{22}[A-Z0-9]{2}$"
+    # Formato real de CUPS españoles: ES + entre 20-22 caracteres alfanuméricos
+    # Ejemplos reales: ES0031607515707001RC0F (20 chars), ES1234567890123456789012 (22 chars)
+    cups_pattern = r"^ES[A-Z0-9]{20,22}$"
 
     if not re.match(cups_pattern, cups):
         raise ValidationError(
-            "Formato CUPS inválido. Debe ser: ES + 22 dígitos + 2 caracteres alfanuméricos"
+            "Formato CUPS inválido. Debe ser: ES + 20-22 caracteres alfanuméricos"
         )
 
     return cups

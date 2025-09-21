@@ -46,9 +46,12 @@ class TestCUPSValidator:
     def test_validate_cups_valid_format(self):
         """Test validación exitosa de CUPS con formato válido."""
         valid_cups = [
-            "ES0123456789012345678901AB",
-            "ES9876543210987654321098XY",
-            "ES1111111111111111111111ZZ",
+            # Formatos reales de CUPS españoles (20-22 caracteres)
+            "ES0031607515707001RC0F",  # 20 chars - formato real de Datadis
+            "ES0031607495168002EK0F",  # 20 chars - formato real de Datadis  
+            "ES0031601360306001PX0F",  # 20 chars - formato real de Datadis
+            "ES123456789012345678901A",  # 21 chars - formato intermedio
+            "ES1234567890123456789012",  # 22 chars - formato máximo
         ]
 
         for cups in valid_cups:
@@ -59,13 +62,13 @@ class TestCUPSValidator:
     @pytest.mark.utils
     def test_validate_cups_case_insensitive(self):
         """Test que el validador de CUPS es case-insensitive."""
-        lowercase_cups = "es0123456789012345678901ab"
-        mixed_case_cups = "Es0123456789012345678901Ab"
+        lowercase_cups = "es0031607515707001rc0f"
+        mixed_case_cups = "Es0031607515707001Rc0F"
 
         result1 = validate_cups(lowercase_cups)
         result2 = validate_cups(mixed_case_cups)
 
-        expected = "ES0123456789012345678901AB"
+        expected = "ES0031607515707001RC0F"
         assert result1 == expected
         assert result2 == expected
 
@@ -73,9 +76,9 @@ class TestCUPSValidator:
     @pytest.mark.utils
     def test_validate_cups_strips_whitespace(self):
         """Test que el validador quita espacios en blanco."""
-        cups_with_spaces = "  ES0123456789012345678901AB  "
+        cups_with_spaces = "  ES0031607515707001RC0F  "
         result = validate_cups(cups_with_spaces)
-        assert result == "ES0123456789012345678901AB"
+        assert result == "ES0031607515707001RC0F"
 
     @pytest.mark.unit
     @pytest.mark.utils
@@ -98,9 +101,10 @@ class TestCUPSValidator:
     def test_validate_cups_invalid_prefix(self):
         """Test validación falla con prefijo incorrecto."""
         invalid_cups = [
-            "EN0123456789012345678901AB",  # Prefijo incorrecto
-            "XX0123456789012345678901AB",  # Prefijo incorrecto
-            "0123456789012345678901AB",    # Sin prefijo
+            "EN0031607515707001RC0F",  # Prefijo incorrecto
+            "XX0031607515707001RC0F",  # Prefijo incorrecto
+            "0031607515707001RC0F",    # Sin prefijo
+            "FR0031607515707001RC0F",  # País incorrecto
         ]
 
         for cups in invalid_cups:
@@ -113,9 +117,27 @@ class TestCUPSValidator:
     def test_validate_cups_wrong_length(self):
         """Test validación falla con longitud incorrecta."""
         invalid_cups = [
-            "ES012345678901234567890",     # Muy corto (25 chars)
-            "ES01234567890123456789012345",  # Muy largo (27 chars)
-            "ES",                          # Solo prefijo
+            "ES123456789012345678",     # Muy corto (19 chars después de ES)
+            "ES12345678901234567890123",  # Muy largo (23 chars después de ES)
+            "ES123",                    # Muy corto (3 chars después de ES)
+            "ES",                       # Solo prefijo
+        ]
+
+        for cups in invalid_cups:
+            with pytest.raises(ValidationError) as exc_info:
+                validate_cups(cups)
+            assert "Formato CUPS inválido" in str(exc_info.value)
+            assert "20-22 caracteres alfanuméricos" in str(exc_info.value)
+
+    @pytest.mark.unit
+    @pytest.mark.utils
+    def test_validate_cups_invalid_characters(self):
+        """Test validación falla con caracteres inválidos."""
+        invalid_cups = [
+            "ES0031607515707001RC@F",  # Carácter especial (@)
+            "ES0031607515707001RC-F",  # Guión en lugar de letra
+            "ES0031607515707001RC0#",  # Carácter especial (#) al final
+            "ES003160751570700?RC0F",  # Signo de interrogación
         ]
 
         for cups in invalid_cups:
@@ -125,18 +147,39 @@ class TestCUPSValidator:
 
     @pytest.mark.unit
     @pytest.mark.utils
-    def test_validate_cups_invalid_characters(self):
-        """Test validación falla con caracteres inválidos."""
-        invalid_cups = [
-            "ES012345678901234567890@AB",  # Carácter especial
-            "ES01234567890123456789O1AB",  # Letra en parte numérica
-            "ES0123456789012345678901A#",  # Carácter especial al final
+    def test_validate_cups_real_datadis_examples(self):
+        """Test validación con ejemplos reales de la API de Datadis."""
+        real_datadis_cups = [
+            "ES0031607515707001RC0F",  # Ejemplo real 1
+            "ES0031607495168002EK0F",  # Ejemplo real 2
+            "ES0031601360306001PX0F",  # Ejemplo real 3
+            "ES0031601359854001KY0F",  # Ejemplo real 4
+            "ES0031601105278001LN0F",  # Ejemplo real 5
         ]
 
-        for cups in invalid_cups:
-            with pytest.raises(ValidationError) as exc_info:
-                validate_cups(cups)
-            assert "Formato CUPS inválido" in str(exc_info.value)
+        for cups in real_datadis_cups:
+            result = validate_cups(cups)
+            assert result == cups  # Ya están en mayúsculas
+            assert len(result) == 22  # ES + 20 caracteres
+
+    @pytest.mark.unit
+    @pytest.mark.utils
+    def test_validate_cups_edge_cases(self):
+        """Test validación con casos límite válidos."""
+        edge_cases = [
+            "ES12345678901234567890",    # Exactamente 20 chars después de ES
+            "ES123456789012345678901",   # Exactamente 21 chars después de ES
+            "ES1234567890123456789012",  # Exactamente 22 chars después de ES
+            "ES00000000000000000000",    # Todo ceros
+            "ESZZZZZZZZZZZZZZZZZZZZ",    # Todo letras
+            "ES000000000000000000ZZ",    # Mezcla números y letras
+        ]
+
+        for cups in edge_cases:
+            result = validate_cups(cups)
+            assert result == cups
+            assert result.startswith("ES")
+            assert 22 <= len(result) <= 24  # ES + 20-22 caracteres
 
 
 class TestDateRangeValidator:
