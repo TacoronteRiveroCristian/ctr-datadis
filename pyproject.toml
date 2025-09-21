@@ -5,12 +5,12 @@ description = "SDK completo de Python para la API oficial de Datadis - Acceso pr
 authors = ["CristianTacoronteRivero <tacoronteriverocristian@gmail.com>"]
 readme = "README.md"
 packages = [{include = "datadis_python"}]
-homepage = "https://github.com/cristiantr/datadis-python"
-repository = "https://github.com/cristiantr/datadis-python"
+homepage = "https://github.com/TacoronteRiveroCristian/ctr-datadis"
+repository = "https://github.com/TacoronteRiveroCristian/ctr-datadis"
 documentation = "https://ctr-datadis.readthedocs.io"
 keywords = ["datadis", "api", "sdk", "energia", "consumo", "electricidad", "españa", "cups", "distribuidora"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
