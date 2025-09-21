@@ -13,6 +13,8 @@ on:
       - 'pyproject.toml'
       - 'datadis_python/**'
       - 'README.md'
+      - 'CHANGELOG.md'
+      - '.github/workflows/**'
 
   # También permite ejecución manual
   workflow_dispatch:
