@@ -7,6 +7,22 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ## [Sin Publicar]
 
+## [0.3.1] - 2025-09-21
+
+### Corregido
+- **Validación de fechas API V1**: Corrección de la validación de fechas para aceptar solo formato mensual YYYY/MM
+  - Cambio de `format_type` de "daily" a "monthly" en `SimpleDatadisClientV1`
+  - Validación estricta que rechaza fechas con días específicos
+  - Mensajes de error claros para orientar a usuarios sobre el formato correcto
+  - Tests exhaustivos para validación de fechas mensuales (222 tests adicionales)
+  - README actualizado con ejemplos correctos y advertencias sobre formato
+  - Corrección de fixture `date_range` en tests para usar formato mensual
+
+### Técnico
+- Resolución del issue #2: Error en validación de fechas
+- Mejoras en `type_converters.py` para validación robusta de fechas mensuales
+- Nuevo archivo de tests `test_monthly_date_validation.py` con cobertura completa
+
 ## [0.3.0] - 2025-09-21
 
 ### Añadido

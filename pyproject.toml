@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ctr-datadis"
-version = "0.3.0"
+version = "0.3.1"
 description = "SDK completo de Python para la API oficial de Datadis - Acceso programático a datos de consumo eléctrico español"
 authors = ["CristianTacoronteRivero <tacoronteriverocristian@gmail.com>"]
 readme = "README.md"
