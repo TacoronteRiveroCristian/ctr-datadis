@@ -1098,9 +1098,9 @@ class TestSimpleClientV2InputValidation:
             "INVALID",  # Muy corto
             "ES0123456789012345678901234567",  # Muy largo (26 chars después de ES)
             "XX0123456789012345678901AB",  # Prefijo inválido
-            "ES0123456789012345678901",  # Muy corto (22 chars después de ES, faltan 2)
-            "ES01234567890123456789012",  # Muy corto (23 chars después de ES, falta 1)
-            "ES01234567890123456789ABCDE",  # Sufijo muy largo (26 chars después de ES)
+            "ES0123456789012345678",  # Muy corto (19 chars después de ES)
+            "ES01234567890123456789ABC",  # Muy largo (23 chars después de ES)
+            "ES012345678901234567890123456",  # Muy largo (27 chars después de ES)
         ]
 
         for invalid_cups in invalid_cups_cases:
@@ -1184,7 +1184,7 @@ class TestSimpleClientV2PydanticValidation:
             "supplies": [
                 {
                     "address": "CALLE EJEMPLO 123",
-                    "cups": "ES0123456789012345678901AB",
+                    "cups": "ES0031607515707001RC0F",
                     "postalCode": "28001",
                     "province": "MADRID",
                     "municipality": "MADRID",
@@ -1297,7 +1297,7 @@ class TestSimpleClientV2PerformanceAndLimits:
         for i in range(100):  # 100 suministros
             large_supplies.append({
                 "address": f"CALLE EJEMPLO {i}",
-                "cups": f"ES0123456789012345678901{i:02d}",
+                "cups": f"ES00316075157070{i:02d}RC0F",
                 "postalCode": "28001",
                 "province": "MADRID",
                 "municipality": "MADRID",

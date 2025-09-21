@@ -563,15 +563,15 @@ class TestV2ClientErrorHandling:
         methods_and_args = [
             ("get_supplies", {}),
             ("get_distributors", {}),
-            ("get_contract_detail", {"cups": "ES0123456789012345678901AB", "distributor_code": "2"}),
+            ("get_contract_detail", {"cups": "ES0031607515707001RC0F", "distributor_code": "2"}),
             ("get_consumption", {
-                "cups": "ES0123456789012345678901AB",
+                "cups": "ES0031607515707001RC0F",
                 "distributor_code": "2",
                 "date_from": "2024/01",
                 "date_to": "2024/01"
             }),
             ("get_max_power", {
-                "cups": "ES0123456789012345678901AB",
+                "cups": "ES0031607515707001RC0F",
                 "distributor_code": "2",
                 "date_from": "2024/01",
                 "date_to": "2024/01"

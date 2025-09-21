@@ -154,7 +154,7 @@ class TestCompleteV1Workflow:
         multiple_supplies = [
             {
                 "address": "CALLE EJEMPLO 123",
-                "cups": "ES0123456789012345678901AB",
+                "cups": "ES0031607515707001RC0F",
                 "postalCode": "28001",
                 "province": "MADRID",
                 "municipality": "MADRID",
@@ -180,7 +180,7 @@ class TestCompleteV1Workflow:
 
         consumption_response = [
             {
-                "cups": "ES0123456789012345678901AB",
+                "cups": "ES0031607515707001RC0F",
                 "date": "2024/01/15",
                 "time": "01:00",
                 "consumptionKWh": 0.125,
@@ -320,7 +320,7 @@ class TestCompleteV2Workflow:
 
         reactive_data_response = {
             "reactiveEnergy": {
-                "cups": "ES0123456789012345678901AB",
+                "cups": "ES0031607515707001RC0F",
                 "energy": [
                     {
                         "date": "2024/01",
@@ -589,7 +589,7 @@ class TestV1vsV2Compatibility:
         """Test que V2 tiene funcionalidades adicionales que V1 no tiene."""
         reactive_data_response = {
             "reactiveEnergy": {
-                "cups": "ES0123456789012345678901AB",
+                "cups": "ES0031607515707001RC0F",
                 "energy": [{"date": "2024/01", "energy_p1": 10.5}]
             },
             "distributorError": []
@@ -619,7 +619,7 @@ class TestV1vsV2Compatibility:
                 assert hasattr(v2_client, "get_reactive_data")
 
                 reactive_data = v2_client.get_reactive_data(
-                    cups="ES0123456789012345678901AB",
+                    cups="ES0031607515707001RC0F",
                     distributor_code="2",
                     date_from="2024/01",
                     date_to="2024/01"
@@ -773,7 +773,7 @@ class TestLongRunningWorkflows:
             consumption_responses.append({
                 "timeCurve": [
                     {
-                        "cups": "ES0123456789012345678901AB",
+                        "cups": "ES0031607515707001RC0F",
                         "date": f"{month}/15",
                         "time": "12:00",
                         "consumptionKWh": 1.5,
@@ -887,7 +887,7 @@ class TestRealWorldScenarios:
         hourly_consumption = []
         for hour in range(24):
             hourly_consumption.append({
-                "cups": "ES0123456789012345678901AB",
+                "cups": "ES0031607515707001RC0F",
                 "date": "2024/01/15",
                 "time": f"{hour:02d}:00",
                 "consumptionKWh": 0.5 + (hour * 0.05),  # Consumo variable
@@ -952,7 +952,7 @@ class TestRealWorldScenarios:
         multi_supplies = [
             {
                 "address": "PROPIEDAD 1",
-                "cups": "ES0123456789012345678901AB",
+                "cups": "ES0031607515707001RC0F",
                 "postalCode": "28001",
                 "province": "MADRID",
                 "municipality": "MADRID",
