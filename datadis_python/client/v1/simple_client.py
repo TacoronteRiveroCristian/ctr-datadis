@@ -360,8 +360,11 @@ class SimpleDatadisClientV1:
         """
         Obtiene datos de consumo validados con Pydantic.
 
+        IMPORTANTE: La API de Datadis solo acepta fechas en formato mensual (YYYY/MM).
+        NO se permiten fechas con días específicos.
+
         Acepta tipos flexibles para mayor comodidad:
-        - Fechas: strings (YYYY/MM/DD), datetime objects, o date objects
+        - Fechas: strings (YYYY/MM), datetime objects, o date objects (se convertirán al primer día del mes)
         - Números: int, float, o string
         - Distributor code: string o int
 
@@ -369,9 +372,9 @@ class SimpleDatadisClientV1:
         :type cups: str
         :param distributor_code: Código de la distribuidora
         :type distributor_code: Union[str, int]
-        :param date_from: Fecha de inicio (YYYY/MM/DD o datetime/date object)
+        :param date_from: Fecha de inicio (YYYY/MM o datetime/date object)
         :type date_from: Union[str, datetime, date]
-        :param date_to: Fecha de fin (YYYY/MM/DD o datetime/date object)
+        :param date_to: Fecha de fin (YYYY/MM o datetime/date object)
         :type date_to: Union[str, datetime, date]
         :param measurement_type: Tipo de medición (default: 0)
         :type measurement_type: Union[int, float, str]
@@ -379,6 +382,7 @@ class SimpleDatadisClientV1:
         :type point_type: Optional[Union[int, float, str]]
         :return: Lista de datos de consumo como objetos ConsumptionData validados
         :rtype: List[ConsumptionData]
+        :raises ValidationError: Si las fechas no están en formato mensual válido
         """
         from ...utils.type_converters import (
             convert_cups_parameter,
@@ -393,8 +397,9 @@ class SimpleDatadisClientV1:
         distributor_code_converted = convert_distributor_code_parameter(
             distributor_code
         )
+        # CAMBIO CRÍTICO: Usar "monthly" en lugar de "daily" para la API de Datadis
         date_from_converted, date_to_converted = convert_date_range_to_api_format(
-            date_from, date_to, "daily"
+            date_from, date_to, "monthly"
         )
         measurement_type_converted = convert_number_to_string(measurement_type)
         point_type_converted = convert_optional_number_to_string(point_type)
@@ -451,20 +456,24 @@ class SimpleDatadisClientV1:
         """
         Obtiene datos de potencia máxima validados con Pydantic.
 
+        IMPORTANTE: La API de Datadis solo acepta fechas en formato mensual (YYYY/MM).
+        NO se permiten fechas con días específicos.
+
         Acepta tipos flexibles para mayor comodidad:
-        - Fechas: strings (YYYY/MM/DD), datetime objects, o date objects
+        - Fechas: strings (YYYY/MM), datetime objects, o date objects (se convertirán al primer día del mes)
         - Distributor code: string o int
 
         :param cups: Código CUPS del punto de suministro
         :type cups: str
         :param distributor_code: Código de la distribuidora
         :type distributor_code: Union[str, int]
-        :param date_from: Fecha de inicio (YYYY/MM/DD o datetime/date object)
+        :param date_from: Fecha de inicio (YYYY/MM o datetime/date object)
         :type date_from: Union[str, datetime, date]
-        :param date_to: Fecha de fin (YYYY/MM/DD o datetime/date object)
+        :param date_to: Fecha de fin (YYYY/MM o datetime/date object)
         :type date_to: Union[str, datetime, date]
         :return: Lista de datos de potencia máxima como objetos MaxPowerData validados
         :rtype: List[MaxPowerData]
+        :raises ValidationError: Si las fechas no están en formato mensual válido
         """
         from ...utils.type_converters import (
             convert_cups_parameter,
@@ -477,8 +486,9 @@ class SimpleDatadisClientV1:
         distributor_code_converted = convert_distributor_code_parameter(
             distributor_code
         )
+        # CAMBIO CRÍTICO: Usar "monthly" en lugar de "daily" para la API de Datadis
         date_from_converted, date_to_converted = convert_date_range_to_api_format(
-            date_from, date_to, "daily"
+            date_from, date_to, "monthly"
         )
 
         print(

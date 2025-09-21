@@ -41,22 +41,23 @@ client = SimpleDatadisClientV1(username="12345678A", password="tu_password")
 supplies = client.get_supplies()
 print(f"Encontrados {len(supplies)} puntos de suministro")
 
+# IMPORTANTE: Datadis solo acepta fechas MENSUALES (YYYY/MM), NO fechas diarias
 # Obtener datos de consumo con tipos flexibles (más pythónico!)
 consumption = client.get_consumption(
     cups="ES1234000000000001JN0F",  # Tu código CUPS
     distributor_code=2,             # int en lugar de string
-    date_from=datetime(2024, 1, 1),  # datetime object
-    date_to=date(2024, 2, 28),     # date object
+    date_from=datetime(2024, 1, 1),  # datetime object (solo primer día del mes)
+    date_to=datetime(2024, 2, 1),    # datetime object (solo primer día del mes)
     measurement_type=0              # int en lugar de string
 )
 print(f"Obtenidos {len(consumption)} registros de consumo")
 
-# También funciona con strings tradicionales (100% compatible)
+# También funciona con strings mensuales (formato requerido por Datadis)
 consumption_classic = client.get_consumption(
     cups="ES1234000000000001JN0F",
     distributor_code="2",           # string clásico
-    date_from="2024/01/01",         # string clásico
-    date_to="2024/02/28"            # string clásico
+    date_from="2024/01",            # formato mensual OBLIGATORIO
+    date_to="2024/02"               # formato mensual OBLIGATORIO
 )
 
 # Para cliente V2 con datos de energía reactiva
@@ -66,8 +67,8 @@ client_v2 = SimpleDatadisClientV2(username="12345678A", password="tu_password")
 reactive_data = client_v2.get_reactive_data(
     cups="ES1234000000000001JN0F",
     distributor_code=2,             # También acepta tipos flexibles
-    date_from=datetime(2024, 1, 1),
-    date_to=date(2024, 2, 28)
+    date_from=datetime(2024, 1, 1), # solo primer día del mes
+    date_to=datetime(2024, 2, 1)    # solo primer día del mes
 )
 ```
 
@@ -86,12 +87,12 @@ contract = client.get_contract_detail(cups="ES1234...", distributor_code="2")
 ```python
 from datetime import datetime, date
 
-# Obtener datos de consumo con tipos flexibles
+# Obtener datos de consumo con fechas mensuales (OBLIGATORIO)
 consumption = client.get_consumption(
     cups="ES1234000000000001JN0F",
     distributor_code=2,             # int o string
-    date_from=datetime(2024, 1, 1), # datetime, date o string
-    date_to=date(2024, 2, 28),      # datetime, date o string
+    date_from=datetime(2024, 1, 1), # datetime (solo primer día), date o string YYYY/MM
+    date_to=datetime(2024, 2, 1),   # datetime (solo primer día), date o string YYYY/MM
     measurement_type=0,             # int, float o string
     point_type=1                    # int, float o string (opcional)
 )
@@ -100,8 +101,8 @@ consumption = client.get_consumption(
 max_power = client.get_max_power(
     cups="ES1234000000000001JN0F",
     distributor_code=2,             # int o string
-    date_from=datetime(2024, 1, 1), # datetime, date o string
-    date_to=date(2024, 2, 28)       # datetime, date o string
+    date_from=datetime(2024, 1, 1), # datetime (solo primer día), date o string YYYY/MM
+    date_to=datetime(2024, 2, 1)    # datetime (solo primer día), date o string YYYY/MM
 )
 ```
 
@@ -115,16 +116,17 @@ distributors = client.get_distributors()
 
 El SDK acepta múltiples tipos de parámetros para mayor comodidad, manteniendo 100% de compatibilidad hacia atrás:
 
-### Fechas
+### Fechas (IMPORTANTE: Solo formato mensual)
 ```python
-# Todas estas son válidas:
-date_from = "2024/01/15"           # String tradicional
-date_from = datetime(2024, 1, 15)  # datetime object
-date_from = date(2024, 1, 15)      # date object
+# ❌ ESTAS YA NO SON VÁLIDAS (contienen días específicos):
+# date_from = "2024/01/15"           # RECHAZADO: contiene día específico
+# date_from = datetime(2024, 1, 15)  # RECHAZADO: contiene día específico
+# date_from = date(2024, 1, 15)      # RECHAZADO: contiene día específico
 
-# Para fechas mensuales:
-date_from = "2024/01"              # String YYYY/MM
-date_from = datetime(2024, 1, 1)   # Se convierte a 2024/01
+# ✅ SOLO ESTAS SON VÁLIDAS (formato mensual):
+date_from = "2024/01"              # String YYYY/MM (RECOMENDADO)
+date_from = datetime(2024, 1, 1)   # datetime primer día del mes (se convierte a 2024/01)
+date_from = date(2024, 1, 1)       # date primer día del mes (se convierte a 2024/01)
 ```
 
 ### Números
@@ -140,10 +142,11 @@ distributor_code = 2               # int
 ```
 
 ### Conversión Automática
-- Las fechas `datetime`/`date` se convierten automáticamente al formato API (YYYY/MM/DD o YYYY/MM)
+- Las fechas `datetime`/`date` se convierten automáticamente al formato API mensual (YYYY/MM)
+- **IMPORTANTE**: Solo se aceptan `datetime`/`date` del primer día del mes (día 1)
 - Los números `int`/`float` se convierten a strings
-- Los strings se validan para asegurar formato correcto
-- **Validación completa** en todos los casos
+- Los strings se validan para asegurar formato mensual correcto (YYYY/MM)
+- **Validación estricta** - fechas con días específicos serán rechazadas
 
 ## Modelos de Datos
 
@@ -178,7 +181,8 @@ except DatadisError as e:
 ## Limitaciones de la API
 
 - Los datos están disponibles solo para los últimos 2 años
-- El formato de fecha debe ser YYYY/MM (datos mensuales)
+- **CRÍTICO**: El formato de fecha DEBE ser YYYY/MM (solo datos mensuales, NO diarios)
+- Fechas con días específicos (ej: "2024/01/15") serán rechazadas automáticamente
 - La plataforma Datadis aplica limitación de velocidad (rate limiting)
 - La mayoría de operaciones requieren un código de distribuidora
 

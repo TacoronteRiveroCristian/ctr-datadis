@@ -472,10 +472,10 @@ def distributor_code():
 
 @pytest.fixture
 def date_range():
-    """Rango de fechas para tests."""
+    """Rango de fechas mensuales para tests (formato requerido por API Datadis)."""
     return {
-        "date_from": "2024/01/01",
-        "date_to": "2024/01/31",
+        "date_from": "2024/01",  # Formato mensual correcto para Datadis
+        "date_to": "2024/02",  # Formato mensual correcto para Datadis
     }
 
 

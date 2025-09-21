@@ -28,6 +28,17 @@ def convert_date_to_api_format(
     :raises ValidationError: Si el formato no es válido
     """
     if isinstance(date_value, str):
+        # NUEVA VALIDACIÓN: Verificar que no se envíen fechas diarias en modo mensual
+        if format_type == "monthly" and "/" in date_value:
+            parts = date_value.split("/")
+            if len(parts) == 3:
+                # Formato YYYY/MM/DD detectado en modo mensual - rechazar
+                raise ValidationError(
+                    f"La API de Datadis solo acepta fechas mensuales en formato YYYY/MM. "
+                    f"Recibido: '{date_value}' (contiene día específico). "
+                    f"Use formato mensual como: '{parts[0]}/{parts[1]}'"
+                )
+
         # Si ya es string, validamos que tenga el formato correcto
         from .validators import validate_date_range
 
@@ -68,6 +79,14 @@ def convert_date_to_api_format(
                         f"Formato de fecha no reconocido: {date_value}"
                     )
 
+                # NUEVA VALIDACIÓN: Si parseamos una fecha con día específico en modo mensual, rechazar
+                if format_type == "monthly" and dt.day != 1:
+                    raise ValidationError(
+                        f"La API de Datadis solo acepta fechas mensuales. "
+                        f"Fecha '{date_value}' contiene día específico ({dt.day}). "
+                        f"Use formato mensual como: '{dt.strftime('%Y/%m')}'"
+                    )
+
                 # Formatear según el tipo requerido
                 if format_type == "daily":
                     return dt.strftime("%Y/%m/%d")
@@ -80,6 +99,14 @@ def convert_date_to_api_format(
                 )
 
     elif isinstance(date_value, (datetime, date)):
+        # NUEVA VALIDACIÓN: Verificar que no se envíen días específicos en modo mensual
+        if format_type == "monthly" and date_value.day != 1:
+            raise ValidationError(
+                f"La API de Datadis solo acepta fechas mensuales. "
+                f"Fecha {date_value} contiene día específico ({date_value.day}). "
+                f"Use el primer día del mes: {date_value.replace(day=1).strftime('%Y/%m')}"
+            )
+
         # Convertir datetime/date a string en formato API
         if format_type == "daily":
             return date_value.strftime("%Y/%m/%d")
