@@ -246,7 +246,7 @@ class TestTestQuality:
         # Verificar que se prueban suficientes variaciones de datos
         test_cups_variations = [
             "ES0123456789012345678901AB",
-            "ES9876543210987654321098XY",
+            "ES987654321098765432109B",
             "es0123456789012345678901ab",  # lowercase
         ]
 

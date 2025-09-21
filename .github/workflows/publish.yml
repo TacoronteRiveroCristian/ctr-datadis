@@ -9,6 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Check CHANGELOG updated
+      run: |
+        if ! git diff --name-only HEAD~1 HEAD | grep -q "CHANGELOG.md"; then
+          echo "❌ CHANGELOG.md no fue modificado en el último commit"
+          echo "Por favor actualiza el CHANGELOG.md antes de hacer release"
+          exit 1
+        fi
+        echo "✅ CHANGELOG.md fue actualizado"
 
     - name: Set up Python
       uses: actions/setup-python@v5

@@ -18,6 +18,14 @@ from .constants import (
 )
 from .http import HTTPClient
 from .text_utils import normalize_api_response, normalize_text
+from .type_converters import (
+    convert_cups_parameter,
+    convert_date_range_to_api_format,
+    convert_date_to_api_format,
+    convert_distributor_code_parameter,
+    convert_number_to_string,
+    convert_optional_number_to_string,
+)
 from .validators import validate_cups, validate_date_range, validate_distributor_code
 
 __all__ = [
@@ -25,6 +33,13 @@ __all__ = [
     "validate_cups",
     "validate_date_range",
     "validate_distributor_code",
+    # Conversores de tipos
+    "convert_cups_parameter",
+    "convert_date_range_to_api_format",
+    "convert_date_to_api_format",
+    "convert_distributor_code_parameter",
+    "convert_number_to_string",
+    "convert_optional_number_to_string",
     # URLs y endpoints
     "DATADIS_BASE_URL",
     "DATADIS_API_BASE",

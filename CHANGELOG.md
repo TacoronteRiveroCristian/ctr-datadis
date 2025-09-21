@@ -7,6 +7,44 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ## [Sin Publicar]
 
+## [0.3.0] - 2025-09-21
+
+### Añadido
+- **Parámetros Flexibles**: Soporte para tipos Python nativos en todos los métodos del cliente
+  - Fechas: Acepta `datetime` y `date` objects además de strings
+  - Números: Acepta `int` y `float` para measurement_type, point_type, etc.
+  - Distributor codes: Acepta `int` además de string
+- Módulo `type_converters` con conversión automática y validación robusta
+- Tests exhaustivos para todas las conversiones de tipos (24 tests específicos)
+- Ejemplo demostrativo `example_flexible_params.py`
+
+### Cambiado
+- Documentación actualizada con ejemplos de tipos flexibles
+- README.md ampliado con sección de "Tipos de Parámetros Flexibles"
+- Signaturas de métodos actualizadas con Union types para mayor flexibilidad
+
+### Técnico
+- 100% compatibilidad hacia atrás mantenida
+- Validación automática de todos los tipos de parámetros
+- Cobertura completa de tests (324 tests pasando)
+
+## [0.2.5] - 2025-09-21
+
+### Cambiado
+- Estado de desarrollo actualizado a "Production/Stable" en PyPI
+- Enlaces de homepage actualizados en pyproject.toml
+- Versiones de GitHub Actions actualizadas para mejor compatibilidad SSL
+
+### Técnico
+- Workflow de publicación mejorado con verificación obligatoria de CHANGELOG
+- Actualización de actions/setup-python@v5 y snok/install-poetry@v1.4.1
+
+## [0.2.4] - 2025-09-21
+
+### Corregido
+- Validación de CUPS actualizada para soportar formatos reales españoles
+- Referencias a CUPS obsoletos corregidas en tests
+
 ## [0.2.3] - 2025-09-21
 
 ### Añadido

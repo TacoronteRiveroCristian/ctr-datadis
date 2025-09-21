@@ -8,7 +8,7 @@ Estos tests validan:
 - Funciones de constantes y configuración
 """
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from unittest.mock import Mock, patch
 
 import pytest
