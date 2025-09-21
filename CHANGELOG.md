@@ -7,9 +7,16 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ## [Sin Publicar]
 
+## [0.2.3] - 2025-09-21
+
 ### Añadido
 - Archivo CHANGELOG.md para seguimiento de cambios
-- Documentación de workflow de changelog
+- Documentación completa de workflow de changelog
+- GitHub Actions actualizado para incluir changelog en releases
+
+### Corregido
+- Badge de tests en README.md con URLs correctas
+- Triggers de workflow para incluir cambios de documentación
 
 ## [0.2.2] - 2025-09-21
 

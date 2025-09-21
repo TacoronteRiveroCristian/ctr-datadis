@@ -4,7 +4,7 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Documentation Status](https://readthedocs.org/projects/ctr-datadis/badge/?version=latest)](https://ctr-datadis.readthedocs.io/en/latest/?badge=latest)
-[![Tests](https://github.com/tu-usuario/datadis/workflows/Tests/badge.svg)](https://github.com/tu-usuario/datadis/actions)
+[![Tests](https://github.com/TacoronteRiveroCristian/ctr-datadis/workflows/Auto%20Publish%20on%20Main%20Push/badge.svg)](https://github.com/TacoronteRiveroCristian/ctr-datadis/actions)
 
 **Un SDK completo de Python para interactuar con la API oficial de Datadis** (plataforma española de datos de suministro eléctrico).
 
