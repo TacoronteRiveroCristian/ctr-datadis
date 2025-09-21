@@ -136,6 +136,30 @@ jobs:
         POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
       run: poetry publish
 
+    - name: Extract changelog for current version
+      id: changelog
+      run: |
+        # Extract changelog section for current version
+        version="${{ needs.check-version.outputs.new-version }}"
+        echo "Extracting changelog for version $version"
+
+        # Create changelog extract
+        awk "/^## \[$version\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md > current_changelog.md
+
+        # If no specific version found, create generic message
+        if [ ! -s current_changelog.md ]; then
+          echo "### Cambios en v$version" > current_changelog.md
+          echo "" >> current_changelog.md
+          echo "Consulta el [historial de commits](https://github.com/${{ github.repository }}/commits/v$version) para cambios detallados." >> current_changelog.md
+        fi
+
+        # Set output for use in release
+        {
+          echo "changelog<<EOF"
+          cat current_changelog.md
+          echo "EOF"
+        } >> $GITHUB_OUTPUT
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       env:
@@ -144,20 +168,20 @@ jobs:
         tag_name: v${{ needs.check-version.outputs.new-version }}
         name: Release v${{ needs.check-version.outputs.new-version }}
         body: |
-          ## 🚀 New Release v${{ needs.check-version.outputs.new-version }}
+          ## Lanzamiento v${{ needs.check-version.outputs.new-version }}
 
-          Auto-generated release from main branch push.
+          ${{ steps.changelog.outputs.changelog }}
 
-          ### 📦 Installation
+          ### 📦 Instalación
           ```bash
           pip install ctr-datadis==${{ needs.check-version.outputs.new-version }}
           ```
 
-          ### 📚 Documentation
+          ### 📚 Documentación
           - [ReadTheDocs](https://ctr-datadis.readthedocs.io)
           - [PyPI Package](https://pypi.org/project/ctr-datadis/)
 
-          ### 🔍 Changes
-          Check the [commit history](https://github.com/${{ github.repository }}/commits/v${{ needs.check-version.outputs.new-version }}) for detailed changes.
+          ### 📋 Changelog Completo
+          Consulta [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) para el historial completo de cambios.
         draft: false
         prerelease: false
