@@ -895,7 +895,7 @@ class TestUtilsIntegration:
     def test_full_validation_pipeline(self):
         """Test pipeline completo de validación."""
         # Datos de entrada
-        cups = "  es0123456789012345678901ab  "
+        cups = "  es0031607515707001rc0f  "
         distributor_code = "2"
         date_from = "2024/01/01"
         date_to = "2024/01/31"
@@ -910,7 +910,7 @@ class TestUtilsIntegration:
         validated_point = validate_point_type(point_type)
 
         # Verificar resultados
-        assert validated_cups == "ES0123456789012345678901AB"
+        assert validated_cups == "ES0031607515707001RC0F"
         assert validated_distributor == "2"
         assert validated_dates == (date_from, date_to)
         assert validated_measurement == 0  # Default

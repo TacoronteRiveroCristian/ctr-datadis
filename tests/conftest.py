@@ -144,7 +144,7 @@ def sample_supply_data():
     """Datos de ejemplo para un punto de suministro."""
     return {
         "address": "CALLE EJEMPLO 123",
-        "cups": "ES0123456789012345678901AB",
+        "cups": "ES0031607515707001RC0F",
         "postalCode": "28001",
         "province": "MADRID",
         "municipality": "MADRID",
@@ -166,7 +166,7 @@ def sample_supplies_response(sample_supply_data):
 def sample_consumption_data():
     """Datos de ejemplo para consumo."""
     return {
-        "cups": "ES0123456789012345678901AB",
+        "cups": "ES0031607515707001RC0F",
         "date": "2024/01/15",
         "time": "01:00",
         "consumptionKWh": 0.125,
@@ -194,7 +194,7 @@ def sample_consumption_response(sample_consumption_data):
 def sample_contract_data():
     """Datos de ejemplo para contrato."""
     return {
-        "cups": "ES0123456789012345678901AB",
+        "cups": "ES0031607515707001RC0F",
         "distributor": "E-DISTRIBUCION REDES DIGITALES S.L.U.",
         "marketer": "ENDESA ENERGÍA XXI S.L.U.",
         "tension": "BT",
@@ -221,7 +221,7 @@ def sample_contract_response(sample_contract_data):
 def sample_max_power_data():
     """Datos de ejemplo para potencia máxima."""
     return {
-        "cups": "ES0123456789012345678901AB",
+        "cups": "ES0031607515707001RC0F",
         "date": "2024/01/15",
         "time": "20:00",
         "maxPower": 2.15,
@@ -253,7 +253,7 @@ def sample_distributors_response(sample_distributor_data):
 def sample_reactive_data():
     """Datos de ejemplo para energía reactiva (V2)."""
     return {
-        "cups": "ES0123456789012345678901AB",
+        "cups": "ES0031607515707001RC0F",
         "date": "2024/01/15",
         "time": "01:00",
         "reactiveEnergyQ1": 0.025,
@@ -479,7 +479,7 @@ def mock_timeout_response():
 @pytest.fixture
 def cups_code():
     """Código CUPS válido para tests."""
-    return "ES0123456789012345678901AB"
+    return "ES0031607515707001RC0F"
 
 
 @pytest.fixture
