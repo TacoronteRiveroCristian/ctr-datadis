@@ -6,52 +6,52 @@
 [![Documentation Status](https://readthedocs.org/projects/ctr-datadis/badge/?version=latest)](https://ctr-datadis.readthedocs.io/en/latest/?badge=latest)
 [![Tests](https://github.com/tu-usuario/datadis/workflows/Tests/badge.svg)](https://github.com/tu-usuario/datadis/actions)
 
-**A comprehensive Python SDK for interacting with the official Datadis API** (Spanish electricity supply data platform).
+**Un SDK completo de Python para interactuar con la API oficial de Datadis** (plataforma española de datos de suministro eléctrico).
 
-**Datadis** is the official platform of the Spanish government that provides access to electricity consumption data for Spanish consumers. This SDK makes it easy to access your electricity data programmatically.
+**Datadis** es la plataforma oficial del gobierno español que proporciona acceso a los datos de consumo eléctrico para los consumidores españoles. Este SDK facilita el acceso a tus datos eléctricos de forma programática.
 
-## Features
+## Características
 
-- **Automatic Authentication** - Token-based authentication with automatic renewal
-- **Complete API Coverage** - Access to all Datadis API endpoints
-- **Type Safety** - Full type hints and Pydantic models for data validation
-- **Error Handling** - Comprehensive error handling with custom exceptions
-- **Python 3.9+** - Compatible with modern Python versions
-- **Text Normalization** - Automatic handling of Spanish accents and special characters
-- **Data Models** - Structured data with Pydantic for consumption, supply, and contract data
-- **Two API Versions** - Support for both V1 and V2 clients (V2 includes reactive energy data)
+- **Autenticación Automática** - Autenticación basada en tokens con renovación automática
+- **Cobertura Completa de API** - Acceso a todos los endpoints de la API de Datadis
+- **Seguridad de Tipos** - Type hints completos y modelos Pydantic para validación de datos
+- **Manejo de Errores** - Manejo exhaustivo de errores con excepciones personalizadas
+- **Python 3.9+** - Compatible con versiones modernas de Python
+- **Normalización de Texto** - Manejo automático de acentos españoles y caracteres especiales
+- **Modelos de Datos** - Datos estructurados con Pydantic para consumo, suministro y datos de contrato
+- **Dos Versiones de API** - Soporte para clientes V1 y V2 (V2 incluye datos de energía reactiva)
 
-## Installation
+## Instalación
 
 ```bash
 pip install ctr-datadis
 ```
 
-## Quick Start
+## Inicio Rápido
 
 ```python
 from datadis_python.client.v1.simple_client import SimpleDatadisClientV1
 
-# Initialize client with your Datadis credentials
-client = SimpleDatadisClientV1(username="12345678A", password="your_password")
+# Inicializar cliente con tus credenciales de Datadis
+client = SimpleDatadisClientV1(username="12345678A", password="tu_password")
 
-# Get your supply points
+# Obtener tus puntos de suministro
 supplies = client.get_supplies()
-print(f"Found {len(supplies)} supply points")
+print(f"Encontrados {len(supplies)} puntos de suministro")
 
-# Get consumption data for a specific supply point
+# Obtener datos de consumo para un punto de suministro específico
 consumption = client.get_consumption(
-    cups="ES1234000000000001JN0F",  # Your CUPS code
-    distributor_code="2",           # Your distributor code
-    start_date="2024/01",           # Start date (YYYY/MM)
-    end_date="2024/02"              # End date (YYYY/MM)
+    cups="ES1234000000000001JN0F",  # Tu código CUPS
+    distributor_code="2",           # Tu código de distribuidora
+    start_date="2024/01",           # Fecha de inicio (YYYY/MM)
+    end_date="2024/02"              # Fecha de fin (YYYY/MM)
 )
-print(f"Retrieved {len(consumption)} consumption records")
+print(f"Obtenidos {len(consumption)} registros de consumo")
 
-# For V2 client with reactive energy data
+# Para cliente V2 con datos de energía reactiva
 from datadis_python.client.v2.simple_client import SimpleDatadisClientV2
 
-client_v2 = SimpleDatadisClientV2(username="12345678A", password="your_password")
+client_v2 = SimpleDatadisClientV2(username="12345678A", password="tu_password")
 reactive_data = client_v2.get_reactive_data(
     cups="ES1234000000000001JN0F",
     distributor_code="2",
@@ -60,52 +60,52 @@ reactive_data = client_v2.get_reactive_data(
 )
 ```
 
-## Available Methods
+## Métodos Disponibles
 
-### Supply Information
+### Información de Suministro
 ```python
-# Get all supply points
+# Obtener todos los puntos de suministro
 supplies = client.get_supplies()
 
-# Get contract details for a specific CUPS
+# Obtener detalles del contrato para un CUPS específico
 contract = client.get_contract_detail(cups="ES1234...", distributor_code="2")
 ```
 
-### Consumption Data
+### Datos de Consumo
 ```python
-# Get consumption data
+# Obtener datos de consumo
 consumption = client.get_consumption(
     cups="ES1234000000000001JN0F",
     distributor_code="2",
-    start_date="2024/01", 
+    start_date="2024/01",
     end_date="2024/02"
 )
 
-# Get maximum power data
+# Obtener datos de potencia máxima
 max_power = client.get_max_power(
     cups="ES1234000000000001JN0F",
-    distributor_code="2", 
+    distributor_code="2",
     start_date="2024/01",
     end_date="2024/02"
 )
 ```
 
-### Utility Information
+### Información de Distribuidoras
 ```python
-# Get available distributors
+# Obtener distribuidoras disponibles
 distributors = client.get_distributors()
 ```
 
-## Data Models
+## Modelos de Datos
 
-The SDK includes Pydantic models for type-safe data handling:
+El SDK incluye modelos Pydantic para manejo seguro de tipos:
 
-- `SupplyData` - Supply point information
-- `ConsumptionData` - Energy consumption records
-- `ContractData` - Contract details
-- `MaxPowerData` - Maximum power demand data
+- `SupplyData` - Información de puntos de suministro
+- `ConsumptionData` - Registros de consumo energético
+- `ContractData` - Detalles del contrato
+- `MaxPowerData` - Datos de demanda de potencia máxima
 
-## Error Handling
+## Manejo de Errores
 
 ```python
 from datadis_python.exceptions import DatadisError, AuthenticationError, APIError
@@ -113,53 +113,53 @@ from datadis_python.exceptions import DatadisError, AuthenticationError, APIErro
 try:
     supplies = client.get_supplies()
 except AuthenticationError:
-    print("Invalid credentials")
+    print("Credenciales inválidas")
 except APIError as e:
-    print(f"API error: {e}")
+    print(f"Error de API: {e}")
 except DatadisError as e:
-    print(f"Datadis error: {e}")
+    print(f"Error de Datadis: {e}")
 ```
 
-## Requirements
+## Requisitos
 
-- Python 3.9 or higher
-- Valid Datadis account credentials
-- Internet connection
+- Python 3.9 o superior
+- Credenciales válidas de cuenta Datadis
+- Conexión a internet
 
-## API Limitations
+## Limitaciones de la API
 
-- Data is available for the last 2 years only
-- Date format must be YYYY/MM (monthly data)
-- Rate limiting is enforced by the Datadis platform
-- Most operations require a distributor code
+- Los datos están disponibles solo para los últimos 2 años
+- El formato de fecha debe ser YYYY/MM (datos mensuales)
+- La plataforma Datadis aplica limitación de velocidad (rate limiting)
+- La mayoría de operaciones requieren un código de distribuidora
 
-## Documentation
+## Documentación
 
-- **Complete Documentation**: [https://ctr-datadis.readthedocs.io](https://ctr-datadis.readthedocs.io)
-- **API Reference**: Detailed API documentation with examples
-- **Examples**: Step-by-step tutorials and use cases
-- **Troubleshooting**: Common issues and solutions
+- **Documentación Completa**: [https://ctr-datadis.readthedocs.io](https://ctr-datadis.readthedocs.io)
+- **Referencia de API**: Documentación detallada de la API con ejemplos
+- **Ejemplos**: Tutoriales paso a paso y casos de uso
+- **Solución de Problemas**: Problemas comunes y soluciones
 
-## API Versions
+## Versiones de API
 
-| Feature | V1 Client | V2 Client |
-|---------|-----------|-----------|
-| Consumption Data | ✓ | ✓ |
-| Supply Information | ✓ | ✓ |
-| Contract Details | ✓ | ✓ |
-| Max Power Data | ✓ | ✓ |
-| Reactive Energy Data | ✗ | ✓ |
+| Característica | Cliente V1 | Cliente V2 |
+|----------------|------------|------------|
+| Datos de Consumo | ✓ | ✓ |
+| Información de Suministro | ✓ | ✓ |
+| Detalles del Contrato | ✓ | ✓ |
+| Datos de Potencia Máxima | ✓ | ✓ |
+| Datos de Energía Reactiva | ✗ | ✓ |
 
-**Recommendation**: Use V1 for basic consumption data, V2 for advanced reactive energy analysis.
+**Recomendación**: Usa V1 para datos básicos de consumo, V2 para análisis avanzado de energía reactiva.
 
-## Contributing
+## Contribuciones
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Las contribuciones son bienvenidas! No dudes en enviar un Pull Request.
 
-## License
+## Licencia
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Este proyecto está licenciado bajo la Licencia MIT - consulta el archivo [LICENSE](LICENSE) para más detalles.
 
-## Disclaimer
+## Descargo de Responsabilidad
 
-This is an unofficial SDK for the Datadis API. It is not affiliated with or endorsed by Datadis or the Spanish government.
+Este es un SDK no oficial para la API de Datadis. No está afiliado ni respaldado por Datadis o el gobierno español.
