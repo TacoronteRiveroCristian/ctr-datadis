@@ -1,6 +1,4 @@
-"""
-Cliente Datadis API v1 - Respuestas raw, máxima compatibilidad
-"""
+"""Cliente Datadis API v1 - Respuestas raw, máxima compatibilidad."""
 
 from .simple_client import SimpleDatadisClientV1 as DatadisClientV1
 

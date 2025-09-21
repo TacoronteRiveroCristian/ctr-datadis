@@ -19,7 +19,7 @@ from freezegun import freeze_time
 
 from datadis_python.client.v1.simple_client import SimpleDatadisClientV1
 from datadis_python.client.v2.client import DatadisClientV2
-from datadis_python.exceptions import AuthenticationError, APIError, DatadisError
+from datadis_python.exceptions import APIError, AuthenticationError, DatadisError
 from datadis_python.utils.constants import (
     AUTH_ENDPOINTS,
     DATADIS_BASE_URL,
@@ -223,7 +223,9 @@ class TestV2Authentication:
 
     @pytest.mark.unit
     @pytest.mark.auth
-    def test_v2_successful_authentication(self, v2_client, mock_auth_success, test_token):
+    def test_v2_successful_authentication(
+        self, v2_client, mock_auth_success, test_token
+    ):
         """Test autenticación exitosa en cliente V2."""
         v2_client.authenticate()
 
@@ -288,7 +290,9 @@ class TestV2Authentication:
 
     @pytest.mark.unit
     @pytest.mark.auth
-    def test_v2_token_expiry_calculation(self, v2_client, mock_auth_success, frozen_time):
+    def test_v2_token_expiry_calculation(
+        self, v2_client, mock_auth_success, frozen_time
+    ):
         """Test cálculo correcto de expiración de token."""
         v2_client.authenticate()
 
@@ -368,9 +372,7 @@ class TestV2Authentication:
             v2_client.authenticate()
 
             # Hacer request que debe renovar token automáticamente
-            result = v2_client.make_authenticated_request(
-                "GET", "/get-supplies-v2"
-            )
+            result = v2_client.make_authenticated_request("GET", "/get-supplies-v2")
 
             assert v2_client.token == f"{test_token}_renewed"
             assert result == {"supplies": [], "distributorError": []}
@@ -420,7 +422,9 @@ class TestContextManager:
 
     @pytest.mark.unit
     @pytest.mark.auth
-    def test_context_manager_resource_cleanup(self, test_credentials, mock_auth_success):
+    def test_context_manager_resource_cleanup(
+        self, test_credentials, mock_auth_success
+    ):
         """Test limpieza de recursos en context manager."""
         client = None
 
@@ -455,10 +459,7 @@ class TestSessionManagement:
     def test_v1_session_timeout_configuration(self, test_credentials):
         """Test configuración de timeout en cliente V1."""
         custom_timeout = 60
-        client = SimpleDatadisClientV1(
-            **test_credentials,
-            timeout=custom_timeout
-        )
+        client = SimpleDatadisClientV1(**test_credentials, timeout=custom_timeout)
 
         assert client.timeout == custom_timeout
 
@@ -467,10 +468,7 @@ class TestSessionManagement:
     def test_v1_session_retries_configuration(self, test_credentials):
         """Test configuración de reintentos en cliente V1."""
         custom_retries = 5
-        client = SimpleDatadisClientV1(
-            **test_credentials,
-            retries=custom_retries
-        )
+        client = SimpleDatadisClientV1(**test_credentials, retries=custom_retries)
 
         assert client.retries == custom_retries
 

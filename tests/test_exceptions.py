@@ -470,8 +470,7 @@ class TestV2ErrorHandling:
         # esto debería lanzar ValidationError antes de hacer el request HTTP
         try:
             result = authenticated_v2_client.get_contract_detail(
-                cups=invalid_cups,
-                distributor_code="2"
+                cups=invalid_cups, distributor_code="2"
             )
             # Si no falla, el validator podría no estar implementado o ser permisivo
             assert result is not None
@@ -613,7 +612,9 @@ class TestErrorRecoveryScenarios:
                 authenticated_v1_client._make_authenticated_request("/test-endpoint")
 
             # Segunda request exitosa
-            result = authenticated_v1_client._make_authenticated_request("/test-endpoint")
+            result = authenticated_v1_client._make_authenticated_request(
+                "/test-endpoint"
+            )
             assert result == {"success": True}
 
     @pytest.mark.unit
@@ -634,7 +635,9 @@ class TestErrorRecoveryScenarios:
             # Verificar que se imprimió información de debug
             captured = capfd.readouterr()
             # El cliente V1 imprime información, verificar que hay output
-            assert len(captured.out) >= 0  # Puede o no haber output según implementación
+            assert (
+                len(captured.out) >= 0
+            )  # Puede o no haber output según implementación
 
 
 class TestExceptionCompatibility:
@@ -658,7 +661,7 @@ class TestExceptionCompatibility:
             pickled = pickle.dumps(error)
             unpickled = pickle.loads(pickled)
 
-            assert type(unpickled) == type(error)
+            assert type(unpickled) is type(error)
             assert str(unpickled) == str(error)
             if hasattr(error, "status_code"):
                 assert unpickled.status_code == error.status_code
@@ -667,8 +670,8 @@ class TestExceptionCompatibility:
     @pytest.mark.errors
     def test_exceptions_work_with_logging(self):
         """Test que las excepciones funcionan con logging."""
-        import logging
         import io
+        import logging
 
         # Configurar logger de prueba
         log_stream = io.StringIO()

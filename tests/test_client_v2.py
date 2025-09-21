@@ -28,10 +28,7 @@ from datadis_python.models.responses import (
     SuppliesResponse,
 )
 from datadis_python.models.supply import SupplyData
-from datadis_python.utils.constants import (
-    API_V2_ENDPOINTS,
-    DATADIS_API_BASE,
-)
+from datadis_python.utils.constants import API_V2_ENDPOINTS, DATADIS_API_BASE
 
 
 class TestV2ClientInheritance:
@@ -77,12 +74,11 @@ class TestV2ClientSupplies:
 
     @pytest.mark.unit
     @pytest.mark.client_v2
-    def test_get_supplies_success(self, authenticated_v2_client, sample_supplies_response):
+    def test_get_supplies_success(
+        self, authenticated_v2_client, sample_supplies_response
+    ):
         """Test obtención exitosa de suministros en V2."""
-        v2_response = {
-            "supplies": sample_supplies_response,
-            "distributorError": []
-        }
+        v2_response = {"supplies": sample_supplies_response, "distributorError": []}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -102,16 +98,10 @@ class TestV2ClientSupplies:
     @pytest.mark.unit
     @pytest.mark.client_v2
     def test_get_supplies_with_distributor_filter(
-        self,
-        authenticated_v2_client,
-        sample_supplies_response,
-        distributor_code
+        self, authenticated_v2_client, sample_supplies_response, distributor_code
     ):
         """Test get_supplies con filtro de distribuidor."""
-        v2_response = {
-            "supplies": sample_supplies_response,
-            "distributorError": []
-        }
+        v2_response = {"supplies": sample_supplies_response, "distributorError": []}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -121,7 +111,9 @@ class TestV2ClientSupplies:
                 status=200,
             )
 
-            result = authenticated_v2_client.get_supplies(distributor_code=distributor_code)
+            result = authenticated_v2_client.get_supplies(
+                distributor_code=distributor_code
+            )
 
             assert isinstance(result, SuppliesResponse)
 
@@ -140,9 +132,9 @@ class TestV2ClientSupplies:
                     "distributorCode": "2",
                     "distributorName": "E-DISTRIBUCIÓN",
                     "errorCode": "404",
-                    "errorDescription": "No data found"
+                    "errorDescription": "No data found",
                 }
-            ]
+            ],
         }
 
         with responses.RequestsMock() as rsps:
@@ -189,10 +181,8 @@ class TestV2ClientDistributors:
     def test_get_distributors_success(self, authenticated_v2_client):
         """Test obtención exitosa de distribuidores en V2."""
         v2_response = {
-            "distExistenceUser": {
-                "distributorCodes": ["1", "2", "3"]
-            },
-            "distributorError": []
+            "distExistenceUser": {"distributorCodes": ["1", "2", "3"]},
+            "distributorError": [],
         }
 
         with responses.RequestsMock() as rsps:
@@ -215,17 +205,15 @@ class TestV2ClientDistributors:
     def test_get_distributors_with_error(self, authenticated_v2_client):
         """Test get_distributors con errores."""
         v2_response = {
-            "distExistenceUser": {
-                "distributorCodes": []
-            },
+            "distExistenceUser": {"distributorCodes": []},
             "distributorError": [
                 {
                     "distributorCode": "999",
                     "distributorName": "UNKNOWN",
                     "errorCode": "404",
-                    "errorDescription": "Distributor not found"
+                    "errorDescription": "Distributor not found",
                 }
-            ]
+            ],
         }
 
         with responses.RequestsMock() as rsps:
@@ -253,13 +241,10 @@ class TestV2ClientContracts:
         authenticated_v2_client,
         sample_contract_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test obtención exitosa de contrato en V2."""
-        v2_response = {
-            "contract": sample_contract_response,
-            "distributorError": []
-        }
+        v2_response = {"contract": sample_contract_response, "distributorError": []}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -270,8 +255,7 @@ class TestV2ClientContracts:
             )
 
             result = authenticated_v2_client.get_contract_detail(
-                cups=cups_code,
-                distributor_code=distributor_code
+                cups=cups_code, distributor_code=distributor_code
             )
 
             assert isinstance(result, ContractResponse)
@@ -295,8 +279,7 @@ class TestV2ClientContracts:
         # No configuramos mock porque esperamos que falle validación antes de HTTP
         with pytest.raises(ValidationError):
             authenticated_v2_client.get_contract_detail(
-                cups=invalid_cups,
-                distributor_code=valid_distributor
+                cups=invalid_cups, distributor_code=valid_distributor
             )
 
 
@@ -310,13 +293,10 @@ class TestV2ClientConsumption:
         authenticated_v2_client,
         sample_consumption_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test obtención exitosa de consumo en V2."""
-        v2_response = {
-            "timeCurve": sample_consumption_response,
-            "distributorError": []
-        }
+        v2_response = {"timeCurve": sample_consumption_response, "distributorError": []}
 
         # Fechas mensuales para V2
         date_from = "2024/01"
@@ -334,7 +314,7 @@ class TestV2ClientConsumption:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from=date_from,
-                date_to=date_to
+                date_to=date_to,
             )
 
             assert isinstance(result, ConsumptionResponse)
@@ -344,6 +324,7 @@ class TestV2ClientConsumption:
             # Verificar parámetros (considerando URL encoding)
             request = rsps.calls[0].request
             import urllib.parse
+
             assert f"startDate={urllib.parse.quote(date_from, safe='')}" in request.url
             assert f"endDate={urllib.parse.quote(date_to, safe='')}" in request.url
             assert "measurementType=0" in request.url  # Default
@@ -355,13 +336,10 @@ class TestV2ClientConsumption:
         authenticated_v2_client,
         sample_consumption_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test get_consumption con parámetros opcionales."""
-        v2_response = {
-            "timeCurve": sample_consumption_response,
-            "distributorError": []
-        }
+        v2_response = {"timeCurve": sample_consumption_response, "distributorError": []}
 
         measurement_type = 1
         point_type = 2
@@ -380,7 +358,7 @@ class TestV2ClientConsumption:
                 date_from="2024/01",
                 date_to="2024/01",
                 measurement_type=measurement_type,
-                point_type=point_type
+                point_type=point_type,
             )
 
             assert isinstance(result, ConsumptionResponse)
@@ -401,13 +379,10 @@ class TestV2ClientMaxPower:
         authenticated_v2_client,
         sample_max_power_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test obtención exitosa de potencia máxima en V2."""
-        v2_response = {
-            "maxPower": sample_max_power_response,
-            "distributorError": []
-        }
+        v2_response = {"maxPower": sample_max_power_response, "distributorError": []}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -421,7 +396,7 @@ class TestV2ClientMaxPower:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from="2024/01",
-                date_to="2024/01"
+                date_to="2024/01",
             )
 
             assert isinstance(result, MaxPowerResponse)
@@ -435,10 +410,7 @@ class TestV2ClientReactiveData:
     @pytest.mark.unit
     @pytest.mark.client_v2
     def test_get_reactive_data_success(
-        self,
-        authenticated_v2_client,
-        cups_code,
-        distributor_code
+        self, authenticated_v2_client, cups_code, distributor_code
     ):
         """Test obtención exitosa de datos reactivos."""
         reactive_response = {
@@ -454,9 +426,9 @@ class TestV2ClientReactiveData:
                         "energy_p5": None,
                         "energy_p6": None,
                     }
-                ]
+                ],
             },
-            "distributorError": []
+            "distributorError": [],
         }
 
         with responses.RequestsMock() as rsps:
@@ -471,7 +443,7 @@ class TestV2ClientReactiveData:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from="2024/01",
-                date_to="2024/01"
+                date_to="2024/01",
             )
 
             assert isinstance(result, list)
@@ -482,16 +454,10 @@ class TestV2ClientReactiveData:
     @pytest.mark.unit
     @pytest.mark.client_v2
     def test_get_reactive_data_empty_response(
-        self,
-        authenticated_v2_client,
-        cups_code,
-        distributor_code
+        self, authenticated_v2_client, cups_code, distributor_code
     ):
         """Test get_reactive_data con respuesta vacía."""
-        empty_response = {
-            "reactiveEnergy": {},
-            "distributorError": []
-        }
+        empty_response = {"reactiveEnergy": {}, "distributorError": []}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -505,7 +471,7 @@ class TestV2ClientReactiveData:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from="2024/01",
-                date_to="2024/01"
+                date_to="2024/01",
             )
 
             assert isinstance(result, list)
@@ -514,10 +480,7 @@ class TestV2ClientReactiveData:
     @pytest.mark.unit
     @pytest.mark.client_v2
     def test_get_reactive_data_validation_error(
-        self,
-        authenticated_v2_client,
-        cups_code,
-        distributor_code
+        self, authenticated_v2_client, cups_code, distributor_code
     ):
         """Test get_reactive_data con datos inválidos."""
         invalid_response = {
@@ -528,9 +491,9 @@ class TestV2ClientReactiveData:
                         "date": "invalid_date",
                         "energy_p1": "not_a_number",
                     }
-                ]
+                ],
             },
-            "distributorError": []
+            "distributorError": [],
         }
 
         with responses.RequestsMock() as rsps:
@@ -545,7 +508,7 @@ class TestV2ClientReactiveData:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from="2024/01",
-                date_to="2024/01"
+                date_to="2024/01",
             )
 
             # Debería devolver lista vacía si hay errores de validación
@@ -563,19 +526,28 @@ class TestV2ClientErrorHandling:
         methods_and_args = [
             ("get_supplies", {}),
             ("get_distributors", {}),
-            ("get_contract_detail", {"cups": "ES0031607515707001RC0F", "distributor_code": "2"}),
-            ("get_consumption", {
-                "cups": "ES0031607515707001RC0F",
-                "distributor_code": "2",
-                "date_from": "2024/01",
-                "date_to": "2024/01"
-            }),
-            ("get_max_power", {
-                "cups": "ES0031607515707001RC0F",
-                "distributor_code": "2",
-                "date_from": "2024/01",
-                "date_to": "2024/01"
-            }),
+            (
+                "get_contract_detail",
+                {"cups": "ES0031607515707001RC0F", "distributor_code": "2"},
+            ),
+            (
+                "get_consumption",
+                {
+                    "cups": "ES0031607515707001RC0F",
+                    "distributor_code": "2",
+                    "date_from": "2024/01",
+                    "date_to": "2024/01",
+                },
+            ),
+            (
+                "get_max_power",
+                {
+                    "cups": "ES0031607515707001RC0F",
+                    "distributor_code": "2",
+                    "date_from": "2024/01",
+                    "date_to": "2024/01",
+                },
+            ),
         ]
 
         # Mapeo de métodos a endpoints
@@ -584,7 +556,7 @@ class TestV2ClientErrorHandling:
             "get_distributors": "distributors",
             "get_contract_detail": "contracts",
             "get_consumption": "consumption",
-            "get_max_power": "max_power"
+            "get_max_power": "max_power",
         }
 
         for method_name, kwargs in methods_and_args:
@@ -606,7 +578,9 @@ class TestV2ClientErrorHandling:
 
     @pytest.mark.unit
     @pytest.mark.client_v2
-    def test_distributor_error_parsing(self, authenticated_v2_client, cups_code, distributor_code):
+    def test_distributor_error_parsing(
+        self, authenticated_v2_client, cups_code, distributor_code
+    ):
         """Test parseo correcto de errores de distribuidor."""
         error_response = {
             "supplies": [],
@@ -615,15 +589,15 @@ class TestV2ClientErrorHandling:
                     "distributorCode": "2",
                     "distributorName": "E-DISTRIBUCIÓN",
                     "errorCode": "500",
-                    "errorDescription": "Internal server error"
+                    "errorDescription": "Internal server error",
                 },
                 {
                     "distributorCode": "3",
                     "distributorName": "E-REDES",
                     "errorCode": "404",
-                    "errorDescription": "Data not found"
-                }
-            ]
+                    "errorDescription": "Data not found",
+                },
+            ],
         }
 
         with responses.RequestsMock() as rsps:
@@ -647,12 +621,11 @@ class TestV2ClientResponseValidation:
 
     @pytest.mark.unit
     @pytest.mark.client_v2
-    def test_response_model_validation(self, authenticated_v2_client, sample_supply_data):
+    def test_response_model_validation(
+        self, authenticated_v2_client, sample_supply_data
+    ):
         """Test validación completa de modelos de respuesta."""
-        v2_response = {
-            "supplies": [sample_supply_data],
-            "distributorError": []
-        }
+        v2_response = {"supplies": [sample_supply_data], "distributorError": []}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -704,12 +677,11 @@ class TestV2vs1Compatibility:
 
     @pytest.mark.unit
     @pytest.mark.client_v2
-    def test_v2_uses_different_endpoints(self, authenticated_v2_client, sample_supplies_response):
+    def test_v2_uses_different_endpoints(
+        self, authenticated_v2_client, sample_supplies_response
+    ):
         """Test que V2 usa endpoints diferentes a V1."""
-        v2_response = {
-            "supplies": sample_supplies_response,
-            "distributorError": []
-        }
+        v2_response = {"supplies": sample_supplies_response, "distributorError": []}
 
         with responses.RequestsMock() as rsps:
             # Endpoint V2
@@ -720,7 +692,7 @@ class TestV2vs1Compatibility:
                 status=200,
             )
 
-            result = authenticated_v2_client.get_supplies()
+            authenticated_v2_client.get_supplies()
 
             # Verificar que se usó el endpoint V2
             request = rsps.calls[0].request
@@ -728,12 +700,11 @@ class TestV2vs1Compatibility:
 
     @pytest.mark.unit
     @pytest.mark.client_v2
-    def test_v2_structured_responses(self, authenticated_v2_client, sample_supplies_response):
+    def test_v2_structured_responses(
+        self, authenticated_v2_client, sample_supplies_response
+    ):
         """Test que V2 devuelve respuestas estructuradas."""
-        v2_response = {
-            "supplies": sample_supplies_response,
-            "distributorError": []
-        }
+        v2_response = {"supplies": sample_supplies_response, "distributorError": []}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -760,4 +731,5 @@ class TestV2vs1Compatibility:
 
         # Verificar que es específico de V2 (no está en la clase base abstracta)
         from datadis_python.client.base import BaseDatadisClient
+
         assert not hasattr(BaseDatadisClient, "get_reactive_data")

@@ -21,7 +21,6 @@ def validate_cups(cups: str) -> str:
     :return: CUPS validado.
     :rtype: str
     """
-
     if not cups:
         raise ValidationError("CUPS no puede estar vacío")
 

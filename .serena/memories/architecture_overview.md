@@ -19,7 +19,7 @@ The SDK uses a layered client architecture:
 ### Data Models (`models/`)
 - **Pydantic Models**: Type-safe data structures for API responses
   - `ConsumptionData`: Energy consumption records
-  - `SupplyData`: Supply point information  
+  - `SupplyData`: Supply point information
   - `ContractData`: Contract details with `DateOwner` sub-model
   - `MaxPowerData`: Maximum power demand data
 - **Response Wrappers**: API response containers
@@ -30,7 +30,7 @@ The SDK uses a layered client architecture:
 ```
 DatadisError (base)
 ├── AuthenticationError
-├── APIError  
+├── APIError
 └── ValidationError
 ```
 

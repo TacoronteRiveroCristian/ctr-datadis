@@ -16,14 +16,14 @@ The migration has completely transformed the Datadis SDK from returning raw data
 ```python
 class DistributorData(BaseModel):
     distributor_codes: List[str] = Field(
-        alias="distributorCodes", 
+        alias="distributorCodes",
         description="List of distributor codes"
     )
 ```
 
 #### 2. ReactiveData Family (`datadis_python/models/reactive.py`)
 - **ReactiveEnergyPeriod**: Individual period data
-- **ReactiveEnergyData**: CUPS-level data 
+- **ReactiveEnergyData**: CUPS-level data
 - **ReactiveData**: Complete reactive energy response
 
 #### 3. Export Updates (`datadis_python/models/__init__.py`)
@@ -66,7 +66,7 @@ def get_max_power(self) -> List["MaxPowerData"]
 ```python
 # V2 uses complete responses with metadata
 def get_supplies(self) -> "SuppliesResponse"
-def get_distributors(self) -> "DistributorsResponse" 
+def get_distributors(self) -> "DistributorsResponse"
 def get_contract_detail(self) -> "ContractResponse"
 def get_consumption(self) -> "ConsumptionResponse"
 def get_max_power(self) -> "MaxPowerResponse"
@@ -85,14 +85,14 @@ def get_reactive_data(self) -> List["ReactiveData"]  # V2 unique
 def get_data(self) -> List["ModelData"]:
     # 1. Get API response
     response = self._make_authenticated_request(endpoint)
-    
+
     # 2. Handle different formats
     raw_data = []
     if isinstance(response, list):
         raw_data = response
     elif isinstance(response, dict) and "key" in response:
         raw_data = response["key"]
-    
+
     # 3. Validate with Pydantic (local import)
     from ...models.model import ModelData
     validated_data = []
@@ -103,7 +103,7 @@ def get_data(self) -> List["ModelData"]:
         except Exception as e:
             print(f"Error validating: {e}")
             continue  # Continue without failing
-    
+
     return validated_data
 ```
 
@@ -121,7 +121,7 @@ if TYPE_CHECKING:
 ```python
 class ModelData(BaseModel):
     field: str = Field(alias="fieldName", description="...")
-    
+
     class Config:
         allow_population_by_field_name = True  # Crucial for compatibility
 ```
@@ -155,7 +155,7 @@ class ModelData(BaseModel):
 
 ### For SDK
 1. **Robustness**: Automatic validation of all data
-2. **Maintainability**: API changes detected automatically  
+2. **Maintainability**: API changes detected automatically
 3. **Consistency**: Uniform pattern across all clients
 4. **Performance**: Minimal overhead with local imports
 
@@ -166,7 +166,7 @@ Plan executed following `.serena/checklists/pydantic-migration-plan.md`:
 ### Completed Phases:
 1. **Missing Models** - DistributorData, ReactiveData
 2. **SimpleClientV1** - 4 methods migrated
-3. **ClientV1** - 6 methods migrated  
+3. **ClientV1** - 6 methods migrated
 4. **ClientV2** - 6 methods migrated with V2 responses
 5. **Unified Client** - Updated type hints
 6. **Code Quality** - Black, isort, documentation

@@ -20,7 +20,12 @@ import responses
 from requests.exceptions import ConnectionError, Timeout
 
 from datadis_python.client.v2.simple_client import SimpleDatadisClientV2
-from datadis_python.exceptions import APIError, AuthenticationError, DatadisError, ValidationError
+from datadis_python.exceptions import (
+    APIError,
+    AuthenticationError,
+    DatadisError,
+    ValidationError,
+)
 from datadis_python.models.consumption import ConsumptionData
 from datadis_python.models.contract import ContractData
 from datadis_python.models.max_power import MaxPowerData
@@ -50,8 +55,7 @@ class TestSimpleClientV2Initialization:
     def test_initialization_with_default_params(self, test_credentials):
         """Test inicialización con parámetros por defecto."""
         client = SimpleDatadisClientV2(
-            username=test_credentials["username"],
-            password=test_credentials["password"]
+            username=test_credentials["username"], password=test_credentials["password"]
         )
 
         assert client.username == test_credentials["username"]
@@ -70,7 +74,7 @@ class TestSimpleClientV2Initialization:
             username=test_credentials["username"],
             password=test_credentials["password"],
             timeout=60,
-            retries=5
+            retries=5,
         )
 
         assert client.timeout == 60
@@ -111,7 +115,7 @@ class TestSimpleClientV2Initialization:
             "get_contract_detail",
             "get_consumption",
             "get_max_power",
-            "get_reactive_data"
+            "get_reactive_data",
         ]
 
         for method_name in api_methods:
@@ -140,7 +144,10 @@ class TestSimpleClientV2Authentication:
 
             assert result is True
             assert simple_v2_client.token == test_token
-            assert simple_v2_client.session.headers["Authorization"] == f"Bearer {test_token}"
+            assert (
+                simple_v2_client.session.headers["Authorization"]
+                == f"Bearer {test_token}"
+            )
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
@@ -183,7 +190,7 @@ class TestSimpleClientV2Authentication:
     @pytest.mark.auth
     def test_authenticate_timeout(self, simple_v2_client):
         """Test timeout en autenticación."""
-        with patch('requests.post') as mock_post:
+        with patch("requests.post") as mock_post:
             mock_post.side_effect = Timeout("Timeout")
 
             with pytest.raises(AuthenticationError) as exc_info:
@@ -196,7 +203,7 @@ class TestSimpleClientV2Authentication:
     @pytest.mark.auth
     def test_authenticate_connection_error(self, simple_v2_client):
         """Test error de conexión en autenticación."""
-        with patch('requests.post') as mock_post:
+        with patch("requests.post") as mock_post:
             mock_post.side_effect = ConnectionError("Connection failed")
 
             with pytest.raises(AuthenticationError) as exc_info:
@@ -255,12 +262,14 @@ class TestSimpleClientV2RobustnessFeatures:
             mock_response.text = '{"supplies": [], "distributorError": []}'
             return mock_response
 
-        with patch.object(simple_v2_client.session, 'get', side_effect=timeout_then_success):
-            with patch.object(simple_v2_client, 'authenticate', return_value=True):
+        with patch.object(
+            simple_v2_client.session, "get", side_effect=timeout_then_success
+        ):
+            with patch.object(simple_v2_client, "authenticate", return_value=True):
                 simple_v2_client.token = "test-token"
                 simple_v2_client.session.headers["Authorization"] = "Bearer test-token"
 
-                with patch('time.sleep'):  # Acelerar test
+                with patch("time.sleep"):  # Acelerar test
                     result = simple_v2_client.get_supplies()
 
                 assert call_count == 3  # 2 timeouts + 1 éxito
@@ -270,11 +279,13 @@ class TestSimpleClientV2RobustnessFeatures:
     @pytest.mark.simple_client_v2
     def test_retry_exhaustion(self, simple_v2_client):
         """Test agotamiento de reintentos."""
-        with patch.object(simple_v2_client.session, 'get', side_effect=Timeout("Always timeout")):
-            with patch.object(simple_v2_client, 'authenticate', return_value=True):
+        with patch.object(
+            simple_v2_client.session, "get", side_effect=Timeout("Always timeout")
+        ):
+            with patch.object(simple_v2_client, "authenticate", return_value=True):
                 simple_v2_client.token = "test-token"
 
-                with patch('time.sleep'):  # Acelerar test
+                with patch("time.sleep"):  # Acelerar test
                     with pytest.raises(DatadisError) as exc_info:
                         simple_v2_client.get_supplies()
 
@@ -289,11 +300,13 @@ class TestSimpleClientV2RobustnessFeatures:
         def mock_sleep(seconds):
             sleep_times.append(seconds)
 
-        with patch.object(simple_v2_client.session, 'get', side_effect=Timeout("Always timeout")):
-            with patch.object(simple_v2_client, 'authenticate', return_value=True):
+        with patch.object(
+            simple_v2_client.session, "get", side_effect=Timeout("Always timeout")
+        ):
+            with patch.object(simple_v2_client, "authenticate", return_value=True):
                 simple_v2_client.token = "test-token"
 
-                with patch('time.sleep', side_effect=mock_sleep):
+                with patch("time.sleep", side_effect=mock_sleep):
                     with pytest.raises(DatadisError):
                         simple_v2_client.get_supplies()
 
@@ -303,7 +316,9 @@ class TestSimpleClientV2RobustnessFeatures:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_token_auto_renewal_on_401(self, simple_v2_client, test_token, sample_v2_supplies_response):
+    def test_token_auto_renewal_on_401(
+        self, simple_v2_client, test_token, sample_v2_supplies_response
+    ):
         """Test renovación automática de token en error 401."""
         auth_calls = 0
         get_calls = 0
@@ -327,14 +342,20 @@ class TestSimpleClientV2RobustnessFeatures:
             nonlocal auth_calls
             auth_calls += 1
             simple_v2_client.token = f"{test_token}-{auth_calls}"
-            simple_v2_client.session.headers["Authorization"] = f"Bearer {simple_v2_client.token}"
+            simple_v2_client.session.headers[
+                "Authorization"
+            ] = f"Bearer {simple_v2_client.token}"
             return True
 
-        with patch.object(simple_v2_client.session, 'get', side_effect=mock_get):
-            with patch.object(simple_v2_client, 'authenticate', side_effect=mock_authenticate):
+        with patch.object(simple_v2_client.session, "get", side_effect=mock_get):
+            with patch.object(
+                simple_v2_client, "authenticate", side_effect=mock_authenticate
+            ):
                 # Simular token inicial
                 simple_v2_client.token = test_token
-                simple_v2_client.session.headers["Authorization"] = f"Bearer {test_token}"
+                simple_v2_client.session.headers[
+                    "Authorization"
+                ] = f"Bearer {test_token}"
 
                 result = simple_v2_client.get_supplies()
 
@@ -361,7 +382,9 @@ class TestSimpleClientV2SuppliesAPI:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_supplies_success(self, authenticated_simple_v2_client, sample_v2_supplies_response):
+    def test_get_supplies_success(
+        self, authenticated_simple_v2_client, sample_v2_supplies_response
+    ):
         """Test obtención exitosa de suministros."""
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -380,7 +403,9 @@ class TestSimpleClientV2SuppliesAPI:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_supplies_with_authorized_nif(self, authenticated_simple_v2_client, sample_v2_supplies_response):
+    def test_get_supplies_with_authorized_nif(
+        self, authenticated_simple_v2_client, sample_v2_supplies_response
+    ):
         """Test get_supplies con NIF autorizado."""
         authorized_nif = "87654321B"
 
@@ -392,7 +417,9 @@ class TestSimpleClientV2SuppliesAPI:
                 status=200,
             )
 
-            result = authenticated_simple_v2_client.get_supplies(authorized_nif=authorized_nif)
+            result = authenticated_simple_v2_client.get_supplies(
+                authorized_nif=authorized_nif
+            )
 
             assert isinstance(result, SuppliesResponse)
 
@@ -406,7 +433,7 @@ class TestSimpleClientV2SuppliesAPI:
         self,
         authenticated_simple_v2_client,
         sample_v2_supplies_response,
-        distributor_code
+        distributor_code,
     ):
         """Test get_supplies con código de distribuidor."""
         with responses.RequestsMock() as rsps:
@@ -417,7 +444,9 @@ class TestSimpleClientV2SuppliesAPI:
                 status=200,
             )
 
-            result = authenticated_simple_v2_client.get_supplies(distributor_code=distributor_code)
+            result = authenticated_simple_v2_client.get_supplies(
+                distributor_code=distributor_code
+            )
 
             assert isinstance(result, SuppliesResponse)
 
@@ -436,9 +465,9 @@ class TestSimpleClientV2SuppliesAPI:
                     "distributorCode": "2",
                     "distributorName": "E-DISTRIBUCIÓN",
                     "errorCode": "404",
-                    "errorDescription": "No data found"
+                    "errorDescription": "No data found",
                 }
-            ]
+            ],
         }
 
         with responses.RequestsMock() as rsps:
@@ -459,7 +488,9 @@ class TestSimpleClientV2SuppliesAPI:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_supplies_invalid_response_structure(self, authenticated_simple_v2_client):
+    def test_get_supplies_invalid_response_structure(
+        self, authenticated_simple_v2_client
+    ):
         """Test get_supplies con estructura de respuesta inválida."""
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -478,12 +509,16 @@ class TestSimpleClientV2SuppliesAPI:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_supplies_invalid_distributor_code(self, authenticated_simple_v2_client):
+    def test_get_supplies_invalid_distributor_code(
+        self, authenticated_simple_v2_client
+    ):
         """Test get_supplies con código de distribuidor inválido."""
         invalid_distributor = "invalid"
 
         with pytest.raises(ValidationError):
-            authenticated_simple_v2_client.get_supplies(distributor_code=invalid_distributor)
+            authenticated_simple_v2_client.get_supplies(
+                distributor_code=invalid_distributor
+            )
 
 
 class TestSimpleClientV2DistributorsAPI:
@@ -491,7 +526,9 @@ class TestSimpleClientV2DistributorsAPI:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_distributors_success(self, authenticated_simple_v2_client, sample_v2_distributors_response):
+    def test_get_distributors_success(
+        self, authenticated_simple_v2_client, sample_v2_distributors_response
+    ):
         """Test obtención exitosa de distribuidores."""
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -509,7 +546,9 @@ class TestSimpleClientV2DistributorsAPI:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_distributors_with_authorized_nif(self, authenticated_simple_v2_client, sample_v2_distributors_response):
+    def test_get_distributors_with_authorized_nif(
+        self, authenticated_simple_v2_client, sample_v2_distributors_response
+    ):
         """Test get_distributors con NIF autorizado."""
         authorized_nif = "87654321B"
 
@@ -521,7 +560,9 @@ class TestSimpleClientV2DistributorsAPI:
                 status=200,
             )
 
-            result = authenticated_simple_v2_client.get_distributors(authorized_nif=authorized_nif)
+            result = authenticated_simple_v2_client.get_distributors(
+                authorized_nif=authorized_nif
+            )
 
             assert isinstance(result, DistributorsResponse)
 
@@ -559,7 +600,7 @@ class TestSimpleClientV2ContractAPI:
         authenticated_simple_v2_client,
         sample_v2_contract_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test obtención exitosa de contrato."""
         with responses.RequestsMock() as rsps:
@@ -571,8 +612,7 @@ class TestSimpleClientV2ContractAPI:
             )
 
             result = authenticated_simple_v2_client.get_contract_detail(
-                cups=cups_code,
-                distributor_code=distributor_code
+                cups=cups_code, distributor_code=distributor_code
             )
 
             assert isinstance(result, ContractResponse)
@@ -592,7 +632,7 @@ class TestSimpleClientV2ContractAPI:
         authenticated_simple_v2_client,
         sample_v2_contract_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test get_contract_detail con NIF autorizado."""
         authorized_nif = "87654321B"
@@ -608,7 +648,7 @@ class TestSimpleClientV2ContractAPI:
             result = authenticated_simple_v2_client.get_contract_detail(
                 cups=cups_code,
                 distributor_code=distributor_code,
-                authorized_nif=authorized_nif
+                authorized_nif=authorized_nif,
             )
 
             assert isinstance(result, ContractResponse)
@@ -619,26 +659,28 @@ class TestSimpleClientV2ContractAPI:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_contract_detail_invalid_cups(self, authenticated_simple_v2_client, distributor_code):
+    def test_get_contract_detail_invalid_cups(
+        self, authenticated_simple_v2_client, distributor_code
+    ):
         """Test get_contract_detail con CUPS inválido."""
         invalid_cups = "INVALID_CUPS"
 
         with pytest.raises(ValidationError):
             authenticated_simple_v2_client.get_contract_detail(
-                cups=invalid_cups,
-                distributor_code=distributor_code
+                cups=invalid_cups, distributor_code=distributor_code
             )
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_contract_detail_invalid_distributor(self, authenticated_simple_v2_client, cups_code):
+    def test_get_contract_detail_invalid_distributor(
+        self, authenticated_simple_v2_client, cups_code
+    ):
         """Test get_contract_detail con código de distribuidor inválido."""
         invalid_distributor = "invalid"
 
         with pytest.raises(ValidationError):
             authenticated_simple_v2_client.get_contract_detail(
-                cups=cups_code,
-                distributor_code=invalid_distributor
+                cups=cups_code, distributor_code=invalid_distributor
             )
 
 
@@ -652,7 +694,7 @@ class TestSimpleClientV2ConsumptionAPI:
         authenticated_simple_v2_client,
         sample_v2_consumption_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test obtención exitosa de consumo."""
         with responses.RequestsMock() as rsps:
@@ -667,7 +709,7 @@ class TestSimpleClientV2ConsumptionAPI:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from="2024/01",
-                date_to="2024/01"
+                date_to="2024/01",
             )
 
             assert isinstance(result, ConsumptionResponse)
@@ -681,7 +723,7 @@ class TestSimpleClientV2ConsumptionAPI:
         authenticated_simple_v2_client,
         sample_v2_consumption_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test get_consumption con parámetros opcionales."""
         measurement_type = 1
@@ -703,7 +745,7 @@ class TestSimpleClientV2ConsumptionAPI:
                 date_to="2024/01",
                 measurement_type=measurement_type,
                 point_type=point_type,
-                authorized_nif=authorized_nif
+                authorized_nif=authorized_nif,
             )
 
             assert isinstance(result, ConsumptionResponse)
@@ -717,10 +759,7 @@ class TestSimpleClientV2ConsumptionAPI:
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
     def test_get_consumption_invalid_date_format(
-        self,
-        authenticated_simple_v2_client,
-        cups_code,
-        distributor_code
+        self, authenticated_simple_v2_client, cups_code, distributor_code
     ):
         """Test get_consumption con formato de fecha inválido."""
         invalid_date = "2024-01-15"  # Formato incorrecto
@@ -730,16 +769,13 @@ class TestSimpleClientV2ConsumptionAPI:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from=invalid_date,
-                date_to="2024/01"
+                date_to="2024/01",
             )
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
     def test_get_consumption_invalid_measurement_type(
-        self,
-        authenticated_simple_v2_client,
-        cups_code,
-        distributor_code
+        self, authenticated_simple_v2_client, cups_code, distributor_code
     ):
         """Test get_consumption con tipo de medición inválido."""
         invalid_measurement_type = 999
@@ -750,7 +786,7 @@ class TestSimpleClientV2ConsumptionAPI:
                 distributor_code=distributor_code,
                 date_from="2024/01",
                 date_to="2024/01",
-                measurement_type=invalid_measurement_type
+                measurement_type=invalid_measurement_type,
             )
 
 
@@ -764,7 +800,7 @@ class TestSimpleClientV2MaxPowerAPI:
         authenticated_simple_v2_client,
         sample_v2_max_power_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test obtención exitosa de potencia máxima."""
         with responses.RequestsMock() as rsps:
@@ -779,7 +815,7 @@ class TestSimpleClientV2MaxPowerAPI:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from="2024/01",
-                date_to="2024/01"
+                date_to="2024/01",
             )
 
             assert isinstance(result, MaxPowerResponse)
@@ -793,7 +829,7 @@ class TestSimpleClientV2MaxPowerAPI:
         authenticated_simple_v2_client,
         sample_v2_max_power_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test get_max_power con NIF autorizado."""
         authorized_nif = "87654321B"
@@ -811,7 +847,7 @@ class TestSimpleClientV2MaxPowerAPI:
                 distributor_code=distributor_code,
                 date_from="2024/01",
                 date_to="2024/01",
-                authorized_nif=authorized_nif
+                authorized_nif=authorized_nif,
             )
 
             assert isinstance(result, MaxPowerResponse)
@@ -831,7 +867,7 @@ class TestSimpleClientV2ReactiveDataAPI:
         authenticated_simple_v2_client,
         sample_v2_reactive_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test obtención exitosa de datos reactivos."""
         with responses.RequestsMock() as rsps:
@@ -846,7 +882,7 @@ class TestSimpleClientV2ReactiveDataAPI:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from="2024/01",
-                date_to="2024/01"
+                date_to="2024/01",
             )
 
             assert isinstance(result, list)
@@ -856,16 +892,10 @@ class TestSimpleClientV2ReactiveDataAPI:
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
     def test_get_reactive_data_empty_response(
-        self,
-        authenticated_simple_v2_client,
-        cups_code,
-        distributor_code
+        self, authenticated_simple_v2_client, cups_code, distributor_code
     ):
         """Test get_reactive_data con respuesta vacía."""
-        empty_response = {
-            "reactiveEnergy": {},
-            "distributorError": []
-        }
+        empty_response = {"reactiveEnergy": {}, "distributorError": []}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -879,7 +909,7 @@ class TestSimpleClientV2ReactiveDataAPI:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from="2024/01",
-                date_to="2024/01"
+                date_to="2024/01",
             )
 
             assert isinstance(result, list)
@@ -892,7 +922,7 @@ class TestSimpleClientV2ReactiveDataAPI:
         authenticated_simple_v2_client,
         sample_v2_reactive_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test get_reactive_data con NIF autorizado."""
         authorized_nif = "87654321B"
@@ -910,7 +940,7 @@ class TestSimpleClientV2ReactiveDataAPI:
                 distributor_code=distributor_code,
                 date_from="2024/01",
                 date_to="2024/01",
-                authorized_nif=authorized_nif
+                authorized_nif=authorized_nif,
             )
 
             assert isinstance(result, list)
@@ -949,12 +979,14 @@ class TestSimpleClientV2ErrorHandling:
     @pytest.mark.errors
     def test_malformed_json_response(self, authenticated_simple_v2_client):
         """Test respuestas con JSON malformado."""
-        with patch.object(authenticated_simple_v2_client.session, 'get') as mock_get:
+        with patch.object(authenticated_simple_v2_client.session, "get") as mock_get:
             # Mock response con JSON inválido
             mock_response = MagicMock()
             mock_response.status_code = 200
             mock_response.text = "invalid json content"
-            mock_response.json.side_effect = ValueError("No JSON object could be decoded")
+            mock_response.json.side_effect = ValueError(
+                "No JSON object could be decoded"
+            )
             mock_get.return_value = mock_response
 
             # Debería propagar el error como DatadisError
@@ -968,8 +1000,12 @@ class TestSimpleClientV2ErrorHandling:
     @pytest.mark.errors
     def test_network_connection_error(self, authenticated_simple_v2_client):
         """Test errores de conexión de red."""
-        with patch.object(authenticated_simple_v2_client.session, 'get', side_effect=ConnectionError("Network error")):
-            with patch('time.sleep'):  # Acelerar test
+        with patch.object(
+            authenticated_simple_v2_client.session,
+            "get",
+            side_effect=ConnectionError("Network error"),
+        ):
+            with patch("time.sleep"):  # Acelerar test
                 with pytest.raises(DatadisError) as exc_info:
                     authenticated_simple_v2_client.get_supplies()
 
@@ -977,7 +1013,9 @@ class TestSimpleClientV2ErrorHandling:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_unauthenticated_request_triggers_auth(self, simple_v2_client, sample_v2_supplies_response, test_token):
+    def test_unauthenticated_request_triggers_auth(
+        self, simple_v2_client, sample_v2_supplies_response, test_token
+    ):
         """Test que una petición sin autenticar dispara la autenticación automática."""
         with responses.RequestsMock() as rsps:
             # Mock autenticación
@@ -1052,7 +1090,9 @@ class TestSimpleClientV2ContextManager:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_session_reuse(self, simple_v2_client, test_token, sample_v2_supplies_response):
+    def test_session_reuse(
+        self, simple_v2_client, test_token, sample_v2_supplies_response
+    ):
         """Test reutilización de sesión para múltiples llamadas."""
         with responses.RequestsMock() as rsps:
             # Mock autenticación una vez
@@ -1106,40 +1146,42 @@ class TestSimpleClientV2InputValidation:
         for invalid_cups in invalid_cups_cases:
             with pytest.raises(ValidationError):
                 authenticated_simple_v2_client.get_contract_detail(
-                    cups=invalid_cups,
-                    distributor_code=distributor_code
+                    cups=invalid_cups, distributor_code=distributor_code
                 )
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_distributor_code_validation(self, authenticated_simple_v2_client, cups_code):
+    def test_distributor_code_validation(
+        self, authenticated_simple_v2_client, cups_code
+    ):
         """Test validación de códigos de distribuidor."""
         invalid_distributors = [
-            "0",    # No válido
-            "9",    # Fuera de rango
+            "0",  # No válido
+            "9",  # Fuera de rango
             "abc",  # No numérico
-            "",     # Vacío
+            "",  # Vacío
         ]
 
         for invalid_distributor in invalid_distributors:
             with pytest.raises(ValidationError):
                 authenticated_simple_v2_client.get_contract_detail(
-                    cups=cups_code,
-                    distributor_code=invalid_distributor
+                    cups=cups_code, distributor_code=invalid_distributor
                 )
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_date_format_validation(self, authenticated_simple_v2_client, cups_code, distributor_code):
+    def test_date_format_validation(
+        self, authenticated_simple_v2_client, cups_code, distributor_code
+    ):
         """Test validación de formatos de fecha."""
         invalid_dates = [
-            "2024-01-15",    # Formato ISO
-            "01/2024",       # Orden incorrecto
-            "2024/13",       # Mes inválido
-            "2024/00",       # Mes cero
-            "2024/1",        # Sin ceros padding
-            "",              # Vacío
-            "invalid",       # No fecha
+            "2024-01-15",  # Formato ISO
+            "01/2024",  # Orden incorrecto
+            "2024/13",  # Mes inválido
+            "2024/00",  # Mes cero
+            "2024/1",  # Sin ceros padding
+            "",  # Vacío
+            "invalid",  # No fecha
         ]
 
         for invalid_date in invalid_dates:
@@ -1148,16 +1190,18 @@ class TestSimpleClientV2InputValidation:
                     cups=cups_code,
                     distributor_code=distributor_code,
                     date_from=invalid_date,
-                    date_to="2024/01"
+                    date_to="2024/01",
                 )
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_point_type_validation(self, authenticated_simple_v2_client, cups_code, distributor_code):
+    def test_point_type_validation(
+        self, authenticated_simple_v2_client, cups_code, distributor_code
+    ):
         """Test validación de tipos de punto."""
         invalid_point_types = [
-            0,   # Fuera de rango
-            6,   # Fuera de rango
+            0,  # Fuera de rango
+            6,  # Fuera de rango
             -1,  # Negativo
         ]
 
@@ -1168,7 +1212,7 @@ class TestSimpleClientV2InputValidation:
                     distributor_code=distributor_code,
                     date_from="2024/01",
                     date_to="2024/01",
-                    point_type=invalid_point_type
+                    point_type=invalid_point_type,
                 )
 
 
@@ -1195,7 +1239,7 @@ class TestSimpleClientV2PydanticValidation:
                     "distributorCode": "2",
                 }
             ],
-            "distributorError": []
+            "distributorError": [],
         }
 
         with responses.RequestsMock() as rsps:
@@ -1220,7 +1264,9 @@ class TestSimpleClientV2PydanticValidation:
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
     @pytest.mark.models
-    def test_consumption_response_validation(self, authenticated_simple_v2_client, cups_code, distributor_code):
+    def test_consumption_response_validation(
+        self, authenticated_simple_v2_client, cups_code, distributor_code
+    ):
         """Test validación del modelo ConsumptionResponse."""
         valid_response = {
             "timeCurve": [
@@ -1235,7 +1281,7 @@ class TestSimpleClientV2PydanticValidation:
                     "selfConsumptionEnergyKWh": None,
                 }
             ],
-            "distributorError": []
+            "distributorError": [],
         }
 
         with responses.RequestsMock() as rsps:
@@ -1250,7 +1296,7 @@ class TestSimpleClientV2PydanticValidation:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from="2024/01",
-                date_to="2024/01"
+                date_to="2024/01",
             )
 
             assert isinstance(result, ConsumptionResponse)
@@ -1295,23 +1341,22 @@ class TestSimpleClientV2PerformanceAndLimits:
         # Simular respuesta grande con muchos datos
         large_supplies = []
         for i in range(100):  # 100 suministros
-            large_supplies.append({
-                "address": f"CALLE EJEMPLO {i}",
-                "cups": f"ES00316075157070{i:02d}RC0F",
-                "postalCode": "28001",
-                "province": "MADRID",
-                "municipality": "MADRID",
-                "distributor": "E-DISTRIBUCION",
-                "validDateFrom": "2023/01/01",
-                "validDateTo": None,
-                "pointType": 2,
-                "distributorCode": "2",
-            })
+            large_supplies.append(
+                {
+                    "address": f"CALLE EJEMPLO {i}",
+                    "cups": f"ES00316075157070{i:02d}RC0F",
+                    "postalCode": "28001",
+                    "province": "MADRID",
+                    "municipality": "MADRID",
+                    "distributor": "E-DISTRIBUCION",
+                    "validDateFrom": "2023/01/01",
+                    "validDateTo": None,
+                    "pointType": 2,
+                    "distributorCode": "2",
+                }
+            )
 
-        large_response = {
-            "supplies": large_supplies,
-            "distributorError": []
-        }
+        large_response = {"supplies": large_supplies, "distributorError": []}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -1332,7 +1377,9 @@ class TestSimpleClientV2PerformanceAndLimits:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_concurrent_requests_simulation(self, authenticated_simple_v2_client, sample_v2_supplies_response):
+    def test_concurrent_requests_simulation(
+        self, authenticated_simple_v2_client, sample_v2_supplies_response
+    ):
         """Test simulación de peticiones concurrentes (sesión reutilizada)."""
         with responses.RequestsMock() as rsps:
             # Mock múltiples respuestas

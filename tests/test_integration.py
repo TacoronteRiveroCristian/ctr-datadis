@@ -115,8 +115,7 @@ class TestCompleteV1Workflow:
 
                 # Paso 4: Obtener detalle de contrato
                 contracts = client.get_contract_detail(
-                    cups=cups,
-                    distributor_code=distributor_code
+                    cups=cups, distributor_code=distributor_code
                 )
                 assert len(contracts) >= 1
                 assert isinstance(contracts[0], ContractData)
@@ -126,7 +125,7 @@ class TestCompleteV1Workflow:
                     cups=cups,
                     distributor_code=distributor_code,
                     date_from="2024/01/01",
-                    date_to="2024/01/31"
+                    date_to="2024/01/31",
                 )
                 assert len(consumption) >= 1
                 assert isinstance(consumption[0], ConsumptionData)
@@ -136,7 +135,7 @@ class TestCompleteV1Workflow:
                     cups=cups,
                     distributor_code=distributor_code,
                     date_from="2024/01/01",
-                    date_to="2024/01/31"
+                    date_to="2024/01/31",
                 )
                 assert len(max_power) >= 1
                 assert isinstance(max_power[0], MaxPowerData)
@@ -175,7 +174,7 @@ class TestCompleteV1Workflow:
                 "validDateTo": None,
                 "pointType": 2,
                 "distributorCode": "2",
-            }
+            },
         ]
 
         consumption_response = [
@@ -227,7 +226,7 @@ class TestCompleteV1Workflow:
                         cups=supply.cups,
                         distributor_code=supply.distributor_code,
                         date_from="2024/01/01",
-                        date_to="2024/01/31"
+                        date_to="2024/01/31",
                     )
                     all_consumption.extend(consumption)
 
@@ -295,27 +294,27 @@ class TestCompleteV2Workflow:
         # Respuestas V2 estructuradas
         supplies_v2_response = {
             "supplies": sample_supplies_response,
-            "distributorError": []
+            "distributorError": [],
         }
 
         distributors_v2_response = {
             "distExistenceUser": {"distributorCodes": ["2"]},
-            "distributorError": []
+            "distributorError": [],
         }
 
         contracts_v2_response = {
             "contract": sample_contract_response,
-            "distributorError": []
+            "distributorError": [],
         }
 
         consumption_v2_response = {
             "timeCurve": sample_consumption_response,
-            "distributorError": []
+            "distributorError": [],
         }
 
         max_power_v2_response = {
             "maxPower": sample_max_power_response,
-            "distributorError": []
+            "distributorError": [],
         }
 
         reactive_data_response = {
@@ -331,9 +330,9 @@ class TestCompleteV2Workflow:
                         "energy_p5": None,
                         "energy_p6": None,
                     }
-                ]
+                ],
             },
-            "distributorError": []
+            "distributorError": [],
         }
 
         with responses.RequestsMock() as rsps:
@@ -394,8 +393,13 @@ class TestCompleteV2Workflow:
 
                 # Obtener distribuidores
                 distributors_response = client.get_distributors()
-                assert len(distributors_response.dist_existence_user["distributorCodes"]) >= 1
-                distributor_code = distributors_response.dist_existence_user["distributorCodes"][0]
+                assert (
+                    len(distributors_response.dist_existence_user["distributorCodes"])
+                    >= 1
+                )
+                distributor_code = distributors_response.dist_existence_user[
+                    "distributorCodes"
+                ][0]
 
                 # Obtener suministros
                 supplies_response = client.get_supplies()
@@ -404,8 +408,7 @@ class TestCompleteV2Workflow:
 
                 # Obtener contrato
                 contract_response = client.get_contract_detail(
-                    cups=cups,
-                    distributor_code=distributor_code
+                    cups=cups, distributor_code=distributor_code
                 )
                 assert len(contract_response.contract) >= 1
 
@@ -414,7 +417,7 @@ class TestCompleteV2Workflow:
                     cups=cups,
                     distributor_code=distributor_code,
                     date_from="2024/01",
-                    date_to="2024/01"
+                    date_to="2024/01",
                 )
                 assert len(consumption_response.time_curve) >= 1
 
@@ -423,7 +426,7 @@ class TestCompleteV2Workflow:
                     cups=cups,
                     distributor_code=distributor_code,
                     date_from="2024/01",
-                    date_to="2024/01"
+                    date_to="2024/01",
                 )
                 assert len(max_power_response.max_power) >= 1
 
@@ -432,7 +435,7 @@ class TestCompleteV2Workflow:
                     cups=cups,
                     distributor_code=distributor_code,
                     date_from="2024/01",
-                    date_to="2024/01"
+                    date_to="2024/01",
                 )
                 assert len(reactive_data) >= 1
 
@@ -450,9 +453,9 @@ class TestCompleteV2Workflow:
                     "distributorCode": "2",
                     "distributorName": "E-DISTRIBUCIÓN",
                     "errorCode": "404",
-                    "errorDescription": "No data found for this period"
+                    "errorDescription": "No data found for this period",
                 }
-            ]
+            ],
         }
 
         with responses.RequestsMock() as rsps:
@@ -497,11 +500,10 @@ class TestV1vsV2Compatibility:
         sample_consumption_response,
     ):
         """Test que V1 y V2 devuelven los mismos datos en diferentes formatos."""
-
         # Respuesta V2 estructurada
         consumption_v2_response = {
             "timeCurve": sample_consumption_response,
-            "distributorError": []
+            "distributorError": [],
         }
 
         with responses.RequestsMock() as rsps:
@@ -559,7 +561,7 @@ class TestV1vsV2Compatibility:
                     cups=v1_supplies[0].cups,
                     distributor_code=v1_supplies[0].distributor_code,
                     date_from="2024/01/01",
-                    date_to="2024/01/31"
+                    date_to="2024/01/31",
                 )
 
             with DatadisClientV2(**test_credentials) as v2_client:
@@ -569,7 +571,7 @@ class TestV1vsV2Compatibility:
                     cups=v2_supplies_response.supplies[0].cups,
                     distributor_code=v2_supplies_response.supplies[0].distributor_code,
                     date_from="2024/01",
-                    date_to="2024/01"
+                    date_to="2024/01",
                 )
 
             # Comparar datos de suministros
@@ -590,9 +592,9 @@ class TestV1vsV2Compatibility:
         reactive_data_response = {
             "reactiveEnergy": {
                 "cups": "ES0031607515707001RC0F",
-                "energy": [{"date": "2024/01", "energy_p1": 10.5}]
+                "energy": [{"date": "2024/01", "energy_p1": 10.5}],
             },
-            "distributorError": []
+            "distributorError": [],
         }
 
         with responses.RequestsMock() as rsps:
@@ -622,7 +624,7 @@ class TestV1vsV2Compatibility:
                     cups="ES0031607515707001RC0F",
                     distributor_code="2",
                     date_from="2024/01",
-                    date_to="2024/01"
+                    date_to="2024/01",
                 )
 
                 assert len(reactive_data) >= 1
@@ -703,9 +705,9 @@ class TestErrorRecoveryWorkflows:
                     "distributorCode": "2",
                     "distributorName": "E-DISTRIBUCIÓN",
                     "errorCode": "503",
-                    "errorDescription": "Service temporarily unavailable"
+                    "errorDescription": "Service temporarily unavailable",
                 }
-            ]
+            ],
         }
 
         with responses.RequestsMock() as rsps:
@@ -745,7 +747,7 @@ class TestErrorRecoveryWorkflows:
                     cups=supplies_response.supplies[0].cups,
                     distributor_code=supplies_response.supplies[0].distributor_code,
                     date_from="2024/01",
-                    date_to="2024/01"
+                    date_to="2024/01",
                 )
 
                 # No hay datos pero hay información del error
@@ -770,18 +772,20 @@ class TestLongRunningWorkflows:
 
         consumption_responses = []
         for month in months:
-            consumption_responses.append({
-                "timeCurve": [
-                    {
-                        "cups": "ES0031607515707001RC0F",
-                        "date": f"{month}/15",
-                        "time": "12:00",
-                        "consumptionKWh": 1.5,
-                        "obtainMethod": "Real",
-                    }
-                ],
-                "distributorError": []
-            })
+            consumption_responses.append(
+                {
+                    "timeCurve": [
+                        {
+                            "cups": "ES0031607515707001RC0F",
+                            "date": f"{month}/15",
+                            "time": "12:00",
+                            "consumptionKWh": 1.5,
+                            "obtainMethod": "Real",
+                        }
+                    ],
+                    "distributorError": [],
+                }
+            )
 
         with responses.RequestsMock() as rsps:
             # Auth
@@ -823,7 +827,7 @@ class TestLongRunningWorkflows:
                         cups=cups,
                         distributor_code=distributor_code,
                         date_from=month,
-                        date_to=month
+                        date_to=month,
                     )
                     all_consumption.extend(consumption_response.time_curve)
 
@@ -868,7 +872,9 @@ class TestLongRunningWorkflows:
                     assert len(supplies) >= 1
 
                 # Solo debería haber una autenticación
-                auth_calls = [call for call in rsps.calls if "nikola-auth" in call.request.url]
+                auth_calls = [
+                    call for call in rsps.calls if "nikola-auth" in call.request.url
+                ]
                 assert len(auth_calls) == 1
 
 
@@ -886,13 +892,15 @@ class TestRealWorldScenarios:
         # Simular datos de consumo horario para un día
         hourly_consumption = []
         for hour in range(24):
-            hourly_consumption.append({
-                "cups": "ES0031607515707001RC0F",
-                "date": "2024/01/15",
-                "time": f"{hour:02d}:00",
-                "consumptionKWh": 0.5 + (hour * 0.05),  # Consumo variable
-                "obtainMethod": "Real",
-            })
+            hourly_consumption.append(
+                {
+                    "cups": "ES0031607515707001RC0F",
+                    "date": "2024/01/15",
+                    "time": f"{hour:02d}:00",
+                    "consumptionKWh": 0.5 + (hour * 0.05),  # Consumo variable
+                    "obtainMethod": "Real",
+                }
+            )
 
         with responses.RequestsMock() as rsps:
             # Setup
@@ -927,13 +935,15 @@ class TestRealWorldScenarios:
                     cups=primary_supply.cups,
                     distributor_code=primary_supply.distributor_code,
                     date_from="2024/01/15",
-                    date_to="2024/01/15"
+                    date_to="2024/01/15",
                 )
 
                 # Análisis de datos
                 total_consumption = sum(item.consumption_kwh for item in consumption)
                 peak_hour = max(consumption, key=lambda x: x.consumption_kwh)
-                off_peak_hours = [item for item in consumption if item.consumption_kwh < 0.75]
+                off_peak_hours = [
+                    item for item in consumption if item.consumption_kwh < 0.75
+                ]
 
                 # Verificaciones
                 assert len(consumption) == 24  # 24 horas
@@ -996,13 +1006,15 @@ class TestRealWorldScenarios:
                 rsps.add(
                     responses.GET,
                     f"{DATADIS_API_BASE}{API_V1_ENDPOINTS['consumption']}",
-                    json=[{
-                        "cups": supply["cups"],
-                        "date": "2024/01/15",
-                        "time": "12:00",
-                        "consumptionKWh": 2.5,
-                        "obtainMethod": "Real",
-                    }],
+                    json=[
+                        {
+                            "cups": supply["cups"],
+                            "date": "2024/01/15",
+                            "time": "12:00",
+                            "consumptionKWh": 2.5,
+                            "obtainMethod": "Real",
+                        }
+                    ],
                     status=200,
                 )
 
@@ -1029,9 +1041,11 @@ class TestRealWorldScenarios:
                             cups=supply.cups,
                             distributor_code=supply.distributor_code,
                             date_from="2024/01/15",
-                            date_to="2024/01/15"
+                            date_to="2024/01/15",
                         )
-                        total_consumption += sum(item.consumption_kwh for item in consumption)
+                        total_consumption += sum(
+                            item.consumption_kwh for item in consumption
+                        )
 
                     total_consumption_by_distributor[dist_code] = total_consumption
 
@@ -1039,4 +1053,7 @@ class TestRealWorldScenarios:
                 assert len(by_distributor) == 2  # Dos distribuidores
                 assert "1" in by_distributor  # Viesgo
                 assert "2" in by_distributor  # E-Distribución
-                assert all(consumption > 0 for consumption in total_consumption_by_distributor.values())
+                assert all(
+                    consumption > 0
+                    for consumption in total_consumption_by_distributor.values()
+                )

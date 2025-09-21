@@ -96,7 +96,7 @@ class DatadisClient:
         use_form_data: bool = False,
     ) -> Union[Dict[str, Any], str]:
         """
-        Realiza una petición HTTP a la API
+        Realiza una petición HTTP a la API.
 
         :param method: Método HTTP (GET, POST)
         :param endpoint: Endpoint de la API
@@ -209,9 +209,7 @@ class DatadisClient:
         raise DatadisError("Error inesperado: se agotaron todos los reintentos")
 
     def _authenticate(self) -> None:
-        """
-        Autentica con la API y obtiene token de acceso
-        """
+        """Autentica con la API y obtiene token de acceso."""
         login_data = {"username": self.username, "password": self.password}
 
         try:
@@ -239,17 +237,14 @@ class DatadisClient:
             raise
 
     def _ensure_authenticated(self) -> None:
-        """
-        Asegura que el cliente está autenticado con un token válido
-        """
+        """Asegura que el cliente está autenticado con un token válido."""
         if not self.token or (
             self.token_expiry and time.time() >= self.token_expiry - 300
         ):  # Renovar 5 min antes
             self._authenticate()
 
     def get_distributors(self) -> List[Dict[str, Any]]:
-        """
-        Obtiene la lista de distribuidores disponibles usando API v1
+        """Obtiene la lista de distribuidores disponibles usando API v1.
 
         :return: Lista de distribuidores (raw response de la API)
         """
@@ -264,8 +259,7 @@ class DatadisClient:
         return []
 
     def get_supplies(self) -> List[Dict[str, Any]]:
-        """
-        Obtiene la lista de puntos de suministro disponibles usando API v1
+        """Obtiene la lista de puntos de suministro disponibles usando API v1.
 
         :return: Lista de datos de suministros (raw response de la API)
         """
@@ -280,8 +274,7 @@ class DatadisClient:
         return []
 
     def get_contract_detail(self, cups: str, distributor_code: str) -> Dict[str, Any]:
-        """
-        Obtiene el detalle del contrato para un CUPS específico usando API v1
+        """Obtiene el detalle del contrato para un CUPS específico usando API v1.
 
         :param cups: Código CUPS del punto de suministro
         :param distributor_code: Código del distribuidor
@@ -304,8 +297,7 @@ class DatadisClient:
         measurement_type: int = 0,
         point_type: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Obtiene datos de consumo para un CUPS y rango de fechas usando API v1
+        """Obtiene datos de consumo para un CUPS y rango de fechas usando API v1.
 
         :param cups: Código CUPS del punto de suministro
         :param distributor_code: Código del distribuidor
@@ -342,8 +334,7 @@ class DatadisClient:
     def get_max_power(
         self, cups: str, distributor_code: str, date_from: str, date_to: str
     ) -> List[Dict[str, Any]]:
-        """
-        Obtiene datos de potencia máxima para un CUPS y rango de fechas usando API v1
+        """Obtiene datos de potencia máxima para un CUPS y rango de fechas usando API v1.
 
         :param cups: Código CUPS del punto de suministro
         :param distributor_code: Código del distribuidor
@@ -370,18 +361,16 @@ class DatadisClient:
         return []
 
     def close(self) -> None:
-        """
-        Cierra la sesión y libera recursos
-        """
+        """Cierra la sesión y libera recursos."""
         if self.session:
             self.session.close()
         self.token = None
         self.token_expiry = None
 
     def __enter__(self):
-        """Context manager entry"""
+        """Context manager entry."""
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit"""
+        """Context manager exit."""
         self.close()

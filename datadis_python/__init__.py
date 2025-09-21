@@ -1,5 +1,5 @@
 """
-Datadis Python SDK
+Datadis Python SDK.
 
 Un SDK modular para interactuar con la API oficial de Datadis.
 Soporta tanto API v1 (respuestas raw) como v2 (respuestas tipadas).

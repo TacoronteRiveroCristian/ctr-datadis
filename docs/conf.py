@@ -47,7 +47,7 @@ html_theme_options = {
     "sticky_navigation": True,
     "navigation_depth": 4,
     "includehidden": True,
-    "titles_only": False
+    "titles_only": False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -61,7 +61,7 @@ autodoc_default_options = {
     "undoc-members": True,
     "show-inheritance": True,
     "special-members": "__init__",
-    "exclude-members": "__weakref__"
+    "exclude-members": "__weakref__",
 }
 
 autodoc_member_order = "bysource"

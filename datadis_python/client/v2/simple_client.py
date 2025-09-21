@@ -574,9 +574,7 @@ class SimpleDatadisClientV2:
         return validated_reactive_data
 
     def close(self):
-        """
-        Cierra la sesión.
-        """
+        """Cierra la sesión."""
         if self.session:
             self.session.close()
         self.token = None

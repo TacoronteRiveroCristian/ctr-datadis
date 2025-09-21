@@ -23,7 +23,7 @@ Note: Currently no test directory exists, but pyproject.toml is configured for p
 ## Pre-commit Workflow
 Although no pre-commit config exists, recommended workflow:
 1. Run Black formatting
-2. Run isort import sorting  
+2. Run isort import sorting
 3. Run flake8 linting
 4. Run mypy type checking
 5. Ensure no linting errors before committing

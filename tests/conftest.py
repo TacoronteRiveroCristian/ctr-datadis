@@ -24,7 +24,6 @@ from datadis_python.utils.constants import (
     DATADIS_BASE_URL,
 )
 
-
 # Test credentials
 TEST_USERNAME = "12345678A"
 TEST_PASSWORD = "test_password"
@@ -238,9 +237,7 @@ def sample_max_power_response(sample_max_power_data):
 @pytest.fixture
 def sample_distributor_data():
     """Datos de ejemplo para distribuidor."""
-    return {
-        "distributorCodes": ["2", "3", "5"]
-    }
+    return {"distributorCodes": ["2", "3", "5"]}
 
 
 @pytest.fixture
@@ -274,46 +271,31 @@ def sample_reactive_response(sample_reactive_data):
 @pytest.fixture
 def sample_v2_supplies_response(sample_supplies_response):
     """Respuesta V2 estructurada para get-supplies-v2."""
-    return {
-        "supplies": sample_supplies_response,
-        "distributorError": []
-    }
+    return {"supplies": sample_supplies_response, "distributorError": []}
 
 
 @pytest.fixture
 def sample_v2_consumption_response(sample_consumption_response):
     """Respuesta V2 estructurada para get-consumption-data-v2."""
-    return {
-        "timeCurve": sample_consumption_response,
-        "distributorError": []
-    }
+    return {"timeCurve": sample_consumption_response, "distributorError": []}
 
 
 @pytest.fixture
 def sample_v2_contract_response(sample_contract_response):
     """Respuesta V2 estructurada para get-contract-detail-v2."""
-    return {
-        "contract": sample_contract_response,
-        "distributorError": []
-    }
+    return {"contract": sample_contract_response, "distributorError": []}
 
 
 @pytest.fixture
 def sample_v2_max_power_response(sample_max_power_response):
     """Respuesta V2 estructurada para get-max-power-v2."""
-    return {
-        "maxPower": sample_max_power_response,
-        "distributorError": []
-    }
+    return {"maxPower": sample_max_power_response, "distributorError": []}
 
 
 @pytest.fixture
 def sample_v2_distributors_response(sample_distributor_data):
     """Respuesta V2 estructurada para get-distributors-with-supplies-v2."""
-    return {
-        "distExistenceUser": sample_distributor_data,
-        "distributorError": []
-    }
+    return {"distExistenceUser": sample_distributor_data, "distributorError": []}
 
 
 @pytest.fixture
@@ -332,9 +314,9 @@ def sample_v2_reactive_response(cups_code):
                     "energy_p5": None,
                     "energy_p6": None,
                 }
-            ]
+            ],
         },
-        "distributorError": []
+        "distributorError": [],
     }
 
 
@@ -537,23 +519,27 @@ def pytest_configure(config):
 # Helper functions para tests
 @pytest.fixture
 def assert_valid_cups():
-    """Helper para validar códigos CUPS."""
+    """Provide helper for validating CUPS codes."""
 
     def _assert_valid_cups(cups: str):
         assert len(cups) == 22, f"CUPS debe tener 22 caracteres, tiene {len(cups)}"
         assert cups.startswith("ES"), "CUPS debe empezar con 'ES'"
-        assert cups[2:].replace("AB", "").isdigit(), "CUPS contiene caracteres inválidos"
+        assert (
+            cups[2:].replace("AB", "").isdigit()
+        ), "CUPS contiene caracteres inválidos"
 
     return _assert_valid_cups
 
 
 @pytest.fixture
 def assert_valid_date_format():
-    """Helper para validar formato de fecha."""
+    """Provide helper for validating date format."""
 
     def _assert_valid_date_format(date_str: str):
         assert len(date_str) == 10, f"Fecha debe tener formato YYYY/MM/DD"
-        assert date_str[4] == "/" and date_str[7] == "/", "Fecha debe usar '/' como separador"
+        assert (
+            date_str[4] == "/" and date_str[7] == "/"
+        ), "Fecha debe usar '/' como separador"
         year, month, day = date_str.split("/")
         assert year.isdigit() and len(year) == 4, "Año inválido"
         assert month.isdigit() and 1 <= int(month) <= 12, "Mes inválido"
@@ -564,7 +550,7 @@ def assert_valid_date_format():
 
 @pytest.fixture
 def assert_valid_time_format():
-    """Helper para validar formato de hora."""
+    """Provide helper for validating time format."""
 
     def _assert_valid_time_format(time_str: str):
         assert len(time_str) == 5, f"Hora debe tener formato HH:MM"

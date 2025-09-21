@@ -444,9 +444,7 @@ class SimpleDatadisClientV1:
         return validated_max_power
 
     def close(self):
-        """
-        Cierra la sesión.
-        """
+        """Cierra la sesión."""
         if self.session:
             self.session.close()
         self.token = None

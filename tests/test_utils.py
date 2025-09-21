@@ -15,7 +15,12 @@ import pytest
 import requests
 import responses
 
-from datadis_python.exceptions import APIError, AuthenticationError, DatadisError, ValidationError
+from datadis_python.exceptions import (
+    APIError,
+    AuthenticationError,
+    DatadisError,
+    ValidationError,
+)
 from datadis_python.utils.constants import (
     API_V1_ENDPOINTS,
     DISTRIBUTOR_CODES,
@@ -48,7 +53,7 @@ class TestCUPSValidator:
         valid_cups = [
             # Formatos reales de CUPS españoles (20-22 caracteres)
             "ES0031607515707001RC0F",  # 20 chars - formato real de Datadis
-            "ES0031607495168002EK0F",  # 20 chars - formato real de Datadis  
+            "ES0031607495168002EK0F",  # 20 chars - formato real de Datadis
             "ES0031601360306001PX0F",  # 20 chars - formato real de Datadis
             "ES123456789012345678901A",  # 21 chars - formato intermedio
             "ES1234567890123456789012",  # 22 chars - formato máximo
@@ -103,7 +108,7 @@ class TestCUPSValidator:
         invalid_cups = [
             "EN0031607515707001RC0F",  # Prefijo incorrecto
             "XX0031607515707001RC0F",  # Prefijo incorrecto
-            "0031607515707001RC0F",    # Sin prefijo
+            "0031607515707001RC0F",  # Sin prefijo
             "FR0031607515707001RC0F",  # País incorrecto
         ]
 
@@ -117,10 +122,10 @@ class TestCUPSValidator:
     def test_validate_cups_wrong_length(self):
         """Test validación falla con longitud incorrecta."""
         invalid_cups = [
-            "ES123456789012345678",     # Muy corto (19 chars después de ES)
+            "ES123456789012345678",  # Muy corto (19 chars después de ES)
             "ES12345678901234567890123",  # Muy largo (23 chars después de ES)
-            "ES123",                    # Muy corto (3 chars después de ES)
-            "ES",                       # Solo prefijo
+            "ES123",  # Muy corto (3 chars después de ES)
+            "ES",  # Solo prefijo
         ]
 
         for cups in invalid_cups:
@@ -167,12 +172,12 @@ class TestCUPSValidator:
     def test_validate_cups_edge_cases(self):
         """Test validación con casos límite válidos."""
         edge_cases = [
-            "ES12345678901234567890",    # Exactamente 20 chars después de ES
-            "ES123456789012345678901",   # Exactamente 21 chars después de ES
+            "ES12345678901234567890",  # Exactamente 20 chars después de ES
+            "ES123456789012345678901",  # Exactamente 21 chars después de ES
             "ES1234567890123456789012",  # Exactamente 22 chars después de ES
-            "ES00000000000000000000",    # Todo ceros
-            "ESZZZZZZZZZZZZZZZZZZZZ",    # Todo letras
-            "ES000000000000000000ZZ",    # Mezcla números y letras
+            "ES00000000000000000000",  # Todo ceros
+            "ESZZZZZZZZZZZZZZZZZZZZ",  # Todo letras
+            "ES000000000000000000ZZ",  # Mezcla números y letras
         ]
 
         for cups in edge_cases:
@@ -225,8 +230,8 @@ class TestDateRangeValidator:
         invalid_dates = [
             ("2024-01-01", "2024/01/31"),  # Separador incorrecto
             ("01/01/2024", "2024/01/31"),  # Orden incorrecto
-            ("2024/1/1", "2024/01/31"),    # Sin ceros
-            ("24/01/01", "2024/01/31"),    # Año de 2 dígitos
+            ("2024/1/1", "2024/01/31"),  # Sin ceros
+            ("24/01/01", "2024/01/31"),  # Año de 2 dígitos
         ]
 
         for date_from, date_to in invalid_dates:
@@ -260,7 +265,7 @@ class TestDateRangeValidator:
 
     @pytest.mark.unit
     @pytest.mark.utils
-    @patch('datadis_python.utils.validators.datetime')
+    @patch("datadis_python.utils.validators.datetime")
     def test_validate_date_range_too_old(self, mock_datetime):
         """Test validación falla con fechas muy antiguas."""
         # Mock datetime.now() para tener control sobre la fecha actual
@@ -279,7 +284,7 @@ class TestDateRangeValidator:
 
     @pytest.mark.unit
     @pytest.mark.utils
-    @patch('datadis_python.utils.validators.datetime')
+    @patch("datadis_python.utils.validators.datetime")
     def test_validate_date_range_future_date(self, mock_datetime):
         """Test validación falla con fechas futuras."""
         # Mock datetime.now() para tener control sobre la fecha actual
@@ -390,7 +395,10 @@ class TestPointTypeValidator:
         for point_type in invalid_types:
             with pytest.raises(ValidationError) as exc_info:
                 validate_point_type(point_type)
-            assert "debe ser 1 (frontera), 2 (consumo), 3 (generación) o 4 (servicios auxiliares)" in str(exc_info.value)
+            assert (
+                "debe ser 1 (frontera), 2 (consumo), 3 (generación) o 4 (servicios auxiliares)"
+                in str(exc_info.value)
+            )
 
 
 class TestTextNormalization:
@@ -453,11 +461,8 @@ class TestTextNormalization:
         input_dict = {
             "distributor": "E-DISTRIBUCIÓN",
             "province": "MÁLAGA",
-            "nested": {
-                "city": "CORUÑA",
-                "number": 123
-            },
-            "number": 456
+            "nested": {"city": "CORUÑA", "number": 123},
+            "number": 456,
         }
 
         result = normalize_dict_strings(input_dict)
@@ -472,15 +477,7 @@ class TestTextNormalization:
     @pytest.mark.utils
     def test_normalize_list_strings(self):
         """Test normalización de strings en listas."""
-        input_list = [
-            "MÁLAGA",
-            123,
-            {
-                "name": "JOSÉ",
-                "age": 30
-            },
-            ["NIÑO", "ESPAÑA"]
-        ]
+        input_list = ["MÁLAGA", 123, {"name": "JOSÉ", "age": 30}, ["NIÑO", "ESPAÑA"]]
 
         result = normalize_list_strings(input_list)
 
@@ -495,13 +492,8 @@ class TestTextNormalization:
     def test_normalize_api_response_dict(self):
         """Test normalización de respuesta de API como diccionario."""
         api_response = {
-            "supplies": [
-                {
-                    "distributor": "E-DISTRIBUCIÓN",
-                    "province": "MÁLAGA"
-                }
-            ],
-            "status": "success"
+            "supplies": [{"distributor": "E-DISTRIBUCIÓN", "province": "MÁLAGA"}],
+            "status": "success",
         }
 
         result = normalize_api_response(api_response)
@@ -515,14 +507,8 @@ class TestTextNormalization:
     def test_normalize_api_response_list(self):
         """Test normalización de respuesta de API como lista."""
         api_response = [
-            {
-                "name": "JOSÉ",
-                "city": "CORUÑA"
-            },
-            {
-                "name": "MARÍA",
-                "city": "SEVILLA"
-            }
+            {"name": "JOSÉ", "city": "CORUÑA"},
+            {"name": "MARÍA", "city": "SEVILLA"},
         ]
 
         result = normalize_api_response(api_response)
@@ -602,7 +588,9 @@ class TestHTTPClient:
                 status=200,
             )
 
-            result = client.make_request("POST", "https://example.com/nikola-auth/login")
+            result = client.make_request(
+                "POST", "https://example.com/nikola-auth/login"
+            )
 
             assert result == "test_token_jwt"
 
@@ -622,10 +610,7 @@ class TestHTTPClient:
 
             data = {"username": "test", "password": "pass"}
             result = client.make_request(
-                "POST",
-                "https://example.com/api/login",
-                data=data,
-                use_form_data=True
+                "POST", "https://example.com/api/login", data=data, use_form_data=True
             )
 
             assert result == "success"
@@ -798,9 +783,7 @@ class TestHTTPClient:
 
             custom_headers = {"Custom-Header": "custom-value"}
             result = client.make_request(
-                "GET",
-                "https://example.com/api/test",
-                headers=custom_headers
+                "GET", "https://example.com/api/test", headers=custom_headers
             )
 
             assert result == {"success": True}
@@ -878,7 +861,7 @@ class TestConstants:
             "CONSUMPTION",
             "GENERATION",
             "AUXILIARY_SERVICES",
-            "AUXILIARY_SERVICES_ALT"
+            "AUXILIARY_SERVICES_ALT",
         ]
 
         for point_type in expected_point_types:
@@ -926,7 +909,7 @@ class TestUtilsIntegration:
                     "distributor": "E-DISTRIBUCIÓN REDES DIGITALES S.L.U.",
                     "address": "CALLE JOSÉ MARÍA PEMÁN 123",
                     "province": "MÁLAGA",
-                    "municipality": "CORUÑA"
+                    "municipality": "CORUÑA",
                 }
             ]
         }
@@ -945,7 +928,10 @@ class TestUtilsIntegration:
         """Test propagación correcta de errores en validadores."""
         error_scenarios = [
             (lambda: validate_cups("invalid"), ValidationError),
-            (lambda: validate_date_range("invalid", "2024/01/01", "daily"), ValidationError),
+            (
+                lambda: validate_date_range("invalid", "2024/01/01", "daily"),
+                ValidationError,
+            ),
             (lambda: validate_distributor_code("invalid"), ValidationError),
             (lambda: validate_measurement_type(999), ValidationError),
             (lambda: validate_point_type(999), ValidationError),
@@ -961,10 +947,7 @@ class TestUtilsIntegration:
         """Test que HTTPClient normaliza respuestas de texto."""
         client = HTTPClient()
 
-        api_response = {
-            "distributor": "E-DISTRIBUCIÓN",
-            "province": "MÁLAGA"
-        }
+        api_response = {"distributor": "E-DISTRIBUCIÓN", "province": "MÁLAGA"}
 
         with responses.RequestsMock() as rsps:
             rsps.add(

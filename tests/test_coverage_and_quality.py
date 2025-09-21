@@ -10,8 +10,9 @@ Estos tests validan:
 
 import importlib
 import inspect
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 # Importar todos los módulos del SDK para verificar cobertura
 from datadis_python.client.base import BaseDatadisClient
@@ -54,13 +55,15 @@ class TestCodeCoverage:
             public_methods = [
                 method_name
                 for method_name, method in inspect.getmembers(cls, inspect.ismethod)
-                if not method_name.startswith('_') or method_name in ['__enter__', '__exit__']
+                if not method_name.startswith("_")
+                or method_name in ["__enter__", "__exit__"]
             ]
 
             public_functions = [
                 func_name
                 for func_name, func in inspect.getmembers(cls, inspect.isfunction)
-                if not func_name.startswith('_') or func_name in ['__enter__', '__exit__']
+                if not func_name.startswith("_")
+                or func_name in ["__enter__", "__exit__"]
             ]
 
             all_public = public_methods + public_functions
@@ -70,10 +73,18 @@ class TestCodeCoverage:
                 # (esto es una verificación conceptual - en un proyecto real
                 # usarías herramientas como coverage.py)
                 if method_name not in [
-                    'authenticate', 'get_supplies', 'get_distributors',
-                    'get_contract_detail', 'get_consumption', 'get_max_power',
-                    'get_reactive_data', 'close', '__enter__', '__exit__',
-                    'ensure_authenticated', 'make_authenticated_request'
+                    "authenticate",
+                    "get_supplies",
+                    "get_distributors",
+                    "get_contract_detail",
+                    "get_consumption",
+                    "get_max_power",
+                    "get_reactive_data",
+                    "close",
+                    "__enter__",
+                    "__exit__",
+                    "ensure_authenticated",
+                    "make_authenticated_request",
                 ]:
                     uncovered_methods.append(f"{cls.__name__}.{method_name}")
 
@@ -119,14 +130,14 @@ class TestCodeCoverage:
             # Obtener todas las clases Pydantic del módulo
             pydantic_classes = []
             for name, obj in inspect.getmembers(module, inspect.isclass):
-                if hasattr(obj, 'model_validate') and hasattr(obj, 'model_dump'):
+                if hasattr(obj, "model_validate") and hasattr(obj, "model_dump"):
                     pydantic_classes.append(obj)
 
             # Verificar que cada clase tiene al menos validación básica
             for cls in pydantic_classes:
-                assert hasattr(cls, 'model_validate')
-                assert hasattr(cls, 'model_dump')
-                assert hasattr(cls, 'model_json_schema')
+                assert hasattr(cls, "model_validate")
+                assert hasattr(cls, "model_dump")
+                assert hasattr(cls, "model_json_schema")
 
     @pytest.mark.unit
     def test_all_validators_tested(self):
@@ -142,7 +153,7 @@ class TestCodeCoverage:
         for validator_func in validator_functions:
             # Verificar que la función existe y es callable
             assert callable(validator_func)
-            assert hasattr(validator_func, '__name__')
+            assert hasattr(validator_func, "__name__")
 
     @pytest.mark.unit
     def test_all_text_utils_tested(self):
@@ -156,7 +167,7 @@ class TestCodeCoverage:
 
         for func in text_util_functions:
             assert callable(func)
-            assert hasattr(func, '__name__')
+            assert hasattr(func, "__name__")
 
 
 class TestTestQuality:
@@ -187,7 +198,16 @@ class TestTestQuality:
         assert 1 <= sample_supply_data["pointType"] <= 5  # Tipo de punto válido
 
         # Códigos de distribuidor válidos
-        assert sample_supply_data["distributorCode"] in ["1", "2", "3", "4", "5", "6", "7", "8"]
+        assert sample_supply_data["distributorCode"] in [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+        ]
 
     @pytest.mark.unit
     def test_error_scenarios_comprehensive(self):
@@ -204,8 +224,8 @@ class TestTestQuality:
     def test_mocking_is_comprehensive(self):
         """Test que el mocking es comprensivo."""
         # Verificar que no se hacen requests reales
-        import responses
         import requests
+        import responses
 
         # En tests reales, verificarías que responses está activo
         # y que no se hacen requests sin mock
@@ -249,6 +269,7 @@ class TestPerformance:
 
         # Operación simple
         from datadis_python.utils.text_utils import normalize_text
+
         result = normalize_text("MÁLAGA")
 
         end_time = time.time()
@@ -281,8 +302,8 @@ class TestPerformance:
 
         # Usar fixtures múltiples veces
         for _ in range(100):
-            cups = sample_supply_data["cups"]
-            consumption = sample_consumption_data["consumptionKWh"]
+            _ = sample_supply_data["cups"]
+            _ = sample_consumption_data["consumptionKWh"]
 
         end_time = time.time()
         duration = end_time - start_time
@@ -303,17 +324,15 @@ class TestEdgeCases:
             ("ES" + "0" * 16 + "A" * 4, True),  # 22 caracteres exactos
             ("ES" + "0" * 15 + "A" * 4, False),  # 21 caracteres
             ("ES" + "0" * 17 + "A" * 4, False),  # 23 caracteres
-
             # Códigos de distribuidor límite
-            ("1", True),   # Mínimo válido
-            ("8", True),   # Máximo válido
+            ("1", True),  # Mínimo válido
+            ("8", True),  # Máximo válido
             ("0", False),  # Debajo del mínimo
             ("9", False),  # Encima del máximo
-
             # Tipos de medición límite
-            (0, True),   # Mínimo válido
-            (1, True),   # Máximo válido
-            (-1, False), # Debajo del mínimo
+            (0, True),  # Mínimo válido
+            (1, True),  # Máximo válido
+            (-1, False),  # Debajo del mínimo
             (2, False),  # Encima del máximo
         ]
 
@@ -383,13 +402,15 @@ class TestEdgeCases:
         # Test con datasets grandes simulados
         large_response = []
         for i in range(1000):  # Simular 1000 registros de consumo
-            large_response.append({
-                "cups": f"ES{i:016d}ABCD",
-                "date": "2024/01/15",
-                "time": f"{i % 24:02d}:00",
-                "consumptionKWh": i * 0.001,
-                "obtainMethod": "Real",
-            })
+            large_response.append(
+                {
+                    "cups": f"ES{i:016d}ABCD",
+                    "date": "2024/01/15",
+                    "time": f"{i % 24:02d}:00",
+                    "consumptionKWh": i * 0.001,
+                    "obtainMethod": "Real",
+                }
+            )
 
         # Verificar que se puede manejar sin problemas de memoria
         assert len(large_response) == 1000
@@ -414,7 +435,7 @@ class TestDocumentationCoverage:
             public_methods = [
                 method_name
                 for method_name, method in inspect.getmembers(cls, inspect.isfunction)
-                if not method_name.startswith('_')
+                if not method_name.startswith("_")
             ]
 
             for method_name in public_methods:
@@ -447,8 +468,8 @@ class TestDocumentationCoverage:
 
         # Verificar que la función tiene anotaciones
         annotations = validate_cups.__annotations__
-        assert 'cups' in annotations
-        assert 'return' in annotations
+        assert "cups" in annotations
+        assert "return" in annotations
 
 
 class TestRegressionPrevention:
@@ -464,13 +485,13 @@ class TestRegressionPrevention:
 
         # Métodos que deben mantenerse
         required_methods = [
-            'authenticate',
-            'get_supplies',
-            'get_distributors',
-            'get_contract_detail',
-            'get_consumption',
-            'get_max_power',
-            'close',
+            "authenticate",
+            "get_supplies",
+            "get_distributors",
+            "get_contract_detail",
+            "get_consumption",
+            "get_max_power",
+            "close",
         ]
 
         for method_name in required_methods:
@@ -487,10 +508,11 @@ class TestRegressionPrevention:
 
         # Verificar firma de get_consumption
         import inspect
+
         sig = inspect.signature(client.get_consumption)
         params = list(sig.parameters.keys())
 
-        expected_params = ['cups', 'distributor_code', 'date_from', 'date_to']
+        expected_params = ["cups", "distributor_code", "date_from", "date_to"]
         for param in expected_params:
             assert param in params
 
@@ -514,8 +536,8 @@ class TestRegressionPrevention:
         supply_schema = SupplyData.model_json_schema()
 
         # Campos que deben existir siempre
-        assert 'cups' in consumption_schema['properties']
-        assert 'consumptionKWh' in consumption_schema['properties']
+        assert "cups" in consumption_schema["properties"]
+        assert "consumptionKWh" in consumption_schema["properties"]
 
-        assert 'cups' in supply_schema['properties']
-        assert 'distributorCode' in supply_schema['properties']
+        assert "cups" in supply_schema["properties"]
+        assert "distributorCode" in supply_schema["properties"]

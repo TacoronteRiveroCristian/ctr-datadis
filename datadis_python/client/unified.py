@@ -61,8 +61,7 @@ class DatadisClient:
 
     @property
     def v1(self) -> DatadisClientV1:
-        """
-        Acceso al cliente API v1 (respuestas raw).
+        """Cliente API v1 para respuestas en formato raw.
 
         :return: Cliente v1 inicializado
         :rtype: DatadisClientV1
@@ -75,8 +74,7 @@ class DatadisClient:
 
     @property
     def v2(self) -> DatadisClientV2:
-        """
-        Acceso al cliente API v2 (respuestas tipadas).
+        """Cliente API v2 para respuestas tipadas con Pydantic.
 
         :return: Cliente v2 inicializado
         :rtype: DatadisClientV2
@@ -230,9 +228,7 @@ class DatadisClient:
     # Gestión de recursos
 
     def close(self) -> None:
-        """
-        Cierra ambos clientes y libera recursos.
-        """
+        """Cierra ambos clientes y libera recursos."""
         if self._v1_client:
             self._v1_client.close()
         if self._v2_client:

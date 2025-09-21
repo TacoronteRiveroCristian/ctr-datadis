@@ -172,9 +172,7 @@ class HTTPClient:
             raise APIError(error_msg, response.status_code)
 
     def close(self) -> None:
-        """
-        Cierra la sesión HTTP.
-        """
+        """Cierra la sesión HTTP."""
         if self.session:
             self.session.close()
 
@@ -188,8 +186,6 @@ class HTTPClient:
         self.session.headers["Authorization"] = f"Bearer {token}"
 
     def remove_auth_header(self) -> None:
-        """
-        Remueve el header de autorización.
-        """
+        """Remueve el header de autorización."""
         if "Authorization" in self.session.headers:
             del self.session.headers["Authorization"]

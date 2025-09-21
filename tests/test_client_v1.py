@@ -40,8 +40,7 @@ class TestV1ClientInitialization:
     def test_client_initialization_minimal(self, test_credentials):
         """Test inicialización con parámetros mínimos."""
         client = SimpleDatadisClientV1(
-            username=test_credentials["username"],
-            password=test_credentials["password"]
+            username=test_credentials["username"], password=test_credentials["password"]
         )
 
         assert client.username == test_credentials["username"]
@@ -62,7 +61,7 @@ class TestV1ClientInitialization:
             username=test_credentials["username"],
             password=test_credentials["password"],
             timeout=custom_timeout,
-            retries=custom_retries
+            retries=custom_retries,
         )
 
         assert client.timeout == custom_timeout
@@ -85,7 +84,9 @@ class TestV1ClientSupplies:
 
     @pytest.mark.unit
     @pytest.mark.client_v1
-    def test_get_supplies_success(self, authenticated_v1_client, sample_supplies_response):
+    def test_get_supplies_success(
+        self, authenticated_v1_client, sample_supplies_response
+    ):
         """Test obtención exitosa de suministros."""
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -122,11 +123,11 @@ class TestV1ClientSupplies:
 
     @pytest.mark.unit
     @pytest.mark.client_v1
-    def test_get_supplies_nested_response(self, authenticated_v1_client, sample_supply_data):
+    def test_get_supplies_nested_response(
+        self, authenticated_v1_client, sample_supply_data
+    ):
         """Test respuesta anidada de suministros."""
-        nested_response = {
-            "supplies": [sample_supply_data]
-        }
+        nested_response = {"supplies": [sample_supply_data]}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -188,7 +189,9 @@ class TestV1ClientDistributors:
 
     @pytest.mark.unit
     @pytest.mark.client_v1
-    def test_get_distributors_success(self, authenticated_v1_client, sample_distributors_response):
+    def test_get_distributors_success(
+        self, authenticated_v1_client, sample_distributors_response
+    ):
         """Test obtención exitosa de distribuidores."""
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -203,11 +206,16 @@ class TestV1ClientDistributors:
             assert isinstance(distributors, list)
             assert len(distributors) == 1
             assert isinstance(distributors[0], DistributorData)
-            assert distributors[0].distributor_codes == sample_distributors_response[0]["distributorCodes"]
+            assert (
+                distributors[0].distributor_codes
+                == sample_distributors_response[0]["distributorCodes"]
+            )
 
     @pytest.mark.unit
     @pytest.mark.client_v1
-    def test_get_distributors_single_dict_response(self, authenticated_v1_client, sample_distributor_data):
+    def test_get_distributors_single_dict_response(
+        self, authenticated_v1_client, sample_distributor_data
+    ):
         """Test respuesta como diccionario único."""
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -251,7 +259,7 @@ class TestV1ClientContracts:
         authenticated_v1_client,
         sample_contract_response,
         cups_code,
-        distributor_code
+        distributor_code,
     ):
         """Test obtención exitosa de detalle de contrato."""
         with responses.RequestsMock() as rsps:
@@ -263,8 +271,7 @@ class TestV1ClientContracts:
             )
 
             contracts = authenticated_v1_client.get_contract_detail(
-                cups=cups_code,
-                distributor_code=distributor_code
+                cups=cups_code, distributor_code=distributor_code
             )
 
             assert isinstance(contracts, list)
@@ -281,11 +288,7 @@ class TestV1ClientContracts:
     @pytest.mark.unit
     @pytest.mark.client_v1
     def test_get_contract_detail_single_dict_response(
-        self,
-        authenticated_v1_client,
-        sample_contract_data,
-        cups_code,
-        distributor_code
+        self, authenticated_v1_client, sample_contract_data, cups_code, distributor_code
     ):
         """Test respuesta de contrato como diccionario único."""
         with responses.RequestsMock() as rsps:
@@ -297,8 +300,7 @@ class TestV1ClientContracts:
             )
 
             contracts = authenticated_v1_client.get_contract_detail(
-                cups=cups_code,
-                distributor_code=distributor_code
+                cups=cups_code, distributor_code=distributor_code
             )
 
             assert isinstance(contracts, list)
@@ -308,10 +310,7 @@ class TestV1ClientContracts:
     @pytest.mark.unit
     @pytest.mark.client_v1
     def test_get_contract_detail_not_found(
-        self,
-        authenticated_v1_client,
-        cups_code,
-        distributor_code
+        self, authenticated_v1_client, cups_code, distributor_code
     ):
         """Test contrato no encontrado."""
         with responses.RequestsMock() as rsps:
@@ -323,8 +322,7 @@ class TestV1ClientContracts:
             )
 
             contracts = authenticated_v1_client.get_contract_detail(
-                cups=cups_code,
-                distributor_code=distributor_code
+                cups=cups_code, distributor_code=distributor_code
             )
 
             assert isinstance(contracts, list)
@@ -342,7 +340,7 @@ class TestV1ClientConsumption:
         sample_consumption_response,
         cups_code,
         distributor_code,
-        date_range
+        date_range,
     ):
         """Test obtención exitosa de datos de consumo."""
         with responses.RequestsMock() as rsps:
@@ -357,7 +355,7 @@ class TestV1ClientConsumption:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from=date_range["date_from"],
-                date_to=date_range["date_to"]
+                date_to=date_range["date_to"],
             )
 
             assert isinstance(consumption, list)
@@ -369,7 +367,10 @@ class TestV1ClientConsumption:
             request = rsps.calls[0].request
             assert f"cups={cups_code}" in request.url
             assert f"distributorCode={distributor_code}" in request.url
-            assert f"startDate={date_range['date_from'].replace('/', '%2F')}" in request.url
+            assert (
+                f"startDate={date_range['date_from'].replace('/', '%2F')}"
+                in request.url
+            )
             assert f"endDate={date_range['date_to'].replace('/', '%2F')}" in request.url
             assert "measurementType=0" in request.url  # Default value
 
@@ -381,7 +382,7 @@ class TestV1ClientConsumption:
         sample_consumption_response,
         cups_code,
         distributor_code,
-        date_range
+        date_range,
     ):
         """Test obtención de consumo con parámetros opcionales."""
         measurement_type = 1
@@ -401,7 +402,7 @@ class TestV1ClientConsumption:
                 date_from=date_range["date_from"],
                 date_to=date_range["date_to"],
                 measurement_type=measurement_type,
-                point_type=point_type
+                point_type=point_type,
             )
 
             assert isinstance(consumption, list)
@@ -419,12 +420,10 @@ class TestV1ClientConsumption:
         sample_consumption_response,
         cups_code,
         distributor_code,
-        date_range
+        date_range,
     ):
         """Test respuesta de consumo anidada."""
-        nested_response = {
-            "timeCurve": sample_consumption_response
-        }
+        nested_response = {"timeCurve": sample_consumption_response}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -438,7 +437,7 @@ class TestV1ClientConsumption:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from=date_range["date_from"],
-                date_to=date_range["date_to"]
+                date_to=date_range["date_to"],
             )
 
             assert isinstance(consumption, list)
@@ -447,11 +446,7 @@ class TestV1ClientConsumption:
     @pytest.mark.unit
     @pytest.mark.client_v1
     def test_get_consumption_no_data(
-        self,
-        authenticated_v1_client,
-        cups_code,
-        distributor_code,
-        date_range
+        self, authenticated_v1_client, cups_code, distributor_code, date_range
     ):
         """Test obtención de consumo sin datos."""
         with responses.RequestsMock() as rsps:
@@ -466,7 +461,7 @@ class TestV1ClientConsumption:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from=date_range["date_from"],
-                date_to=date_range["date_to"]
+                date_to=date_range["date_to"],
             )
 
             assert isinstance(consumption, list)
@@ -484,7 +479,7 @@ class TestV1ClientMaxPower:
         sample_max_power_response,
         cups_code,
         distributor_code,
-        date_range
+        date_range,
     ):
         """Test obtención exitosa de datos de potencia máxima."""
         with responses.RequestsMock() as rsps:
@@ -499,7 +494,7 @@ class TestV1ClientMaxPower:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from=date_range["date_from"],
-                date_to=date_range["date_to"]
+                date_to=date_range["date_to"],
             )
 
             assert isinstance(max_power, list)
@@ -511,7 +506,10 @@ class TestV1ClientMaxPower:
             request = rsps.calls[0].request
             assert f"cups={cups_code}" in request.url
             assert f"distributorCode={distributor_code}" in request.url
-            assert f"startDate={date_range['date_from'].replace('/', '%2F')}" in request.url
+            assert (
+                f"startDate={date_range['date_from'].replace('/', '%2F')}"
+                in request.url
+            )
             assert f"endDate={date_range['date_to'].replace('/', '%2F')}" in request.url
 
     @pytest.mark.unit
@@ -522,12 +520,10 @@ class TestV1ClientMaxPower:
         sample_max_power_response,
         cups_code,
         distributor_code,
-        date_range
+        date_range,
     ):
         """Test respuesta de potencia máxima anidada."""
-        nested_response = {
-            "maxPower": sample_max_power_response
-        }
+        nested_response = {"maxPower": sample_max_power_response}
 
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -541,7 +537,7 @@ class TestV1ClientMaxPower:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from=date_range["date_from"],
-                date_to=date_range["date_to"]
+                date_to=date_range["date_to"],
             )
 
             assert isinstance(max_power, list)
@@ -550,11 +546,7 @@ class TestV1ClientMaxPower:
     @pytest.mark.unit
     @pytest.mark.client_v1
     def test_get_max_power_empty_response(
-        self,
-        authenticated_v1_client,
-        cups_code,
-        distributor_code,
-        date_range
+        self, authenticated_v1_client, cups_code, distributor_code, date_range
     ):
         """Test respuesta vacía de potencia máxima."""
         with responses.RequestsMock() as rsps:
@@ -569,7 +561,7 @@ class TestV1ClientMaxPower:
                 cups=cups_code,
                 distributor_code=distributor_code,
                 date_from=date_range["date_from"],
-                date_to=date_range["date_to"]
+                date_to=date_range["date_to"],
             )
 
             assert isinstance(max_power, list)
@@ -591,7 +583,9 @@ class TestV1ClientAuthenticatedRequests:
                 status=200,
             )
 
-            result = authenticated_v1_client._make_authenticated_request("/test-endpoint")
+            result = authenticated_v1_client._make_authenticated_request(
+                "/test-endpoint"
+            )
 
             assert result == {"success": True}
 
@@ -610,8 +604,7 @@ class TestV1ClientAuthenticatedRequests:
             )
 
             result = authenticated_v1_client._make_authenticated_request(
-                "/test-endpoint",
-                params=params
+                "/test-endpoint", params=params
             )
 
             assert result == {"success": True}
@@ -688,7 +681,9 @@ class TestV1ClientAuthenticatedRequests:
                 status=200,
             )
 
-            result = authenticated_v1_client._make_authenticated_request("/test-endpoint")
+            result = authenticated_v1_client._make_authenticated_request(
+                "/test-endpoint"
+            )
 
             assert result == {"success": True}
             assert len(rsps.calls) == 2  # Dos intentos
@@ -800,7 +795,9 @@ class TestV1ClientResourceManagement:
 
     @pytest.mark.unit
     @pytest.mark.client_v1
-    def test_context_manager_resource_cleanup(self, test_credentials, mock_auth_success):
+    def test_context_manager_resource_cleanup(
+        self, test_credentials, mock_auth_success
+    ):
         """Test limpieza de recursos con context manager."""
         with SimpleDatadisClientV1(**test_credentials) as client:
             client.authenticate()

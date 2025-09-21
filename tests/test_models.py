@@ -10,14 +10,15 @@ Estos tests validan:
 """
 
 import json
+
 import pytest
 from pydantic import ValidationError
 
 from datadis_python.models.consumption import ConsumptionData
-from datadis_python.models.supply import SupplyData
 from datadis_python.models.contract import ContractData
-from datadis_python.models.max_power import MaxPowerData
 from datadis_python.models.distributor import DistributorData
+from datadis_python.models.max_power import MaxPowerData
+from datadis_python.models.supply import SupplyData
 
 
 class TestConsumptionData:
@@ -43,11 +44,13 @@ class TestConsumptionData:
     def test_consumption_data_with_optional_fields(self, sample_consumption_data):
         """Test ConsumptionData con campos opcionales."""
         data = sample_consumption_data.copy()
-        data.update({
-            "surplusEnergyKWh": 0.050,
-            "generationEnergyKWh": 0.200,
-            "selfConsumptionEnergyKWh": 0.150
-        })
+        data.update(
+            {
+                "surplusEnergyKWh": 0.050,
+                "generationEnergyKWh": 0.200,
+                "selfConsumptionEnergyKWh": 0.150,
+            }
+        )
 
         consumption = ConsumptionData(**data)
 
@@ -65,7 +68,7 @@ class TestConsumptionData:
             "date": "2024/01/15",
             "time": "01:00",
             "consumptionKWh": 0.125,
-            "obtainMethod": "Real"
+            "obtainMethod": "Real",
         }
 
         # Test con nombres de campos Python
@@ -74,7 +77,7 @@ class TestConsumptionData:
             "date": "2024/01/15",
             "time": "01:00",
             "consumption_kwh": 0.125,
-            "obtain_method": "Real"
+            "obtain_method": "Real",
         }
 
         consumption1 = ConsumptionData(**data_original)
@@ -127,7 +130,7 @@ class TestConsumptionData:
                 date="2024/01/15",
                 time="01:00",
                 consumption_kwh="not_a_number",  # String en lugar de float
-                obtain_method="Real"
+                obtain_method="Real",
             )
 
 
@@ -222,13 +225,27 @@ class TestSupplyData:
             SupplyData()
 
         error = exc_info.value
-        required_fields = ["address", "cups", "postalCode", "province",
-                          "municipality", "distributor", "validDateFrom",
-                          "pointType", "distributorCode"]
+        required_fields = [
+            "address",
+            "cups",
+            "postalCode",
+            "province",
+            "municipality",
+            "distributor",
+            "validDateFrom",
+            "pointType",
+            "distributorCode",
+        ]
 
         error_fields = [err["loc"][0] for err in error.errors()]
         for field in required_fields:
-            assert field in error_fields or field.replace("Code", "_code").replace("Type", "_type").replace("From", "_from") in error_fields
+            assert (
+                field in error_fields
+                or field.replace("Code", "_code")
+                .replace("Type", "_type")
+                .replace("From", "_from")
+                in error_fields
+            )
 
 
 class TestContractData:
@@ -373,7 +390,7 @@ class TestMaxPowerData:
                 date="2024/01/15",
                 time="20:00",
                 max_power="not_a_number",  # String en lugar de float
-                period="P1"
+                period="P1",
             )
 
     @pytest.mark.unit
@@ -400,7 +417,9 @@ class TestDistributorData:
         """Test creación de DistributorData con datos válidos."""
         distributor = DistributorData(**sample_distributor_data)
 
-        assert distributor.distributor_codes == sample_distributor_data["distributorCodes"]
+        assert (
+            distributor.distributor_codes == sample_distributor_data["distributorCodes"]
+        )
         assert len(distributor.distributor_codes) == 3
         assert "2" in distributor.distributor_codes
 
@@ -414,7 +433,9 @@ class TestDistributorData:
         distributor_restored = DistributorData.model_validate_json(json_str)
 
         assert distributor_restored.distributor_codes == distributor.distributor_codes
-        assert len(distributor_restored.distributor_codes) == len(distributor.distributor_codes)
+        assert len(distributor_restored.distributor_codes) == len(
+            distributor.distributor_codes
+        )
 
     @pytest.mark.unit
     @pytest.mark.models
@@ -441,26 +462,32 @@ class TestModelValidation:
     def test_all_models_support_extra_forbid(self):
         """Test que todos los modelos rechazan campos extra."""
         models_and_data = [
-            (ConsumptionData, {
-                "cups": "ES0123456789012345678901AB",
-                "date": "2024/01/15",
-                "time": "01:00",
-                "consumptionKWh": 0.125,
-                "obtainMethod": "Real",
-                "extra_field": "should_fail"  # Campo extra
-            }),
-            (SupplyData, {
-                "address": "CALLE EJEMPLO 123",
-                "cups": "ES0123456789012345678901AB",
-                "postalCode": "28001",
-                "province": "MADRID",
-                "municipality": "MADRID",
-                "distributor": "Test Distributor",
-                "validDateFrom": "2023/01/01",
-                "pointType": 2,
-                "distributorCode": "2",
-                "extra_field": "should_fail"  # Campo extra
-            })
+            (
+                ConsumptionData,
+                {
+                    "cups": "ES0123456789012345678901AB",
+                    "date": "2024/01/15",
+                    "time": "01:00",
+                    "consumptionKWh": 0.125,
+                    "obtainMethod": "Real",
+                    "extra_field": "should_fail",  # Campo extra
+                },
+            ),
+            (
+                SupplyData,
+                {
+                    "address": "CALLE EJEMPLO 123",
+                    "cups": "ES0123456789012345678901AB",
+                    "postalCode": "28001",
+                    "province": "MADRID",
+                    "municipality": "MADRID",
+                    "distributor": "Test Distributor",
+                    "validDateFrom": "2023/01/01",
+                    "pointType": 2,
+                    "distributorCode": "2",
+                    "extra_field": "should_fail",  # Campo extra
+                },
+            ),
         ]
 
         for model_class, invalid_data in models_and_data:
@@ -478,7 +505,13 @@ class TestModelValidation:
     @pytest.mark.models
     def test_model_schema_generation(self):
         """Test generación de esquemas JSON para todos los modelos."""
-        models = [ConsumptionData, SupplyData, ContractData, MaxPowerData, DistributorData]
+        models = [
+            ConsumptionData,
+            SupplyData,
+            ContractData,
+            MaxPowerData,
+            DistributorData,
+        ]
 
         for model_class in models:
             schema = model_class.model_json_schema()
