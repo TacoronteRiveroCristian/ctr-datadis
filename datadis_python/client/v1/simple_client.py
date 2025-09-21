@@ -5,7 +5,8 @@ Este módulo proporciona un cliente simplificado para la versión 1 de la API de
 """
 
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from datetime import date, datetime
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import requests
 
@@ -198,15 +199,18 @@ class SimpleDatadisClientV1:
     def get_supplies(
         self,
         authorized_nif: Optional[str] = None,
-        distributor_code: Optional[str] = None,
+        distributor_code: Optional[Union[str, int]] = None,
     ) -> List["SupplyData"]:
         """
         Obtiene la lista de puntos de suministro validados con Pydantic.
 
+        Acepta tipos flexibles para mayor comodidad:
+        - Distributor code: string, int, o None
+
         :param authorized_nif: NIF de la persona autorizada para buscar sus suministros
         :type authorized_nif: Optional[str]
         :param distributor_code: Código del distribuidor para filtrar suministros
-        :type distributor_code: Optional[str]
+        :type distributor_code: Optional[Union[str, int]]
         :return: Lista de suministros como objetos SupplyData validados
         :rtype: List[SupplyData]
         """
@@ -217,7 +221,11 @@ class SimpleDatadisClientV1:
         if authorized_nif is not None:
             params["authorizedNif"] = authorized_nif
         if distributor_code is not None:
-            params["distributorCode"] = distributor_code
+            from ...utils.type_converters import convert_distributor_code_parameter
+
+            params["distributorCode"] = convert_distributor_code_parameter(
+                distributor_code
+            )
 
         response = self._make_authenticated_request(
             API_V1_ENDPOINTS["supplies"], params=params
@@ -283,20 +291,35 @@ class SimpleDatadisClientV1:
         return validated_distributors
 
     def get_contract_detail(
-        self, cups: str, distributor_code: str
+        self, cups: str, distributor_code: Union[str, int]
     ) -> List["ContractData"]:
         """
         Obtiene detalle del contrato validado con Pydantic.
 
+        Acepta tipos flexibles para mayor comodidad:
+        - Distributor code: string o int
+
         :param cups: Código CUPS del punto de suministro
         :type cups: str
         :param distributor_code: Código de la distribuidora
-        :type distributor_code: str
+        :type distributor_code: Union[str, int]
         :return: Lista de contratos como objetos ContractData validados
         :rtype: List[ContractData]
         """
-        print(f"Obteniendo contrato para {cups}...")
-        params = {"cups": cups, "distributorCode": distributor_code}
+        from ...utils.type_converters import (
+            convert_cups_parameter,
+            convert_distributor_code_parameter,
+        )
+
+        # Convertir parámetros usando los conversores
+        cups_converted = convert_cups_parameter(cups)
+        distributor_code_converted = convert_distributor_code_parameter(
+            distributor_code
+        )
+
+        print(f"Obteniendo contrato para {cups_converted}...")
+
+        params = {"cups": cups_converted, "distributorCode": distributor_code_converted}
         response = self._make_authenticated_request(
             API_V1_ENDPOINTS["contracts"], params
         )
@@ -328,41 +351,68 @@ class SimpleDatadisClientV1:
     def get_consumption(
         self,
         cups: str,
-        distributor_code: str,
-        date_from: str,
-        date_to: str,
-        measurement_type: int = 0,
-        point_type: Optional[int] = None,
+        distributor_code: Union[str, int],
+        date_from: Union[str, datetime, date],
+        date_to: Union[str, datetime, date],
+        measurement_type: Union[int, float, str] = 0,
+        point_type: Optional[Union[int, float, str]] = None,
     ) -> List["ConsumptionData"]:
         """
         Obtiene datos de consumo validados con Pydantic.
 
+        Acepta tipos flexibles para mayor comodidad:
+        - Fechas: strings (YYYY/MM/DD), datetime objects, o date objects
+        - Números: int, float, o string
+        - Distributor code: string o int
+
         :param cups: Código CUPS del punto de suministro
         :type cups: str
         :param distributor_code: Código de la distribuidora
-        :type distributor_code: str
-        :param date_from: Fecha de inicio (YYYY/MM/DD)
-        :type date_from: str
-        :param date_to: Fecha de fin (YYYY/MM/DD)
-        :type date_to: str
+        :type distributor_code: Union[str, int]
+        :param date_from: Fecha de inicio (YYYY/MM/DD o datetime/date object)
+        :type date_from: Union[str, datetime, date]
+        :param date_to: Fecha de fin (YYYY/MM/DD o datetime/date object)
+        :type date_to: Union[str, datetime, date]
         :param measurement_type: Tipo de medición (default: 0)
-        :type measurement_type: int
+        :type measurement_type: Union[int, float, str]
         :param point_type: Tipo de punto de medida (opcional)
-        :type point_type: Optional[int]
+        :type point_type: Optional[Union[int, float, str]]
         :return: Lista de datos de consumo como objetos ConsumptionData validados
         :rtype: List[ConsumptionData]
         """
-        print(f"Obteniendo consumo para {cups} ({date_from} - {date_to})...")
+        from ...utils.type_converters import (
+            convert_cups_parameter,
+            convert_date_range_to_api_format,
+            convert_distributor_code_parameter,
+            convert_number_to_string,
+            convert_optional_number_to_string,
+        )
+
+        # Convertir parámetros usando los conversores
+        cups_converted = convert_cups_parameter(cups)
+        distributor_code_converted = convert_distributor_code_parameter(
+            distributor_code
+        )
+        date_from_converted, date_to_converted = convert_date_range_to_api_format(
+            date_from, date_to, "daily"
+        )
+        measurement_type_converted = convert_number_to_string(measurement_type)
+        point_type_converted = convert_optional_number_to_string(point_type)
+
+        print(
+            f"Obteniendo consumo para {cups_converted} ({date_from_converted} - {date_to_converted})..."
+        )
+
         params = {
-            "cups": cups,
-            "distributorCode": distributor_code,
-            "startDate": date_from,
-            "endDate": date_to,
-            "measurementType": str(measurement_type),
+            "cups": cups_converted,
+            "distributorCode": distributor_code_converted,
+            "startDate": date_from_converted,
+            "endDate": date_to_converted,
+            "measurementType": measurement_type_converted,
         }
 
-        if point_type is not None:
-            params["pointType"] = str(point_type)
+        if point_type_converted is not None:
+            params["pointType"] = point_type_converted
 
         response = self._make_authenticated_request(
             API_V1_ENDPOINTS["consumption"], params
@@ -392,28 +442,54 @@ class SimpleDatadisClientV1:
         return validated_consumption
 
     def get_max_power(
-        self, cups: str, distributor_code: str, date_from: str, date_to: str
+        self,
+        cups: str,
+        distributor_code: Union[str, int],
+        date_from: Union[str, datetime, date],
+        date_to: Union[str, datetime, date],
     ) -> List["MaxPowerData"]:
         """
         Obtiene datos de potencia máxima validados con Pydantic.
 
+        Acepta tipos flexibles para mayor comodidad:
+        - Fechas: strings (YYYY/MM/DD), datetime objects, o date objects
+        - Distributor code: string o int
+
         :param cups: Código CUPS del punto de suministro
         :type cups: str
         :param distributor_code: Código de la distribuidora
-        :type distributor_code: str
-        :param date_from: Fecha de inicio (YYYY/MM/DD)
-        :type date_from: str
-        :param date_to: Fecha de fin (YYYY/MM/DD)
-        :type date_to: str
+        :type distributor_code: Union[str, int]
+        :param date_from: Fecha de inicio (YYYY/MM/DD o datetime/date object)
+        :type date_from: Union[str, datetime, date]
+        :param date_to: Fecha de fin (YYYY/MM/DD o datetime/date object)
+        :type date_to: Union[str, datetime, date]
         :return: Lista de datos de potencia máxima como objetos MaxPowerData validados
         :rtype: List[MaxPowerData]
         """
-        print(f"Obteniendo potencia máxima para {cups} ({date_from} - {date_to})...")
+        from ...utils.type_converters import (
+            convert_cups_parameter,
+            convert_date_range_to_api_format,
+            convert_distributor_code_parameter,
+        )
+
+        # Convertir parámetros usando los conversores
+        cups_converted = convert_cups_parameter(cups)
+        distributor_code_converted = convert_distributor_code_parameter(
+            distributor_code
+        )
+        date_from_converted, date_to_converted = convert_date_range_to_api_format(
+            date_from, date_to, "daily"
+        )
+
+        print(
+            f"Obteniendo potencia máxima para {cups_converted} ({date_from_converted} - {date_to_converted})..."
+        )
+
         params = {
-            "cups": cups,
-            "distributorCode": distributor_code,
-            "startDate": date_from,
-            "endDate": date_to,
+            "cups": cups_converted,
+            "distributorCode": distributor_code_converted,
+            "startDate": date_from_converted,
+            "endDate": date_to_converted,
         }
 
         response = self._make_authenticated_request(

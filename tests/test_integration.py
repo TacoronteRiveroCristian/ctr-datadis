@@ -165,7 +165,7 @@ class TestCompleteV1Workflow:
             },
             {
                 "address": "AVENIDA LIBERTAD 456",
-                "cups": "ES9876543210987654321098XY",
+                "cups": "ES987654321098765432109A",
                 "postalCode": "41001",
                 "province": "SEVILLA",
                 "municipality": "SEVILLA",
@@ -973,7 +973,7 @@ class TestRealWorldScenarios:
             },
             {
                 "address": "PROPIEDAD 2",
-                "cups": "ES9876543210987654321098XY",
+                "cups": "ES987654321098765432109B",
                 "postalCode": "48001",
                 "province": "BIZKAIA",
                 "municipality": "BILBAO",
