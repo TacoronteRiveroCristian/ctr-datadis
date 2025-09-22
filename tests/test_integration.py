@@ -124,8 +124,8 @@ class TestCompleteV1Workflow:
                 consumption = client.get_consumption(
                     cups=cups,
                     distributor_code=distributor_code,
-                    date_from="2024/01/01",
-                    date_to="2024/01/31",
+                    date_from="2024/01",
+                    date_to="2024/01",
                 )
                 assert len(consumption) >= 1
                 assert isinstance(consumption[0], ConsumptionData)
@@ -134,8 +134,8 @@ class TestCompleteV1Workflow:
                 max_power = client.get_max_power(
                     cups=cups,
                     distributor_code=distributor_code,
-                    date_from="2024/01/01",
-                    date_to="2024/01/31",
+                    date_from="2024/01",
+                    date_to="2024/01",
                 )
                 assert len(max_power) >= 1
                 assert isinstance(max_power[0], MaxPowerData)
@@ -225,8 +225,8 @@ class TestCompleteV1Workflow:
                     consumption = client.get_consumption(
                         cups=supply.cups,
                         distributor_code=supply.distributor_code,
-                        date_from="2024/01/01",
-                        date_to="2024/01/31",
+                        date_from="2024/01",
+                        date_to="2024/01",
                     )
                     all_consumption.extend(consumption)
 
@@ -560,8 +560,8 @@ class TestV1vsV2Compatibility:
                 v1_consumption = v1_client.get_consumption(
                     cups=v1_supplies[0].cups,
                     distributor_code=v1_supplies[0].distributor_code,
-                    date_from="2024/01/01",
-                    date_to="2024/01/31",
+                    date_from="2024/01",
+                    date_to="2024/01",
                 )
 
             with DatadisClientV2(**test_credentials) as v2_client:
@@ -934,8 +934,8 @@ class TestRealWorldScenarios:
                 consumption = client.get_consumption(
                     cups=primary_supply.cups,
                     distributor_code=primary_supply.distributor_code,
-                    date_from="2024/01/15",
-                    date_to="2024/01/15",
+                    date_from="2024/01",
+                    date_to="2024/01",
                 )
 
                 # Análisis de datos
@@ -1040,8 +1040,8 @@ class TestRealWorldScenarios:
                         consumption = client.get_consumption(
                             cups=supply.cups,
                             distributor_code=supply.distributor_code,
-                            date_from="2024/01/15",
-                            date_to="2024/01/15",
+                            date_from="2024/01",
+                            date_to="2024/01",
                         )
                         total_consumption += sum(
                             item.consumption_kwh for item in consumption

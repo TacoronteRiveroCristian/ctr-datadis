@@ -50,7 +50,7 @@ class TestTypeConverters:
     @pytest.mark.utils
     def test_convert_datetime_to_monthly(self):
         """Test conversión de datetime object a formato mensual."""
-        dt = datetime(2024, 1, 15, 14, 30)
+        dt = datetime(2024, 1, 1, 14, 30)  # Primer día del mes
         result = convert_date_to_api_format(dt, "monthly")
         assert result == "2024/01"
 
@@ -66,7 +66,7 @@ class TestTypeConverters:
     @pytest.mark.utils
     def test_convert_date_object_to_monthly(self):
         """Test conversión de date object a formato mensual."""
-        d = date(2024, 1, 15)
+        d = date(2024, 1, 1)  # Primer día del mes
         result = convert_date_to_api_format(d, "monthly")
         assert result == "2024/01"
 
