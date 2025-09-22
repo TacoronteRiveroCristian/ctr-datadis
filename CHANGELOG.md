@@ -5,7 +5,47 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es/).
 
-## [Sin Publicar]
+## [0.4.2] - 2025-01-22
+
+### Añadido
+- **Documentación completa de clases**: Implementación comprehensiva de docstrings en estilo Sphinx para todas las clases del SDK
+  - Documentación detallada de modelos Pydantic con ejemplos de uso
+  - Docstrings completos para clientes V1 y V2 con parámetros y tipos explicados
+  - Documentación de utilidades HTTP, validadores y conversores de tipos
+  - Guías de uso y casos de ejemplo integrados en la documentación de código
+- **Validación robusta de CUPS**: Restauración completa de validación de formato CUPS en el SDK
+  - Función `validate_cups()` completamente documentada y funcional
+  - Validación de formato ES + 20-22 caracteres alfanuméricos
+  - Mensajes de error descriptivos y ejemplos de uso correcto
+  - Integración con conversores de tipos para validación automática
+
+### Cambiado
+- **Actualización de documentación**: Mejora significativa en la calidad de la documentación técnica
+  - Ejemplos de código actualizados en quickstart.rst e index.rst
+  - Documentación de API más clara con casos de uso específicos
+  - Mejores explicaciones de parámetros y tipos de retorno
+- **Validación de tipos de punto**: Ampliación del soporte para tipos de punto 1-5
+  - Soporte añadido para tipo 5 (servicios auxiliares alternativos)
+  - Actualización de mensajes de error para incluir todos los tipos válidos
+  - Tests actualizados para reflejar el nuevo rango de validación
+
+### Corregido
+- **Resolución de conflictos de merge**: Integración exitosa de cambios de documentación
+  - Resolución de conflictos en `type_converters.py` y `validators.py`
+  - Mantenimiento de funcionalidad completa de validación CUPS
+  - Preservación de compatibilidad hacia atrás en todos los métodos
+- **Tests actualizados**: Corrección de tests para reflejar comportamiento actual
+  - Test de validación CUPS actualizado para verificar formato correcto
+  - Tests de tipos de punto actualizados para nuevo rango válido (1-5)
+  - Suite completa de 343 tests pasando sin errores
+
+### Técnico
+- Merge exitoso de rama `docs/update-class-docstring` a `develop`
+- Pre-commit hooks funcionando correctamente con validación completa
+- Cobertura de código mantenida con documentación mejorada
+- Integración continua estable con todas las verificaciones pasando
+
+## [0.4.1] - 2025-09-22
 
 ### Cambiado
 - **Validación CUPS eliminada**: Remoción completa de validación de formato CUPS en clientes V1 y V2
@@ -19,6 +59,7 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
   - 10 archivos de código modificados
   - Reducción significativa de líneas de código de validación (234 líneas eliminadas, 76 añadidas)
   - Mayor flexibilidad en aceptación de formatos CUPS
+- **Dependencia twine actualizada**: Actualización de pyproject.toml para incluir twine 5.0.0
 
 ### Técnico
 - Simplificación de la arquitectura de validación
