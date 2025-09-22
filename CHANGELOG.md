@@ -7,6 +7,43 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ## [Sin Publicar]
 
+## [0.4.0] - 2025-09-22
+
+### Añadido
+- **Validación de fechas mensuales para SimpleDatadisClientV2**: Implementación completa de validación de fechas mensuales para el cliente V2
+  - Soporte para tipos flexibles: `str`, `datetime`, y `date` para fechas
+  - Soporte para `str` e `int` para códigos numéricos
+  - Conversión automática a formato API (`YYYY/MM`)
+  - Validación estricta solo para fechas mensuales
+- **Suite de tests comprehensiva para V2**: 19 casos de prueba específicos
+  - Tests de rechazo de fechas diarias (string y datetime/date)
+  - Tests de aceptación de fechas mensuales
+  - Tests de conversión y preservación de datos
+  - Tests de casos edge y extremos
+  - Tests de validación de consistencia
+- Nuevo archivo `tests/test_monthly_date_validation_v2.py`
+
+### Cambiado
+- **Refactorización del Cliente V2**: Migración de validación directa a conversores de tipos flexibles
+  - `datadis_python/client/v2/simple_client.py` actualizado
+  - Métodos actualizados: `get_consumption`, `get_max_power`, `get_reactive_data`
+  - Cambio de `validate_date_range()` a `convert_date_range_to_api_format()`
+- **Comportamiento V2 consistente con V1**: Unificación de validación de fechas entre ambas versiones
+- **Mensajes de error mejorados**: Mensajes claros y orientativos para usuarios
+
+### Corregido
+- **Issue #3**: Validación de fechas mensuales faltante en SimpleDatadisClientV2
+- **Rechazo de fechas con días específicos**: API V2 ahora rechaza correctamente fechas como `2024/01/15`
+- **Aceptación de fechas mensuales válidas**: API V2 acepta correctamente fechas como `2024/01`
+- **Conversión automática de datetime**: Conversión correcta de objetos datetime del primer día del mes
+
+### Técnico
+- Integración completa con branch `fix/v2-monthly-validation`
+- Merge exitoso a branch `develop`
+- Control de calidad completo: black, isort, flake8, mypy, pytest (74/74 tests passing)
+- Cobertura de código mantenida
+- Implementación lista para producción
+
 ## [0.3.1] - 2025-09-21
 
 ### Corregido
