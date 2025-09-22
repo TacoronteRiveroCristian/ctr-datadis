@@ -7,6 +7,24 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ## [Sin Publicar]
 
+### Cambiado
+- **Validación CUPS eliminada**: Remoción completa de validación de formato CUPS en clientes V1 y V2
+  - Eliminada función `validate_cups()` de `utils/validators.py`
+  - `convert_cups_parameter()` ahora solo normaliza sin validar formato
+  - Clientes V1 y V2 aceptan cualquier CUPS, delegando validación a API Datadis
+  - Mejora robustez ante futuros cambios en formato CUPS oficial
+
+### Corregido
+- **Tests actualizados**: Tests adaptados para no esperar `ValidationError` por formato CUPS
+  - 10 archivos de código modificados
+  - Reducción significativa de líneas de código de validación (234 líneas eliminadas, 76 añadidas)
+  - Mayor flexibilidad en aceptación de formatos CUPS
+
+### Técnico
+- Simplificación de la arquitectura de validación
+- Delegación de responsabilidad de validación CUPS a la API oficial
+- Mantenimiento de normalización de texto para caracteres especiales
+
 ## [0.4.0] - 2025-09-22
 
 ### Añadido
