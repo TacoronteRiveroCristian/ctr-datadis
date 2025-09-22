@@ -5,7 +5,8 @@ Este módulo proporciona un cliente simplificado para la versión 2 de la API de
 """
 
 import time
-from typing import TYPE_CHECKING, List, Optional
+from datetime import date, datetime
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import requests
 
@@ -32,13 +33,14 @@ from ...utils.constants import (
     DATADIS_BASE_URL,
 )
 from ...utils.text_utils import normalize_api_response
-from ...utils.validators import (
-    validate_cups,
-    validate_date_range,
-    validate_distributor_code,
-    validate_measurement_type,
-    validate_point_type,
+from ...utils.type_converters import (
+    convert_cups_parameter,
+    convert_date_range_to_api_format,
+    convert_distributor_code_parameter,
+    convert_number_to_string,
+    convert_optional_number_to_string,
 )
+from ...utils.validators import validate_measurement_type, validate_point_type
 
 
 class SimpleDatadisClientV2:
@@ -238,7 +240,9 @@ class SimpleDatadisClientV2:
         if authorized_nif is not None:
             params["authorizedNif"] = authorized_nif
         if distributor_code is not None:
-            params["distributorCode"] = validate_distributor_code(distributor_code)
+            params["distributorCode"] = convert_distributor_code_parameter(
+                distributor_code
+            )
 
         response = self._make_authenticated_request(
             API_V2_ENDPOINTS["supplies"], params=params
@@ -330,9 +334,9 @@ class SimpleDatadisClientV2:
         """
         print(f"Obteniendo contrato para {cups}...")
 
-        # Validar parámetros de entrada
-        cups = validate_cups(cups)
-        distributor_code = validate_distributor_code(distributor_code)
+        # Convertir parámetros usando los conversores
+        cups = convert_cups_parameter(cups)
+        distributor_code = convert_distributor_code_parameter(distributor_code)
 
         params = {"cups": cups, "distributorCode": distributor_code}
         if authorized_nif is not None:
@@ -365,51 +369,69 @@ class SimpleDatadisClientV2:
     def get_consumption(
         self,
         cups: str,
-        distributor_code: str,
-        date_from: str,
-        date_to: str,
-        measurement_type: int = 0,
-        point_type: Optional[int] = None,
+        distributor_code: Union[str, int],
+        date_from: Union[str, datetime, date],
+        date_to: Union[str, datetime, date],
+        measurement_type: Union[int, float, str] = 0,
+        point_type: Optional[Union[int, float, str]] = None,
         authorized_nif: Optional[str] = None,
     ) -> "ConsumptionResponse":
         """
         Obtiene datos de consumo validados con Pydantic.
 
+        IMPORTANTE: La API de Datadis solo acepta fechas en formato mensual (YYYY/MM).
+        NO se permiten fechas con días específicos.
+
+        Acepta tipos flexibles para mayor comodidad:
+        - Fechas: strings (YYYY/MM), datetime objects, o date objects (se convertirán al primer día del mes)
+        - Números: int, float, o string
+        - Distributor code: string o int
+
         :param cups: Código CUPS del punto de suministro
         :type cups: str
         :param distributor_code: Código de la distribuidora
-        :type distributor_code: str
-        :param date_from: Fecha de inicio (YYYY/MM)
-        :type date_from: str
-        :param date_to: Fecha de fin (YYYY/MM)
-        :type date_to: str
+        :type distributor_code: Union[str, int]
+        :param date_from: Fecha de inicio (YYYY/MM o datetime/date object)
+        :type date_from: Union[str, datetime, date]
+        :param date_to: Fecha de fin (YYYY/MM o datetime/date object)
+        :type date_to: Union[str, datetime, date]
         :param measurement_type: Tipo de medición (default: 0)
-        :type measurement_type: int
+        :type measurement_type: Union[int, float, str]
         :param point_type: Tipo de punto de medida (opcional)
-        :type point_type: Optional[int]
+        :type point_type: Optional[Union[int, float, str]]
         :param authorized_nif: NIF autorizado para obtener datos de consumo
         :type authorized_nif: Optional[str]
         :return: Respuesta con datos de consumo validados y errores de distribuidora
         :rtype: ConsumptionResponse
+        :raises ValidationError: Si las fechas no están en formato mensual válido
         """
         print(f"Obteniendo consumo para {cups} ({date_from} - {date_to})...")
 
-        # Validar parámetros de entrada
-        cups = validate_cups(cups)
-        distributor_code = validate_distributor_code(distributor_code)
-        date_from, date_to = validate_date_range(date_from, date_to, "monthly")
-        measurement_type = validate_measurement_type(measurement_type)
+        # Convertir parámetros usando los conversores
+        cups = convert_cups_parameter(cups)
+        distributor_code = convert_distributor_code_parameter(distributor_code)
+        date_from, date_to = convert_date_range_to_api_format(
+            date_from, date_to, "monthly"
+        )
+        measurement_type_converted = convert_number_to_string(measurement_type)
+
+        # Validar rangos después de la conversión
+        measurement_type_validated = validate_measurement_type(
+            int(measurement_type_converted)
+        )
 
         params = {
             "cups": cups,
             "distributorCode": distributor_code,
             "startDate": date_from,
             "endDate": date_to,
-            "measurementType": str(measurement_type),
+            "measurementType": str(measurement_type_validated),
         }
 
-        if point_type is not None:
-            params["pointType"] = str(validate_point_type(point_type))
+        point_type_converted = convert_optional_number_to_string(point_type)
+        if point_type_converted is not None:
+            point_type_validated = validate_point_type(int(point_type_converted))
+            params["pointType"] = str(point_type_validated)
         if authorized_nif is not None:
             params["authorizedNif"] = authorized_nif
 
@@ -465,10 +487,12 @@ class SimpleDatadisClientV2:
         """
         print(f"Obteniendo potencia máxima para {cups} ({date_from} - {date_to})...")
 
-        # Validar parámetros de entrada
-        cups = validate_cups(cups)
-        distributor_code = validate_distributor_code(distributor_code)
-        date_from, date_to = validate_date_range(date_from, date_to, "monthly")
+        # Convertir parámetros usando los conversores
+        cups = convert_cups_parameter(cups)
+        distributor_code = convert_distributor_code_parameter(distributor_code)
+        date_from, date_to = convert_date_range_to_api_format(
+            date_from, date_to, "monthly"
+        )
 
         params = {
             "cups": cups,
@@ -531,10 +555,12 @@ class SimpleDatadisClientV2:
         """
         print(f"Obteniendo energía reactiva para {cups} ({date_from} - {date_to})...")
 
-        # Validar parámetros de entrada
-        cups = validate_cups(cups)
-        distributor_code = validate_distributor_code(distributor_code)
-        date_from, date_to = validate_date_range(date_from, date_to, "monthly")
+        # Convertir parámetros usando los conversores
+        cups = convert_cups_parameter(cups)
+        distributor_code = convert_distributor_code_parameter(distributor_code)
+        date_from, date_to = convert_date_range_to_api_format(
+            date_from, date_to, "monthly"
+        )
 
         params = {
             "cups": cups,

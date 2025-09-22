@@ -1174,17 +1174,51 @@ class TestSimpleClientV2InputValidation:
         self, authenticated_simple_v2_client, cups_code, distributor_code
     ):
         """Test validación de formatos de fecha."""
-        invalid_dates = [
-            "2024-01-15",  # Formato ISO
-            "01/2024",  # Orden incorrecto
+        # Fechas que deberían fallar validación estricta
+        truly_invalid_dates = [
+            "2024-01-15",  # Formato ISO con día específico - debe fallar por día específico
             "2024/13",  # Mes inválido
             "2024/00",  # Mes cero
-            "2024/1",  # Sin ceros padding
             "",  # Vacío
             "invalid",  # No fecha
         ]
 
-        for invalid_date in invalid_dates:
+        for invalid_date in truly_invalid_dates:
+            with pytest.raises(ValidationError):
+                authenticated_simple_v2_client.get_consumption(
+                    cups=cups_code,
+                    distributor_code=distributor_code,
+                    date_from=invalid_date,
+                    date_to="2024/01",
+                )
+
+        # Fechas que ahora son auto-convertidas correctamente (no deberían fallar)
+        auto_converted_dates = [
+            "2024/1",  # Sin ceros padding pero convertible a 2024/01
+        ]
+
+        for convertible_date in auto_converted_dates:
+            try:
+                authenticated_simple_v2_client.get_consumption(
+                    cups=cups_code,
+                    distributor_code=distributor_code,
+                    date_from=convertible_date,
+                    date_to="2024/01",
+                )
+            except ValidationError:
+                pytest.fail(
+                    f"La fecha {convertible_date} debería ser auto-convertida correctamente"
+                )
+            except Exception:
+                # Otros errores (auth, red, etc.) son esperados en tests unitarios
+                pass
+
+        # Fechas que siguen fallando pero que antes pensé que serían convertidas
+        still_invalid_dates = [
+            "01/2024",  # Orden incorrecto - no se puede convertir automáticamente
+        ]
+
+        for invalid_date in still_invalid_dates:
             with pytest.raises(ValidationError):
                 authenticated_simple_v2_client.get_consumption(
                     cups=cups_code,
