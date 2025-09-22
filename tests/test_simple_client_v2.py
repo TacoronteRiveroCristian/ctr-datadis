@@ -659,25 +659,19 @@ class TestSimpleClientV2ContractAPI:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_contract_detail_accepts_any_cups(
+    def test_get_contract_detail_validates_cups_format(
         self, authenticated_simple_v2_client, distributor_code
     ):
-        """Test que get_contract_detail acepta cualquier CUPS sin validación de formato."""
-        any_cups = "INVALID_CUPS"
+        """Test que get_contract_detail valida el formato de CUPS."""
+        invalid_cups = "INVALID_CUPS"
 
-        # No debería lanzar ValidationError por formato de CUPS
-        try:
+        # Debe lanzar ValidationError por formato de CUPS inválido
+        with pytest.raises(ValidationError) as exc_info:
             authenticated_simple_v2_client.get_contract_detail(
-                cups=any_cups, distributor_code=distributor_code
+                cups=invalid_cups, distributor_code=distributor_code
             )
-            # Si llegamos aquí, significa que no se lanzó ValidationError por CUPS
-            assert True
-        except ValidationError:
-            # Si se lanza ValidationError, significa que aún valida CUPS (no esperado)
-            pytest.fail("No se esperaba ValidationError por formato de CUPS")
-        except Exception:
-            # Otros errores son aceptables (errores de red, API, etc.)
-            pass
+
+        assert "Formato CUPS inválido" in str(exc_info.value)
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2

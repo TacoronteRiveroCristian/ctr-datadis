@@ -245,14 +245,13 @@ class TestPointTypeValidator:
     @pytest.mark.utils
     def test_validate_point_type_invalid(self):
         """Test validación falla con tipos inválidos."""
-        invalid_types = [0, 5, 6, -1, 999]
+        invalid_types = [0, 6, -1, 999]
 
         for point_type in invalid_types:
             with pytest.raises(ValidationError) as exc_info:
                 validate_point_type(point_type)
-            assert (
-                "debe ser 1 (frontera), 2 (consumo), 3 (generación) o 4 (servicios auxiliares)"
-                in str(exc_info.value)
+            assert "debe ser 1 (frontera), 2 (consumo), 3 (generación)" in str(
+                exc_info.value
             )
 
 
