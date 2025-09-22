@@ -270,17 +270,25 @@ class TestV2ClientContracts:
 
     @pytest.mark.unit
     @pytest.mark.client_v2
-    def test_get_contract_detail_validation(self, authenticated_v2_client):
-        """Test validación de parámetros en get_contract_detail."""
-        # Test con CUPS inválido - debería fallar validación sin hacer HTTP request
-        invalid_cups = "INVALID_CUPS"
+    def test_get_contract_detail_accepts_any_cups(self, authenticated_v2_client):
+        """Test que get_contract_detail acepta cualquier CUPS sin validación de formato."""
+        any_cups = "INVALID_CUPS"
         valid_distributor = "2"
 
-        # No configuramos mock porque esperamos que falle validación antes de HTTP
-        with pytest.raises(ValidationError):
+        # No debería lanzar ValidationError por formato de CUPS
+        # El cliente ya está mockeado por el fixture, así que esto debería funcionar
+        try:
             authenticated_v2_client.get_contract_detail(
-                cups=invalid_cups, distributor_code=valid_distributor
+                cups=any_cups, distributor_code=valid_distributor
             )
+            # Si llegamos aquí, significa que no se lanzó ValidationError por CUPS
+            assert True
+        except ValidationError:
+            # Si se lanza ValidationError, significa que aún valida CUPS (no esperado)
+            pytest.fail("No se esperaba ValidationError por formato de CUPS")
+        except Exception:
+            # Otros errores son aceptables (errores de red, API, etc.)
+            pass
 
 
 class TestV2ClientConsumption:

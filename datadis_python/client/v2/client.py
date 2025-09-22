@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, List, Optional
 
 from ...utils.constants import API_V2_ENDPOINTS
 from ...utils.validators import (
-    validate_cups,
     validate_date_range,
     validate_distributor_code,
     validate_measurement_type,
@@ -147,7 +146,7 @@ class DatadisClientV2(BaseDatadisClient):
         :return: Respuesta con datos de contrato validados y errores de distribuidora en formato v2.
         :rtype: ContractResponse
         """
-        cups = validate_cups(cups)
+        cups = cups.upper().strip()
         distributor_code = validate_distributor_code(distributor_code)
 
         params = {"cups": cups, "distributorCode": distributor_code}
@@ -203,7 +202,7 @@ class DatadisClientV2(BaseDatadisClient):
         :return: Respuesta con datos de consumo validados y errores de distribuidora en formato v2.
         :rtype: ConsumptionResponse
         """
-        cups = validate_cups(cups)
+        cups = cups.upper().strip()
         distributor_code = validate_distributor_code(distributor_code)
         date_from, date_to = validate_date_range(date_from, date_to, "monthly")
         measurement_type = validate_measurement_type(measurement_type)
@@ -264,7 +263,7 @@ class DatadisClientV2(BaseDatadisClient):
         :return: Respuesta con datos de potencia máxima validados y errores de distribuidora en formato v2.
         :rtype: MaxPowerResponse
         """
-        cups = validate_cups(cups)
+        cups = cups.upper().strip()
         distributor_code = validate_distributor_code(distributor_code)
         date_from, date_to = validate_date_range(date_from, date_to, "monthly")
 
@@ -320,7 +319,7 @@ class DatadisClientV2(BaseDatadisClient):
         :return: Lista de objetos ReactiveData validados.
         :rtype: List[ReactiveData]
         """
-        cups = validate_cups(cups)
+        cups = cups.upper().strip()
         distributor_code = validate_distributor_code(distributor_code)
         date_from, date_to = validate_date_range(date_from, date_to, "monthly")
 

@@ -143,7 +143,6 @@ class TestCodeCoverage:
     def test_all_validators_tested(self):
         """Test que todos los validadores están cubiertos."""
         validator_functions = [
-            validators.validate_cups,
             validators.validate_date_range,
             validators.validate_distributor_code,
             validators.validate_measurement_type,
@@ -464,11 +463,11 @@ class TestDocumentationCoverage:
     def test_type_hints_are_consistent(self):
         """Test que los type hints son consistentes."""
         # Verificar que las funciones tienen type hints
-        from datadis_python.utils.validators import validate_cups
+        from datadis_python.utils.validators import validate_date_range
 
         # Verificar que la función tiene anotaciones
-        annotations = validate_cups.__annotations__
-        assert "cups" in annotations
+        annotations = validate_date_range.__annotations__
+        assert "date_from" in annotations
         assert "return" in annotations
 
 

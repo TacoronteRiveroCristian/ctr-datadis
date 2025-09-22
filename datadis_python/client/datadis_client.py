@@ -30,7 +30,6 @@ from ..utils.constants import (
     MAX_RETRIES,
 )
 from ..utils.validators import (
-    validate_cups,
     validate_date_range,
     validate_distributor_code,
     validate_measurement_type,

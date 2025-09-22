@@ -11,33 +11,6 @@ from typing import Optional, Tuple
 from ..exceptions import ValidationError
 
 
-def validate_cups(cups: str) -> str:
-    """
-    Valida el formato del CUPS (Código Universal del Punto de Suministro).
-
-    :param cups: Código CUPS a validar.
-    :type cups: str
-    :raises ValidationError: Si el CUPS no cumple con el formato esperado.
-    :return: CUPS validado.
-    :rtype: str
-    """
-    if not cups:
-        raise ValidationError("CUPS no puede estar vacío")
-
-    cups = cups.upper().strip()
-
-    # Formato real de CUPS españoles: ES + entre 20-22 caracteres alfanuméricos
-    # Ejemplos reales: ES0031607515707001RC0F (20 chars), ES1234567890123456789012 (22 chars)
-    cups_pattern = r"^ES[A-Z0-9]{20,22}$"
-
-    if not re.match(cups_pattern, cups):
-        raise ValidationError(
-            "Formato CUPS inválido. Debe ser: ES + 20-22 caracteres alfanuméricos"
-        )
-
-    return cups
-
-
 def validate_date_range(
     date_from: str, date_to: str, format_type: str = "daily"
 ) -> Tuple[str, str]:

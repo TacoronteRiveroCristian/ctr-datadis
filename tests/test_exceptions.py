@@ -460,23 +460,24 @@ class TestV2ErrorHandling:
 
     @pytest.mark.unit
     @pytest.mark.errors
-    def test_v2_invalid_cups_validation(self, authenticated_v2_client):
-        """Test validación de CUPS inválido en V2."""
-        # Este test depende de la implementación de validators
-        # Asumimos que los validators lanzan ValidationError para CUPS inválidos
-        invalid_cups = "INVALID_CUPS_FORMAT"
+    def test_v2_cups_processing_without_validation(self, authenticated_v2_client):
+        """Test que V2 procesa CUPS sin validación de formato."""
+        # Ahora que no validamos formato CUPS, cualquier string debería ser procesado
+        any_cups = "INVALID_CUPS_FORMAT"
 
-        # Nota: Si los validators están implementados correctamente,
-        # esto debería lanzar ValidationError antes de hacer el request HTTP
+        # No debería lanzar ValidationError por formato de CUPS
         try:
-            result = authenticated_v2_client.get_contract_detail(
-                cups=invalid_cups, distributor_code="2"
+            authenticated_v2_client.get_contract_detail(
+                cups=any_cups, distributor_code="2"
             )
-            # Si no falla, el validator podría no estar implementado o ser permisivo
-            assert result is not None
-        except Exception as e:
-            # Si falla, debería ser con una excepción relacionada con validación
-            assert isinstance(e, (ValidationError, ValueError))
+            # Si llegamos aquí, significa que no se lanzó ValidationError por CUPS
+            assert True
+        except ValidationError:
+            # Si se lanza ValidationError, significa que aún valida CUPS (no esperado)
+            pytest.fail("No se esperaba ValidationError por formato de CUPS")
+        except Exception:
+            # Otros errores son aceptables (errores de red, API, etc.)
+            pass
 
 
 class TestErrorContextAndMessages:

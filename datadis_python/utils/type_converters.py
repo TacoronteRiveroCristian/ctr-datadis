@@ -193,19 +193,17 @@ def convert_date_range_to_api_format(
 
 def convert_cups_parameter(cups: str) -> str:
     """
-    Procesa y valida un código CUPS.
+    Procesa un código CUPS sin validación de formato.
 
     :param cups: Código CUPS
     :type cups: str
-    :return: CUPS validado
+    :return: CUPS procesado
     :rtype: str
     """
     if not isinstance(cups, str):
         raise ValidationError(f"CUPS debe ser string, recibido: {type(cups)}")
 
-    from .validators import validate_cups
-
-    return validate_cups(cups)
+    return cups.upper().strip()
 
 
 def convert_distributor_code_parameter(distributor_code: Union[str, int]) -> str:

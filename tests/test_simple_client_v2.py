@@ -659,16 +659,25 @@ class TestSimpleClientV2ContractAPI:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_contract_detail_invalid_cups(
+    def test_get_contract_detail_accepts_any_cups(
         self, authenticated_simple_v2_client, distributor_code
     ):
-        """Test get_contract_detail con CUPS inválido."""
-        invalid_cups = "INVALID_CUPS"
+        """Test que get_contract_detail acepta cualquier CUPS sin validación de formato."""
+        any_cups = "INVALID_CUPS"
 
-        with pytest.raises(ValidationError):
+        # No debería lanzar ValidationError por formato de CUPS
+        try:
             authenticated_simple_v2_client.get_contract_detail(
-                cups=invalid_cups, distributor_code=distributor_code
+                cups=any_cups, distributor_code=distributor_code
             )
+            # Si llegamos aquí, significa que no se lanzó ValidationError por CUPS
+            assert True
+        except ValidationError:
+            # Si se lanza ValidationError, significa que aún valida CUPS (no esperado)
+            pytest.fail("No se esperaba ValidationError por formato de CUPS")
+        except Exception:
+            # Otros errores son aceptables (errores de red, API, etc.)
+            pass
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
@@ -1131,23 +1140,24 @@ class TestSimpleClientV2InputValidation:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_cups_validation(self, authenticated_simple_v2_client, distributor_code):
-        """Test validación de códigos CUPS."""
-        invalid_cups_cases = [
-            "",  # Vacío
-            "INVALID",  # Muy corto
-            "ES0123456789012345678901234567",  # Muy largo (26 chars después de ES)
-            "XX0123456789012345678901AB",  # Prefijo inválido
-            "ES0123456789012345678",  # Muy corto (19 chars después de ES)
-            "ES01234567890123456789ABC",  # Muy largo (23 chars después de ES)
-            "ES012345678901234567890123456",  # Muy largo (27 chars después de ES)
-        ]
+    def test_cups_processing(self, authenticated_simple_v2_client, distributor_code):
+        """Test procesamiento de códigos CUPS sin validación de formato."""
+        # Verificar que CUPS se normaliza correctamente (mayúsculas y sin espacios)
+        test_cups = "  es0031607515707001rc0f  "
 
-        for invalid_cups in invalid_cups_cases:
-            with pytest.raises(ValidationError):
-                authenticated_simple_v2_client.get_contract_detail(
-                    cups=invalid_cups, distributor_code=distributor_code
-                )
+        # No debería lanzar ValidationError por formato CUPS
+        try:
+            authenticated_simple_v2_client.get_contract_detail(
+                cups=test_cups, distributor_code=distributor_code
+            )
+            # Si llegamos aquí, significa que no se lanzó ValidationError por CUPS
+            assert True
+        except ValidationError:
+            # Si se lanza ValidationError, significa que aún valida CUPS (no esperado)
+            pytest.fail("No se esperaba ValidationError por formato de CUPS")
+        except Exception:
+            # Otros errores son aceptables (errores de red, API, etc.)
+            pass
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2

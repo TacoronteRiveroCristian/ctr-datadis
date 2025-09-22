@@ -26,11 +26,10 @@ from .type_converters import (
     convert_number_to_string,
     convert_optional_number_to_string,
 )
-from .validators import validate_cups, validate_date_range, validate_distributor_code
+from .validators import validate_date_range, validate_distributor_code
 
 __all__ = [
     # Validadores
-    "validate_cups",
     "validate_date_range",
     "validate_distributor_code",
     # Conversores de tipos

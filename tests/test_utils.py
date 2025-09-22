@@ -35,156 +35,11 @@ from datadis_python.utils.text_utils import (
     normalize_text,
 )
 from datadis_python.utils.validators import (
-    validate_cups,
     validate_date_range,
     validate_distributor_code,
     validate_measurement_type,
     validate_point_type,
 )
-
-
-class TestCUPSValidator:
-    """Tests para validador de códigos CUPS."""
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_cups_valid_format(self):
-        """Test validación exitosa de CUPS con formato válido."""
-        valid_cups = [
-            # Formatos reales de CUPS españoles (20-22 caracteres)
-            "ES0031607515707001RC0F",  # 20 chars - formato real de Datadis
-            "ES0031607495168002EK0F",  # 20 chars - formato real de Datadis
-            "ES0031601360306001PX0F",  # 20 chars - formato real de Datadis
-            "ES123456789012345678901A",  # 21 chars - formato intermedio
-            "ES1234567890123456789012",  # 22 chars - formato máximo
-        ]
-
-        for cups in valid_cups:
-            result = validate_cups(cups)
-            assert result == cups.upper()
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_cups_case_insensitive(self):
-        """Test que el validador de CUPS es case-insensitive."""
-        lowercase_cups = "es0031607515707001rc0f"
-        mixed_case_cups = "Es0031607515707001Rc0F"
-
-        result1 = validate_cups(lowercase_cups)
-        result2 = validate_cups(mixed_case_cups)
-
-        expected = "ES0031607515707001RC0F"
-        assert result1 == expected
-        assert result2 == expected
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_cups_strips_whitespace(self):
-        """Test que el validador quita espacios en blanco."""
-        cups_with_spaces = "  ES0031607515707001RC0F  "
-        result = validate_cups(cups_with_spaces)
-        assert result == "ES0031607515707001RC0F"
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_cups_empty_string(self):
-        """Test validación falla con string vacío."""
-        with pytest.raises(ValidationError) as exc_info:
-            validate_cups("")
-
-        assert "no puede estar vacío" in str(exc_info.value)
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_cups_none_value(self):
-        """Test validación falla con None."""
-        with pytest.raises(ValidationError):
-            validate_cups(None)
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_cups_invalid_prefix(self):
-        """Test validación falla con prefijo incorrecto."""
-        invalid_cups = [
-            "EN0031607515707001RC0F",  # Prefijo incorrecto
-            "XX0031607515707001RC0F",  # Prefijo incorrecto
-            "0031607515707001RC0F",  # Sin prefijo
-            "FR0031607515707001RC0F",  # País incorrecto
-        ]
-
-        for cups in invalid_cups:
-            with pytest.raises(ValidationError) as exc_info:
-                validate_cups(cups)
-            assert "Formato CUPS inválido" in str(exc_info.value)
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_cups_wrong_length(self):
-        """Test validación falla con longitud incorrecta."""
-        invalid_cups = [
-            "ES123456789012345678",  # Muy corto (19 chars después de ES)
-            "ES12345678901234567890123",  # Muy largo (23 chars después de ES)
-            "ES123",  # Muy corto (3 chars después de ES)
-            "ES",  # Solo prefijo
-        ]
-
-        for cups in invalid_cups:
-            with pytest.raises(ValidationError) as exc_info:
-                validate_cups(cups)
-            assert "Formato CUPS inválido" in str(exc_info.value)
-            assert "20-22 caracteres alfanuméricos" in str(exc_info.value)
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_cups_invalid_characters(self):
-        """Test validación falla con caracteres inválidos."""
-        invalid_cups = [
-            "ES0031607515707001RC@F",  # Carácter especial (@)
-            "ES0031607515707001RC-F",  # Guión en lugar de letra
-            "ES0031607515707001RC0#",  # Carácter especial (#) al final
-            "ES003160751570700?RC0F",  # Signo de interrogación
-        ]
-
-        for cups in invalid_cups:
-            with pytest.raises(ValidationError) as exc_info:
-                validate_cups(cups)
-            assert "Formato CUPS inválido" in str(exc_info.value)
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_cups_real_datadis_examples(self):
-        """Test validación con ejemplos reales de la API de Datadis."""
-        real_datadis_cups = [
-            "ES0031607515707001RC0F",  # Ejemplo real 1
-            "ES0031607495168002EK0F",  # Ejemplo real 2
-            "ES0031601360306001PX0F",  # Ejemplo real 3
-            "ES0031601359854001KY0F",  # Ejemplo real 4
-            "ES0031601105278001LN0F",  # Ejemplo real 5
-        ]
-
-        for cups in real_datadis_cups:
-            result = validate_cups(cups)
-            assert result == cups  # Ya están en mayúsculas
-            assert len(result) == 22  # ES + 20 caracteres
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_cups_edge_cases(self):
-        """Test validación con casos límite válidos."""
-        edge_cases = [
-            "ES12345678901234567890",  # Exactamente 20 chars después de ES
-            "ES123456789012345678901",  # Exactamente 21 chars después de ES
-            "ES1234567890123456789012",  # Exactamente 22 chars después de ES
-            "ES00000000000000000000",  # Todo ceros
-            "ESZZZZZZZZZZZZZZZZZZZZ",  # Todo letras
-            "ES000000000000000000ZZ",  # Mezcla números y letras
-        ]
-
-        for cups in edge_cases:
-            result = validate_cups(cups)
-            assert result == cups
-            assert result.startswith("ES")
-            assert 22 <= len(result) <= 24  # ES + 20-22 caracteres
 
 
 class TestDateRangeValidator:
@@ -886,7 +741,9 @@ class TestUtilsIntegration:
         point_type = None
 
         # Aplicar validaciones
-        validated_cups = validate_cups(cups)
+        validated_cups = (
+            cups.upper().strip()
+        )  # Simplemente normalizar CUPS sin validar formato
         validated_distributor = validate_distributor_code(distributor_code)
         validated_dates = validate_date_range(date_from, date_to, "daily")
         validated_measurement = validate_measurement_type(measurement_type)
@@ -927,7 +784,6 @@ class TestUtilsIntegration:
     def test_error_propagation_in_validators(self):
         """Test propagación correcta de errores en validadores."""
         error_scenarios = [
-            (lambda: validate_cups("invalid"), ValidationError),
             (
                 lambda: validate_date_range("invalid", "2024/01/01", "daily"),
                 ValidationError,
