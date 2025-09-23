@@ -55,11 +55,11 @@ Análisis de Consumo Mensual
            consumo_minimo = min(consumo_por_dia) if consumo_por_dia else 0
 
            # Resultados
-           print(f"💡 Consumo total: {total_kwh:.2f} kWh")
-           print(f"📈 Consumo promedio diario: {consumo_promedio:.2f} kWh")
-           print(f"🔺 Consumo máximo diario: {consumo_maximo:.2f} kWh")
-           print(f"🔻 Consumo mínimo diario: {consumo_minimo:.2f} kWh")
-           print(f"📅 Días con datos: {len(consumo_diario)}")
+           print(f"Consumo total: {total_kwh:.2f} kWh")
+           print(f"Consumo promedio diario: {consumo_promedio:.2f} kWh")
+           print(f"Consumo máximo diario: {consumo_maximo:.2f} kWh")
+           print(f"Consumo mínimo diario: {consumo_minimo:.2f} kWh")
+           print(f"Días con datos: {len(consumo_diario)}")
 
            return {
                "total_kwh": total_kwh,
@@ -99,7 +99,7 @@ Comparación de Períodos
                fecha_inicio_str = fecha_inicio.strftime("%Y/%m/%d")
                fecha_fin_str = fecha_fin.strftime("%Y/%m/%d")
 
-               print(f"📊 Procesando período: {periodo}")
+               print(f"Procesando período: {periodo}")
 
                # Obtener consumo
                consumo = client.get_consumption(
@@ -116,7 +116,7 @@ Comparación de Períodos
                }
 
            # Mostrar comparación
-           print("\n📈 Comparación de períodos:")
+           print("\nComparación de períodos:")
            for periodo, datos in resultados.items():
                print(f"{periodo}: {datos['total_kwh']:.2f} kWh ({datos['registros']} registros)")
 
@@ -142,10 +142,10 @@ Exportar Datos a JSON
                "datos": {}
            }
 
-           print("📊 Exportando datos completos...")
+           print("Exportando datos completos...")
 
            # 1. Consumo
-           print("⚡ Obteniendo consumo...")
+           print("Obteniendo consumo...")
            consumo = client.get_consumption(
                cups=cups,
                distributor_code=distributor_code,
@@ -157,7 +157,7 @@ Exportar Datos a JSON
            ]
 
            # 2. Potencia máxima
-           print("🔋 Obteniendo potencia máxima...")
+           print("Obteniendo potencia máxima...")
            potencia = client.get_max_power(
                cups=cups,
                distributor_code=distributor_code,
@@ -169,7 +169,7 @@ Exportar Datos a JSON
            ]
 
            # 3. Contratos
-           print("📋 Obteniendo contratos...")
+           print("Obteniendo contratos...")
            contratos = client.get_contract_detail(
                cups=cups,
                distributor_code=distributor_code
@@ -183,7 +183,7 @@ Exportar Datos a JSON
            with open(filename, 'w', encoding='utf-8') as f:
                json.dump(datos_completos, f, indent=2, ensure_ascii=False)
 
-           print(f"✅ Datos exportados a: {filename}")
+           print(f"Datos exportados a: {filename}")
            return filename
 
 Monitoreo de Múltiples Suministros
@@ -200,10 +200,10 @@ Monitoreo de Múltiples Suministros
            distribuidores = client.get_distributors()
 
            if not suministros:
-               print("❌ No se encontraron puntos de suministro")
+               print("No se encontraron puntos de suministro")
                return
 
-           print(f"🏠 Procesando {len(suministros)} puntos de suministro...")
+           print(f"Procesando {len(suministros)} puntos de suministro...")
 
            # Fecha para consulta (último mes)
            fin = datetime.now()
@@ -214,7 +214,7 @@ Monitoreo de Múltiples Suministros
            resultados = []
 
            for i, suministro in enumerate(suministros, 1):
-               print(f"\n📊 Procesando suministro {i}/{len(suministros)}: {suministro.cups}")
+               print(f"\nProcesando suministro {i}/{len(suministros)}: {suministro.cups}")
 
                # Encontrar distribuidor
                codigo_distribuidor = "2"  # Por defecto
@@ -244,17 +244,17 @@ Monitoreo de Múltiples Suministros
                    }
 
                    resultados.append(resultado)
-                   print(f"✅ Consumo: {total_kwh:.2f} kWh ({len(consumo)} registros)")
+                   print(f"Consumo: {total_kwh:.2f} kWh ({len(consumo)} registros)")
 
                except Exception as e:
-                   print(f"❌ Error procesando {suministro.cups}: {e}")
+                   print(f"Error procesando {suministro.cups}: {e}")
                    resultados.append({
                        "cups": suministro.cups,
                        "error": str(e)
                    })
 
            # Resumen
-           print(f"\n📈 Resumen de {len(resultados)} suministros:")
+           print(f"\nResumen de {len(resultados)} suministros:")
            total_general = 0
            for resultado in resultados:
                if "error" not in resultado:
@@ -263,7 +263,7 @@ Monitoreo de Múltiples Suministros
                else:
                    print(f"  {resultado['cups']}: ERROR - {resultado['error']}")
 
-           print(f"\n💡 Consumo total de todos los suministros: {total_general:.2f} kWh")
+           print(f"\nConsumo total de todos los suministros: {total_general:.2f} kWh")
            return resultados
 
 Validación y Limpieza de Datos
@@ -275,7 +275,7 @@ Validación y Limpieza de Datos
        """Valida y limpia los datos obtenidos de la API"""
 
        with SimpleDatadisClientV1(username, password) as client:
-           print("🔍 Obteniendo y validando datos...")
+           print("Obteniendo y validando datos...")
 
            consumo = client.get_consumption(
                cups=cups,
@@ -284,7 +284,7 @@ Validación y Limpieza de Datos
                date_to=fecha_fin
            )
 
-           print(f"📊 Datos originales: {len(consumo)} registros")
+           print(f"Datos originales: {len(consumo)} registros")
 
            # Validaciones
            datos_validos = []
@@ -315,8 +315,8 @@ Validación y Limpieza de Datos
                datos_validos.append(registro)
 
            # Resultados de validación
-           print(f"✅ Datos válidos: {len(datos_validos)}")
-           print(f"❌ Errores encontrados:")
+           print(f"Datos válidos: {len(datos_validos)}")
+           print(f"Errores encontrados:")
            for tipo_error, cantidad in errores.items():
                if cantidad > 0:
                    print(f"  - {tipo_error}: {cantidad}")
@@ -324,7 +324,7 @@ Validación y Limpieza de Datos
            # Estadísticas de datos limpios
            if datos_validos:
                consumos = [d.consumption_kwh for d in datos_validos]
-               print(f"\n📈 Estadísticas de datos limpios:")
+               print(f"\nEstadísticas de datos limpios:")
                print(f"  - Total: {sum(consumos):.2f} kWh")
                print(f"  - Promedio: {sum(consumos)/len(consumos):.2f} kWh")
                print(f"  - Máximo: {max(consumos):.2f} kWh")
