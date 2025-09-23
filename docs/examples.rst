@@ -3,6 +3,9 @@ Ejemplos de Uso
 
 Esta sección muestra ejemplos prácticos para casos de uso comunes.
 
+.. note::
+   **IMPORTANTE sobre formatos de fecha**: La API de Datadis requiere fechas en formato mensual (YYYY/MM) para los endpoints de consumo y potencia máxima. NO se permiten fechas con días específicos (YYYY/MM/DD).
+
 Análisis de Consumo Mensual
 ----------------------------
 
@@ -16,13 +19,13 @@ Análisis de Consumo Mensual
        """Analiza el consumo energético del último mes"""
 
        with SimpleDatadisClientV1(username, password) as client:
-           # Calcular fechas (último mes completo)
+           # Calcular fechas (último mes completo) - API requiere formato mensual YYYY/MM
            hoy = datetime.now()
            fin_mes_anterior = hoy.replace(day=1) - timedelta(days=1)
            inicio_mes_anterior = fin_mes_anterior.replace(day=1)
 
-           fecha_inicio = inicio_mes_anterior.strftime("%Y/%m/%d")
-           fecha_fin = fin_mes_anterior.strftime("%Y/%m/%d")
+           fecha_inicio = inicio_mes_anterior.strftime("%Y/%m")
+           fecha_fin = fin_mes_anterior.strftime("%Y/%m")
 
            print(f"Analizando consumo: {fecha_inicio} - {fecha_fin}")
 
@@ -55,11 +58,11 @@ Análisis de Consumo Mensual
            consumo_minimo = min(consumo_por_dia) if consumo_por_dia else 0
 
            # Resultados
-           print(f"💡 Consumo total: {total_kwh:.2f} kWh")
-           print(f"📈 Consumo promedio diario: {consumo_promedio:.2f} kWh")
-           print(f"🔺 Consumo máximo diario: {consumo_maximo:.2f} kWh")
-           print(f"🔻 Consumo mínimo diario: {consumo_minimo:.2f} kWh")
-           print(f"📅 Días con datos: {len(consumo_diario)}")
+           print(f"Consumo total: {total_kwh:.2f} kWh")
+           print(f"Consumo promedio diario: {consumo_promedio:.2f} kWh")
+           print(f"Consumo máximo diario: {consumo_maximo:.2f} kWh")
+           print(f"Consumo mínimo diario: {consumo_minimo:.2f} kWh")
+           print(f"Días con datos: {len(consumo_diario)}")
 
            return {
                "total_kwh": total_kwh,
@@ -70,7 +73,7 @@ Análisis de Consumo Mensual
                "consumo_diario": consumo_diario
            }
 
-   # Uso
+   # Uso del ejemplo - NOTA: usar fechas en formato mensual YYYY/MM
    resultado = analizar_consumo_mensual(
        username="tu_nif",
        password="tu_contraseña",
@@ -90,16 +93,16 @@ Comparación de Períodos
            resultados = {}
 
            for i in range(meses_atras):
-               # Calcular fechas para cada mes
+               # Calcular fechas para cada mes - formato mensual requerido por API
                hoy = datetime.now()
                fecha_fin = (hoy.replace(day=1) - timedelta(days=1)) - timedelta(days=32*i)
                fecha_inicio = fecha_fin.replace(day=1)
 
                periodo = fecha_inicio.strftime("%Y/%m")
-               fecha_inicio_str = fecha_inicio.strftime("%Y/%m/%d")
-               fecha_fin_str = fecha_fin.strftime("%Y/%m/%d")
+               fecha_inicio_str = fecha_inicio.strftime("%Y/%m")
+               fecha_fin_str = fecha_fin.strftime("%Y/%m")
 
-               print(f"📊 Procesando período: {periodo}")
+               print(f"Procesando período: {periodo}")
 
                # Obtener consumo
                consumo = client.get_consumption(
@@ -116,7 +119,7 @@ Comparación de Períodos
                }
 
            # Mostrar comparación
-           print("\n📈 Comparación de períodos:")
+           print("\nComparación de períodos:")
            for periodo, datos in resultados.items():
                print(f"{periodo}: {datos['total_kwh']:.2f} kWh ({datos['registros']} registros)")
 
@@ -142,10 +145,10 @@ Exportar Datos a JSON
                "datos": {}
            }
 
-           print("📊 Exportando datos completos...")
+           print("Exportando datos completos...")
 
            # 1. Consumo
-           print("⚡ Obteniendo consumo...")
+           print("Obteniendo consumo...")
            consumo = client.get_consumption(
                cups=cups,
                distributor_code=distributor_code,
@@ -157,7 +160,7 @@ Exportar Datos a JSON
            ]
 
            # 2. Potencia máxima
-           print("🔋 Obteniendo potencia máxima...")
+           print("Obteniendo potencia máxima...")
            potencia = client.get_max_power(
                cups=cups,
                distributor_code=distributor_code,
@@ -169,7 +172,7 @@ Exportar Datos a JSON
            ]
 
            # 3. Contratos
-           print("📋 Obteniendo contratos...")
+           print("Obteniendo contratos...")
            contratos = client.get_contract_detail(
                cups=cups,
                distributor_code=distributor_code
@@ -183,7 +186,7 @@ Exportar Datos a JSON
            with open(filename, 'w', encoding='utf-8') as f:
                json.dump(datos_completos, f, indent=2, ensure_ascii=False)
 
-           print(f"✅ Datos exportados a: {filename}")
+           print(f"Datos exportados a: {filename}")
            return filename
 
 Monitoreo de Múltiples Suministros
@@ -200,28 +203,26 @@ Monitoreo de Múltiples Suministros
            distribuidores = client.get_distributors()
 
            if not suministros:
-               print("❌ No se encontraron puntos de suministro")
+               print("No se encontraron puntos de suministro")
                return
 
-           print(f"🏠 Procesando {len(suministros)} puntos de suministro...")
+           print(f"Procesando {len(suministros)} puntos de suministro...")
 
-           # Fecha para consulta (último mes)
+           # Fecha para consulta (último mes) - formato mensual requerido
            fin = datetime.now()
            inicio = fin - timedelta(days=30)
-           fecha_inicio = inicio.strftime("%Y/%m/%d")
-           fecha_fin = fin.strftime("%Y/%m/%d")
+           fecha_inicio = inicio.strftime("%Y/%m")
+           fecha_fin = fin.strftime("%Y/%m")
 
            resultados = []
 
            for i, suministro in enumerate(suministros, 1):
-               print(f"\n📊 Procesando suministro {i}/{len(suministros)}: {suministro.cups}")
+               print(f"\nProcesando suministro {i}/{len(suministros)}: {suministro.cups}")
 
-               # Encontrar distribuidor
+               # Obtener código de distribuidor correcto
                codigo_distribuidor = "2"  # Por defecto
-               for dist in distribuidores:
-                   if hasattr(dist, 'code'):
-                       codigo_distribuidor = dist.code
-                       break
+               if distribuidores and distribuidores[0].distributor_codes:
+                   codigo_distribuidor = distribuidores[0].distributor_codes[0]
 
                try:
                    # Obtener consumo
@@ -236,25 +237,25 @@ Monitoreo de Múltiples Suministros
 
                    resultado = {
                        "cups": suministro.cups,
-                       "direccion": getattr(suministro, 'address', 'N/A'),
-                       "provincia": getattr(suministro, 'province', 'N/A'),
+                       "direccion": suministro.address,
+                       "provincia": suministro.province,
                        "total_kwh": total_kwh,
                        "registros": len(consumo),
                        "distribuidor": codigo_distribuidor
                    }
 
                    resultados.append(resultado)
-                   print(f"✅ Consumo: {total_kwh:.2f} kWh ({len(consumo)} registros)")
+                   print(f"Consumo: {total_kwh:.2f} kWh ({len(consumo)} registros)")
 
                except Exception as e:
-                   print(f"❌ Error procesando {suministro.cups}: {e}")
+                   print(f"Error procesando {suministro.cups}: {e}")
                    resultados.append({
                        "cups": suministro.cups,
                        "error": str(e)
                    })
 
            # Resumen
-           print(f"\n📈 Resumen de {len(resultados)} suministros:")
+           print(f"\nResumen de {len(resultados)} suministros:")
            total_general = 0
            for resultado in resultados:
                if "error" not in resultado:
@@ -263,7 +264,7 @@ Monitoreo de Múltiples Suministros
                else:
                    print(f"  {resultado['cups']}: ERROR - {resultado['error']}")
 
-           print(f"\n💡 Consumo total de todos los suministros: {total_general:.2f} kWh")
+           print(f"\nConsumo total de todos los suministros: {total_general:.2f} kWh")
            return resultados
 
 Validación y Limpieza de Datos
@@ -275,7 +276,7 @@ Validación y Limpieza de Datos
        """Valida y limpia los datos obtenidos de la API"""
 
        with SimpleDatadisClientV1(username, password) as client:
-           print("🔍 Obteniendo y validando datos...")
+           print("Obteniendo y validando datos...")
 
            consumo = client.get_consumption(
                cups=cups,
@@ -284,7 +285,7 @@ Validación y Limpieza de Datos
                date_to=fecha_fin
            )
 
-           print(f"📊 Datos originales: {len(consumo)} registros")
+           print(f"Datos originales: {len(consumo)} registros")
 
            # Validaciones
            datos_validos = []
@@ -315,8 +316,8 @@ Validación y Limpieza de Datos
                datos_validos.append(registro)
 
            # Resultados de validación
-           print(f"✅ Datos válidos: {len(datos_validos)}")
-           print(f"❌ Errores encontrados:")
+           print(f"Datos válidos: {len(datos_validos)}")
+           print(f"Errores encontrados:")
            for tipo_error, cantidad in errores.items():
                if cantidad > 0:
                    print(f"  - {tipo_error}: {cantidad}")
@@ -324,7 +325,7 @@ Validación y Limpieza de Datos
            # Estadísticas de datos limpios
            if datos_validos:
                consumos = [d.consumption_kwh for d in datos_validos]
-               print(f"\n📈 Estadísticas de datos limpios:")
+               print(f"\nEstadísticas de datos limpios:")
                print(f"  - Total: {sum(consumos):.2f} kWh")
                print(f"  - Promedio: {sum(consumos)/len(consumos):.2f} kWh")
                print(f"  - Máximo: {max(consumos):.2f} kWh")
@@ -384,8 +385,8 @@ Uso con Configuración Personalizada
 
                # Contratos para cada suministro
                for suministro in resumen["suministros"]:
-                   if resumen["distribuidores"]:
-                       codigo_dist = resumen["distribuidores"][0].code
+                   if resumen["distribuidores"] and resumen["distribuidores"][0].distributor_codes:
+                       codigo_dist = resumen["distribuidores"][0].distributor_codes[0]
                        contratos = self._client.get_contract_detail(
                            cups=suministro.cups,
                            distributor_code=codigo_dist

@@ -19,7 +19,7 @@ Error: "Error de autenticación"
 
    .. code-block:: python
 
-    # Incorrecto
+      # Incorrecto
       client = SimpleDatadisClientV1("12345678A", "password_incorrecto")
 
    **Solución:** Verifica que tu NIF y contraseña sean correctos en `datadis.es <https://datadis.es>`_
@@ -28,10 +28,10 @@ Error: "Error de autenticación"
 
    .. code-block:: python
 
-      # ❌ Incorrecto
+      # Incorrecto
       client = SimpleDatadisClientV1("12345678", "password")  # Sin letra
 
-    # Correcto
+      # Correcto
       client = SimpleDatadisClientV1("12345678A", "password")
 
 3. **Cuenta bloqueada o inactiva**
@@ -126,9 +126,9 @@ Error: "Connection refused" o "Network unreachable"
        for url in urls:
            try:
                response = requests.get(url, timeout=10)
-               print(f"✅ {url}: {response.status_code}")
+               print(f"{url}: {response.status_code}")
            except Exception as e:
-               print(f"❌ {url}: {e}")
+               print(f"{url}: {e}")
 
 **Soluciones:**
 - Verificar conexión a internet
@@ -152,25 +152,28 @@ Error: "No se encontraron datos"
    def diagnosticar_datos(client):
        """Diagnóstica problemas con datos"""
 
-       print("🔍 Diagnosticando disponibilidad de datos...")
+       print("Diagnosticando disponibilidad de datos...")
 
        # 1. Verificar distribuidores
        distribuidores = client.get_distributors()
-       print(f"📍 Distribuidores: {len(distribuidores)}")
+       print(f"Distribuidores: {len(distribuidores)}")
 
        # 2. Verificar suministros
        suministros = client.get_supplies()
-       print(f"🏠 Suministros: {len(suministros)}")
+       print(f"Suministros: {len(suministros)}")
 
        if not suministros:
-           print("❌ No hay suministros disponibles. Verifica tu cuenta en datadis.es")
+           print("No hay suministros disponibles. Verifica tu cuenta en datadis.es")
            return
 
        # 3. Probar diferentes rangos de fechas
        from datetime import datetime, timedelta
 
        suministro = suministros[0]
-       distribuidor = distribuidores[0].code if distribuidores else "2"
+       # Obtener código de distribuidor correcto
+       distribuidor = "2"  # Por defecto
+       if distribuidores and distribuidores[0].distributor_codes:
+           distribuidor = distribuidores[0].distributor_codes[0]
 
        rangos = [
            (30, "último mes"),
@@ -183,19 +186,20 @@ Error: "No se encontraron datos"
            inicio = fin - timedelta(days=dias)
 
            try:
+               # CORRECCIÓN: Usar formato mensual YYYY/MM requerido por la API
                consumo = client.get_consumption(
                    cups=suministro.cups,
                    distributor_code=distribuidor,
-                   date_from=inicio.strftime("%Y/%m/%d"),
-                   date_to=fin.strftime("%Y/%m/%d")
+                   date_from=inicio.strftime("%Y/%m"),
+                   date_to=fin.strftime("%Y/%m")
                )
-               print(f"📊 {descripcion}: {len(consumo)} registros")
+               print(f"{descripcion}: {len(consumo)} registros")
 
                if consumo:
                    break
 
            except Exception as e:
-               print(f"❌ Error en {descripcion}: {e}")
+               print(f"Error en {descripcion}: {e}")
 
 Error: "Error validando datos"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -259,8 +263,8 @@ Error: "Error validando datos"
                       "error": str(e)
                   })
 
-          print(f"✅ Procesados: {len(datos_validos)}")
-          print(f"❌ Errores: {len(errores)}")
+          print(f"Procesados: {len(datos_validos)}")
+          print(f"Errores: {len(errores)}")
 
           return datos_validos, errores
 
@@ -280,52 +284,53 @@ Consultas Muy Lentas
 
    .. code-block:: python
 
-      # ❌ Muy amplio (puede ser lento)
+      # Muy amplio (puede ser lento)
       consumo = client.get_consumption(
           cups=cups,
           distributor_code=distributor_code,
-          date_from="2020/01/01",  # 4 años de datos
-          date_to="2024/01/01"
+          date_from="2020/01",  # 4 años de datos - formato mensual
+          date_to="2024/01"
       )
 
-      # ✅ Rangos más pequeños
+      # Rangos más pequeños
       from datetime import datetime, timedelta
 
       def obtener_consumo_por_meses(client, cups, distributor_code, fecha_inicio, fecha_fin):
           """Obtiene datos mes a mes para evitar timeouts"""
 
           todos_los_datos = []
-          fecha_actual = datetime.strptime(fecha_inicio, "%Y/%m/%d")
-          fecha_limite = datetime.strptime(fecha_fin, "%Y/%m/%d")
+          # CORRECCIÓN: Trabajar con formato mensual desde el inicio
+          fecha_actual = datetime.strptime(fecha_inicio, "%Y/%m")
+          fecha_limite = datetime.strptime(fecha_fin, "%Y/%m")
 
           while fecha_actual <= fecha_limite:
               # Calcular fin de mes
               if fecha_actual.month == 12:
-                  fin_mes = fecha_actual.replace(year=fecha_actual.year + 1, month=1, day=1) - timedelta(days=1)
+                  fin_mes = fecha_actual.replace(year=fecha_actual.year + 1, month=1)
               else:
-                  fin_mes = fecha_actual.replace(month=fecha_actual.month + 1, day=1) - timedelta(days=1)
+                  fin_mes = fecha_actual.replace(month=fecha_actual.month + 1)
 
               fin_mes = min(fin_mes, fecha_limite)
 
-              print(f"📊 Obteniendo datos: {fecha_actual.strftime('%Y/%m/%d')} - {fin_mes.strftime('%Y/%m/%d')}")
+              print(f"Obteniendo datos: {fecha_actual.strftime('%Y/%m')} - {fin_mes.strftime('%Y/%m')}")
 
               try:
                   datos_mes = client.get_consumption(
                       cups=cups,
                       distributor_code=distributor_code,
-                      date_from=fecha_actual.strftime("%Y/%m/%d"),
-                      date_to=fin_mes.strftime("%Y/%m/%d")
+                      date_from=fecha_actual.strftime("%Y/%m"),
+                      date_to=fin_mes.strftime("%Y/%m")
                   )
                   todos_los_datos.extend(datos_mes)
 
               except Exception as e:
-                  print(f"❌ Error en mes {fecha_actual.strftime('%Y/%m')}: {e}")
+                  print(f"Error en mes {fecha_actual.strftime('%Y/%m')}: {e}")
 
               # Siguiente mes
               if fecha_actual.month == 12:
-                  fecha_actual = fecha_actual.replace(year=fecha_actual.year + 1, month=1, day=1)
+                  fecha_actual = fecha_actual.replace(year=fecha_actual.year + 1, month=1)
               else:
-                  fecha_actual = fecha_actual.replace(month=fecha_actual.month + 1, day=1)
+                  fecha_actual = fecha_actual.replace(month=fecha_actual.month + 1)
 
           return todos_los_datos
 
@@ -342,14 +347,12 @@ Consultas Muy Lentas
 
           def procesar_suministro(suministro):
               with SimpleDatadisClientV1(username, password) as client:
-                  return client.get_consumption(
-                      cups=suministro.cups,
-                      distributor_code="2",
-                      date_from="2024/01/01",
-                      date_to="2024/01/31"
-                  )
-
-          # Limitar concurrencia para no sobrecargar la API
+               return client.get_consumption(
+                   cups=suministro.cups,
+                   distributor_code="2",
+                   date_from="2024/01",  # Formato mensual
+                   date_to="2024/01"
+               )          # Limitar concurrencia para no sobrecargar la API
           with ThreadPoolExecutor(max_workers=2) as executor:
               resultados = list(executor.map(procesar_suministro, suministros))
 
@@ -376,11 +379,11 @@ Error: "CUPS no válido"
        patron = r'^ES\d{16}[A-Z]{2}\d[A-Z]$'
 
        if not re.match(patron, cups):
-           print(f"❌ CUPS inválido: {cups}")
+           print(f"CUPS inválido: {cups}")
            print("Formato esperado: ES + 16 dígitos + 2 letras + 1 dígito + 1 letra")
            return False
 
-       print(f"✅ CUPS válido: {cups}")
+       print(f"CUPS válido: {cups}")
        return True
 
 Error: "Distributor code no válido"
@@ -395,9 +398,10 @@ Error: "Distributor code no válido"
 
        # Primero obtener lista de distribuidores
        distribuidores = client.get_distributors()
-       print("📍 Distribuidores disponibles:")
-       for dist in distribuidores:
-           print(f"  - {dist.code}: {dist.name}")
+       print("Distribuidores disponibles:")
+       if distribuidores and distribuidores[0].distributor_codes:
+           for code in distribuidores[0].distributor_codes:
+               print(f"  - {code}")
 
        # Si conoces la provincia, puedes intentar mapear
        mapeo_provincias = {
@@ -407,7 +411,7 @@ Error: "Distributor code no válido"
            # Añadir más según necesidad
        }
 
-       return distribuidores[0].code if distribuidores else "2"
+       return distribuidores[0].distributor_codes[0] if distribuidores and distribuidores[0].distributor_codes else "2"
 
 Herramientas de Diagnóstico
 ---------------------------
@@ -431,88 +435,93 @@ Script de Diagnóstico Completo
    def ejecutar_diagnostico(username, password):
        """Ejecuta diagnóstico completo"""
 
-       print("🔍 DIAGNÓSTICO DEL SDK DE DATADIS")
+       print("DIAGNÓSTICO DEL SDK DE DATADIS")
        print("=" * 50)
 
        try:
            with SimpleDatadisClientV1(username, password, timeout=60) as client:
 
                # 1. Test de autenticación
-               print("\n1️⃣  Test de autenticación...")
+               print("\n1. Test de autenticación...")
                if client.token:
-                   print("✅ Autenticación exitosa")
+                   print("Autenticación exitosa")
                else:
-                   print("❌ Error de autenticación")
+                   print("Error de autenticación")
                    return
 
                # 2. Test de distribuidores
-               print("\n2️⃣  Test de distribuidores...")
+               print("\n2. Test de distribuidores...")
                try:
                    distribuidores = client.get_distributors()
-                   print(f"✅ Distribuidores obtenidos: {len(distribuidores)}")
-                   for dist in distribuidores:
-                       print(f"   - {dist.code}: {dist.name}")
+                   print(f"Distribuidores obtenidos: {len(distribuidores)}")
+                   if distribuidores and distribuidores[0].distributor_codes:
+                       for code in distribuidores[0].distributor_codes:
+                           print(f"   - {code}")
                except Exception as e:
-                   print(f"❌ Error obteniendo distribuidores: {e}")
+                   print(f"Error obteniendo distribuidores: {e}")
 
                # 3. Test de suministros
-               print("\n3️⃣  Test de suministros...")
+               print("\n3. Test de suministros...")
                try:
                    suministros = client.get_supplies()
-                   print(f"✅ Suministros obtenidos: {len(suministros)}")
+                   print(f"Suministros obtenidos: {len(suministros)}")
                    for i, sup in enumerate(suministros[:3]):  # Solo primeros 3
-                       print(f"   {i+1}. {sup.cups} - {getattr(sup, 'address', 'N/A')}")
+                       print(f"   {i+1}. {sup.cups} - {sup.address}")
                except Exception as e:
-                   print(f"❌ Error obteniendo suministros: {e}")
+                   print(f"Error obteniendo suministros: {e}")
                    return
 
                if not suministros:
-                   print("❌ No hay suministros disponibles")
+                   print("No hay suministros disponibles")
                    return
 
                # 4. Test de consumo
-               print("\n4️⃣  Test de consumo...")
+               print("\n4. Test de consumo...")
                suministro = suministros[0]
-               codigo_dist = distribuidores[0].code if distribuidores else "2"
+               # Obtener código de distribuidor correcto
+               codigo_dist = "2"  # Por defecto
+               if distribuidores and distribuidores[0].distributor_codes:
+                   codigo_dist = distribuidores[0].distributor_codes[0]
 
                # Probar diferentes rangos
                rangos_test = [
-                   (7, "última semana"),
-                   (30, "último mes"),
-                   (90, "últimos 3 meses")
+                   (1, "este mes"),
+                   (2, "últimos 2 meses"),
+                   (3, "últimos 3 meses")
                ]
 
-               for dias, descripcion in rangos_test:
+               for meses, descripcion in rangos_test:
                    try:
                        fin = datetime.now()
-                       inicio = fin - timedelta(days=dias)
+                       inicio = fin - timedelta(days=30*meses)
 
+                       # CORRECCIÓN: Usar formato mensual YYYY/MM
                        consumo = client.get_consumption(
                            cups=suministro.cups,
                            distributor_code=codigo_dist,
-                           date_from=inicio.strftime("%Y/%m/%d"),
-                           date_to=fin.strftime("%Y/%m/%d")
+                           date_from=inicio.strftime("%Y/%m"),
+                           date_to=fin.strftime("%Y/%m")
                        )
 
                        if consumo:
                            total = sum(c.consumption_kwh for c in consumo)
-                           print(f"   ✅ {descripcion}: {len(consumo)} registros, {total:.2f} kWh total")
+                           print(f"   {descripcion}: {len(consumo)} registros, {total:.2f} kWh total")
                            break
                        else:
-                           print(f"   ⚠️  {descripcion}: sin datos")
+                           print(f"   {descripcion}: sin datos")
 
                    except Exception as e:
-                       print(f"   ❌ {descripcion}: {e}")
+                       print(f"   {descripcion}: {e}")
 
-               print("\n✅ Diagnóstico completado")
+               print("\nDiagnóstico completado")
 
        except DatadisError as e:
-           print(f"\n❌ Error del SDK: {e}")
+           print(f"\nError del SDK: {e}")
            print("\nDetalles técnicos:")
            traceback.print_exc()
 
        except Exception as e:
-           print(f"\n❌ Error inesperado: {e}")
+           print(f"\nError inesperado: {e}")
            print("\nDetalles técnicos:")
            traceback.print_exc()
 

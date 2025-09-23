@@ -27,12 +27,12 @@ Inicio Rápido
        # Obtener puntos de suministro
        supplies = client.get_supplies()
 
-       # Obtener datos de consumo
+       # Obtener datos de consumo - NOTA: API requiere formato mensual YYYY/MM
        consumption = client.get_consumption(
            cups="ES1234000000000001JN0F",
            distributor_code="2",
-           date_from="2024/01/01",
-           date_to="2024/01/31"
+           date_from="2024/01",
+           date_to="2024/01"
        )
 
        print(f"Consumo total: {sum(c.consumption_kwh for c in consumption)} kWh")

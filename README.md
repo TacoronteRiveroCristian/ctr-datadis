@@ -118,12 +118,12 @@ El SDK acepta múltiples tipos de parámetros para mayor comodidad, manteniendo 
 
 ### Fechas (IMPORTANTE: Solo formato mensual)
 ```python
-# ❌ ESTAS YA NO SON VÁLIDAS (contienen días específicos):
+# ESTAS NO SON VÁLIDAS (contienen días específicos):
 # date_from = "2024/01/15"           # RECHAZADO: contiene día específico
 # date_from = datetime(2024, 1, 15)  # RECHAZADO: contiene día específico
 # date_from = date(2024, 1, 15)      # RECHAZADO: contiene día específico
 
-# ✅ SOLO ESTAS SON VÁLIDAS (formato mensual):
+# ESTAS SON VÁLIDAS (formato mensual):
 date_from = "2024/01"              # String YYYY/MM (RECOMENDADO)
 date_from = datetime(2024, 1, 1)   # datetime primer día del mes (se convierte a 2024/01)
 date_from = date(2024, 1, 1)       # date primer día del mes (se convierte a 2024/01)

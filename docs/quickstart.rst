@@ -57,14 +57,17 @@ Para gestionar automáticamente las conexiones:
 
        if supplies:
            supply = supplies[0]  # Primer suministro
-           distributor_code = distributors[0].code if distributors else "2"
+           # Obtener código de distribuidor correcto
+           distributor_code = "2"  # Por defecto
+           if distributors and distributors[0].distributor_codes:
+               distributor_code = distributors[0].distributor_codes[0]
 
-           # Obtener consumo del último mes
+           # Obtener consumo del último mes - NOTA: API requiere formato mensual YYYY/MM
            consumption = client.get_consumption(
                cups=supply.cups,
                distributor_code=distributor_code,
-               date_from="2024/01/01",
-               date_to="2024/01/31"
+               date_from="2024/01",
+               date_to="2024/01"
            )
 
            print(f"Registros de consumo: {len(consumption)}")
@@ -101,7 +104,10 @@ Este ejemplo muestra cómo obtener y procesar todos los tipos de datos:
 
            # Usar el primer suministro
            supply = supplies[0]
-           distributor_code = distributors[0].code if distributors else "2"
+           # Obtener código de distribuidor correcto
+           distributor_code = "2"  # Por defecto
+           if distributors and distributors[0].distributor_codes:
+               distributor_code = distributors[0].distributor_codes[0]
 
            print(f"Procesando datos para CUPS: {supply.cups}")
 
@@ -112,24 +118,24 @@ Este ejemplo muestra cómo obtener y procesar todos los tipos de datos:
            )
            print(f"Contratos: {len(contracts)}")
 
-           # 4. Obtener consumo (último mes)
+           # 4. Obtener consumo (último mes) - NOTA: API requiere formato mensual YYYY/MM
            end_date = datetime.now()
            start_date = end_date - timedelta(days=30)
 
            consumption = client.get_consumption(
                cups=supply.cups,
                distributor_code=distributor_code,
-               date_from=start_date.strftime("%Y/%m/%d"),
-               date_to=end_date.strftime("%Y/%m/%d")
+               date_from=start_date.strftime("%Y/%m"),
+               date_to=end_date.strftime("%Y/%m")
            )
            print(f"Registros de consumo: {len(consumption)}")
 
-           # 5. Obtener potencia máxima
+           # 5. Obtener potencia máxima - NOTA: API requiere formato mensual YYYY/MM
            max_power = client.get_max_power(
                cups=supply.cups,
                distributor_code=distributor_code,
-               date_from=start_date.strftime("%Y/%m/%d"),
-               date_to=end_date.strftime("%Y/%m/%d")
+               date_from=start_date.strftime("%Y/%m"),
+               date_to=end_date.strftime("%Y/%m")
            )
            print(f"Registros de potencia máxima: {len(max_power)}")
 
