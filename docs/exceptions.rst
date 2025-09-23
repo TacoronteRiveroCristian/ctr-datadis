@@ -175,31 +175,31 @@ Manejo Específico por Tipo
                    )
 
            except AuthenticationError as e:
-               print(f"❌ Error de autenticación: {e}")
+               print(f"Error de autenticación: {e}")
                # No reintentar para errores de credenciales
                raise
 
            except APIError as e:
-               print(f"⚠️  Error de API (intento {intento + 1}/{max_intentos}): {e}")
+               print(f"Error de API (intento {intento + 1}/{max_intentos}): {e}")
 
                if e.status_code == 429:  # Rate limit
                    tiempo_espera *= 2  # Backoff exponencial
-                   print(f"⏳ Rate limit excedido. Esperando {tiempo_espera}s...")
+                   print(f"Rate limit excedido. Esperando {tiempo_espera}s...")
                    time.sleep(tiempo_espera)
                elif e.status_code >= 500:  # Error del servidor
-                   print(f"🔄 Error del servidor. Esperando {tiempo_espera}s...")
+                   print(f"Error del servidor. Esperando {tiempo_espera}s...")
                    time.sleep(tiempo_espera)
                else:
                    # Errores 4xx (excepto 429) no son recuperables
                    raise
 
            except ValidationError as e:
-               print(f"❌ Error de validación: {e}")
+               print(f"Error de validación: {e}")
                # Los errores de validación no son recuperables
                raise
 
            except DatadisError as e:
-               print(f"⚠️  Error general (intento {intento + 1}/{max_intentos}): {e}")
+               print(f"Error general (intento {intento + 1}/{max_intentos}): {e}")
                if intento < max_intentos - 1:
                    time.sleep(tiempo_espera)
                else:
@@ -226,19 +226,19 @@ Wrapper con Logging
        def wrapper(*args, **kwargs):
            try:
                result = func(*args, **kwargs)
-               logger.info(f"✅ {func.__name__} ejecutado exitosamente")
+               logger.info(f"{func.__name__} ejecutado exitosamente")
                return result
            except AuthenticationError as e:
-               logger.error(f"🔐 Error de autenticación en {func.__name__}: {e}")
+               logger.error(f"Error de autenticación en {func.__name__}: {e}")
                raise
            except APIError as e:
-               logger.error(f"🌐 Error de API en {func.__name__}: {e} (HTTP {e.status_code})")
+               logger.error(f"Error de API en {func.__name__}: {e} (HTTP {e.status_code})")
                raise
            except ValidationError as e:
-               logger.error(f"✅ Error de validación en {func.__name__}: {e}")
+               logger.error(f"Error de validación en {func.__name__}: {e}")
                raise
            except DatadisError as e:
-               logger.error(f"❌ Error general en {func.__name__}: {e}")
+               logger.error(f"Error general en {func.__name__}: {e}")
                raise
        return wrapper
 
@@ -265,21 +265,21 @@ Context Manager con Manejo de Errores
            client = SimpleDatadisClientV1(username, password, **kwargs)
            yield client
        except AuthenticationError:
-           print("❌ Credenciales incorrectas o problema de autenticación")
+           print("Credenciales incorrectas o problema de autenticación")
            raise
        except APIError as e:
            if e.status_code == 429:
-               print("⏳ Límite de velocidad excedido. Intenta más tarde.")
+               print("Límite de velocidad excedido. Intenta más tarde.")
            elif e.status_code >= 500:
-               print("🔧 Problema del servidor. Intenta más tarde.")
+               print("Problema del servidor. Intenta más tarde.")
            else:
-               print(f"🌐 Error de API: {e}")
+               print(f"Error de API: {e}")
            raise
        except ValidationError as e:
-           print(f"📋 Datos inválidos: {e}")
+           print(f"Datos inválidos: {e}")
            raise
        except DatadisError as e:
-           print(f"❌ Error general: {e}")
+           print(f"Error general: {e}")
            raise
        finally:
            if client:
@@ -313,11 +313,11 @@ Reintentos Inteligentes
                if e.status_code == 429:  # Rate limit
                    # Backoff exponencial con jitter
                    espera = (2 ** intento) + random.uniform(0, 1)
-                   print(f"⏳ Rate limit. Esperando {espera:.1f}s...")
+                   print(f"Rate limit. Esperando {espera:.1f}s...")
                    time.sleep(espera)
                elif e.status_code >= 500:  # Error del servidor
                    espera = 2 ** intento
-                   print(f"🔄 Error del servidor. Esperando {espera}s...")
+                   print(f"Error del servidor. Esperando {espera}s...")
                    time.sleep(espera)
                else:
                    # Otros errores de API no son recuperables
@@ -340,9 +340,9 @@ Reintentos Inteligentes
 
    try:
        supplies = ejecutar_con_reintentos(obtener_datos, max_intentos=5)
-       print(f"✅ Obtenidos {len(supplies)} suministros")
+       print(f"Obtenidos {len(supplies)} suministros")
    except DatadisError as e:
-       print(f"❌ Error final: {e}")
+       print(f"Error final: {e}")
 
 Mejores Prácticas
 -----------------

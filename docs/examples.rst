@@ -3,6 +3,9 @@ Ejemplos de Uso
 
 Esta sección muestra ejemplos prácticos para casos de uso comunes con ambas versiones del cliente.
 
+.. note::
+   **IMPORTANTE sobre formatos de fecha**: La API de Datadis requiere fechas en formato mensual (YYYY/MM) para los endpoints de consumo y potencia máxima. NO se permiten fechas con días específicos (YYYY/MM/DD).
+
 Análisis de Consumo Anual
 --------------------------
 
@@ -65,6 +68,15 @@ Cliente V1 - Análisis Básico
                "mes_menor_consumo": mes_menor_consumo,
                "registros_totales": len(consumption)
            }
+
+   # Uso del ejemplo - NOTA: usar fechas en formato mensual YYYY/MM
+   resultado = analizar_consumo_anual_v1(
+       username="tu_nif",
+       password="tu_contraseña",
+       cups="ES1234000000000001JN0F",
+       distributor_code="2",
+       year="2024"
+   )
 
 Cliente V2 - Análisis Robusto con Manejo de Errores
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -584,3 +596,148 @@ Generación de Informes Detallados
                    primera_cups.distributorCode,
                    YEAR
                )
+
+Validación y Limpieza de Datos
+-------------------------------
+
+.. code-block:: python
+
+   from datadis_python.client.v1.simple_client import SimpleDatadisClientV1
+   from datetime import datetime
+
+   def validar_y_limpiar_datos(username, password, cups, distributor_code, fecha_inicio, fecha_fin):
+       """Valida y limpia los datos obtenidos de la API"""
+
+       with SimpleDatadisClientV1(username, password) as client:
+           print("Obteniendo y validando datos...")
+
+           consumo = client.get_consumption(
+               cups=cups,
+               distributor_code=distributor_code,
+               date_from=fecha_inicio,
+               date_to=fecha_fin
+           )
+
+           print(f"Datos originales: {len(consumo)} registros")
+
+           # Validaciones
+           datos_validos = []
+           errores = {
+               "consumo_negativo": 0,
+               "fecha_invalida": 0,
+               "valores_extremos": 0
+           }
+
+           for registro in consumo:
+               try:
+                   # Validar consumo no negativo
+                   if registro.consumptionKWh and registro.consumptionKWh < 0:
+                       errores["consumo_negativo"] += 1
+                       continue
+
+                   # Validar fecha válida
+                   datetime.strptime(registro.date, "%Y/%m/%d %H:%M:%S")
+
+                   # Validar valores no extremos (más de 100 kWh por hora es sospechoso)
+                   if registro.consumptionKWh and registro.consumptionKWh > 100:
+                       errores["valores_extremos"] += 1
+                       continue
+
+                   datos_validos.append(registro)
+
+               except ValueError:
+                   errores["fecha_invalida"] += 1
+               except Exception:
+                   continue
+
+           # Resultados de validación
+           print(f"Datos válidos: {len(datos_validos)}")
+           print(f"Errores encontrados:")
+           for tipo_error, cantidad in errores.items():
+               if cantidad > 0:
+                   print(f"  - {tipo_error}: {cantidad}")
+
+           # Estadísticas de datos limpios
+           if datos_validos:
+               consumos = [d.consumptionKWh for d in datos_validos if d.consumptionKWh]
+               if consumos:
+                   print(f"\nEstadísticas de datos limpios:")
+                   print(f"  - Total: {sum(consumos):.2f} kWh")
+                   print(f"  - Promedio: {sum(consumos)/len(consumos):.2f} kWh")
+                   print(f"  - Máximo: {max(consumos):.2f} kWh")
+                   print(f"  - Mínimo: {min(consumos):.2f} kWh")
+
+           return datos_validos, errores
+
+Uso con Configuración Personalizada
+------------------------------------
+
+.. code-block:: python
+
+   from datadis_python.client.v1.simple_client import SimpleDatadisClientV1
+   from datadis_python.exceptions import DatadisError
+
+   class DatadisManager:
+       """Clase wrapper para gestionar múltiples operaciones con Datadis"""
+
+       def __init__(self, username, password, timeout=180, retries=5):
+           self.username = username
+           self.password = password
+           self.timeout = timeout
+           self.retries = retries
+           self._client = None
+
+       def __enter__(self):
+           self._client = SimpleDatadisClientV1(
+               username=self.username,
+               password=self.password,
+               timeout=self.timeout,
+               retries=self.retries
+           )
+           return self
+
+       def __exit__(self, exc_type, exc_val, exc_tb):
+           if self._client:
+               self._client.close()
+
+       def obtener_resumen_completo(self):
+           """Obtiene un resumen completo de la cuenta"""
+           if not self._client:
+               raise DatadisError("Cliente no inicializado")
+
+           resumen = {
+               "distribuidores": [],
+               "suministros": [],
+               "contratos": [],
+               "estado": "ok"
+           }
+
+           try:
+               # Distribuidores
+               resumen["distribuidores"] = self._client.get_distributors()
+
+               # Suministros
+               resumen["suministros"] = self._client.get_supplies()
+
+               # Contratos para cada suministro
+               for suministro in resumen["suministros"]:
+                   if resumen["distribuidores"] and resumen["distribuidores"][0].distributor_codes:
+                       codigo_dist = resumen["distribuidores"][0].distributor_codes[0]
+                       contratos = self._client.get_contract_detail(
+                           cups=suministro.cups,
+                           distributor_code=codigo_dist
+                       )
+                       resumen["contratos"].extend(contratos)
+
+           except Exception as e:
+               resumen["estado"] = f"error: {e}"
+
+           return resumen
+
+   # Uso
+   with DatadisManager("tu_nif", "tu_contraseña", timeout=240, retries=3) as manager:
+       resumen = manager.obtener_resumen_completo()
+       print(f"Estado: {resumen['estado']}")
+       print(f"Distribuidores: {len(resumen['distribuidores'])}")
+       print(f"Suministros: {len(resumen['suministros'])}")
+       print(f"Contratos: {len(resumen['contratos'])}")

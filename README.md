@@ -146,15 +146,15 @@ El SDK acepta múltiples tipos de parámetros para mayor comodidad, manteniendo 
 La API de Datadis **SOLO acepta fechas mensuales**. No es posible especificar días específicos.
 
 ```python
-# ✅ FORMATOS VÁLIDOS:
+# ESTAS NO SON VÁLIDAS (contienen días específicos):
+# date_from = "2024/01/15"           # RECHAZADO: contiene día específico
+# date_from = datetime(2024, 1, 15)  # RECHAZADO: contiene día específico
+# date_from = date(2024, 1, 15)      # RECHAZADO: contiene día específico
+
+# ESTAS SON VÁLIDAS (formato mensual):
 date_from = "2024/01"              # String YYYY/MM (RECOMENDADO)
 date_from = datetime(2024, 1, 1)   # datetime primer día del mes (se convierte a 2024/01)
 date_from = date(2024, 1, 1)       # date primer día del mes (se convierte a 2024/01)
-
-# ❌ FORMATOS INVÁLIDOS (serán rechazados):
-# date_from = "2024/01/15"           # Día específico
-# date_from = datetime(2024, 1, 15)  # Día específico
-# date_from = "2024-01-15"           # Formato ISO con día
 ```
 
 ### Números
