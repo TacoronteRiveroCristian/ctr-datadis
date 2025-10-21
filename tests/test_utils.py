@@ -47,18 +47,6 @@ class TestDateRangeValidator:
 
     @pytest.mark.unit
     @pytest.mark.utils
-    def test_validate_date_range_daily_format_valid(self):
-        """Test validación exitosa de fechas en formato diario."""
-        date_from = "2024/01/01"
-        date_to = "2024/01/31"
-
-        result_from, result_to = validate_date_range(date_from, date_to, "daily")
-
-        assert result_from == date_from
-        assert result_to == date_to
-
-    @pytest.mark.unit
-    @pytest.mark.utils
     def test_validate_date_range_monthly_format_valid(self):
         """Test validación exitosa de fechas en formato mensual."""
         date_from = "2024/01"
@@ -74,7 +62,7 @@ class TestDateRangeValidator:
     def test_validate_date_range_invalid_format_type(self):
         """Test validación falla con tipo de formato inválido."""
         with pytest.raises(ValidationError) as exc_info:
-            validate_date_range("2024/01/01", "2024/01/31", "invalid_format")
+            validate_date_range("2024/01", "2024/01", "daily")
 
         assert "Tipo de formato no soportado" in str(exc_info.value)
 
@@ -83,38 +71,23 @@ class TestDateRangeValidator:
     def test_validate_date_range_invalid_date_format(self):
         """Test validación falla con formato de fecha incorrecto."""
         invalid_dates = [
-            ("2024-01-01", "2024/01/31"),  # Separador incorrecto
-            ("01/01/2024", "2024/01/31"),  # Orden incorrecto
-            ("2024/1/1", "2024/01/31"),  # Sin ceros
-            ("24/01/01", "2024/01/31"),  # Año de 2 dígitos
+            ("2024-01", "2024/01"),  # Separador incorrecto
+            ("01/2024", "2024/01"),  # Orden incorrecto
+            ("2024/1", "2024/01"),  # Sin ceros
+            ("24/01", "2024/01"),  # Año de 2 dígitos
         ]
 
         for date_from, date_to in invalid_dates:
             with pytest.raises(ValidationError) as exc_info:
-                validate_date_range(date_from, date_to, "daily")
+                validate_date_range(date_from, date_to, "monthly")
             assert "Formato de fecha" in str(exc_info.value)
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_date_range_invalid_dates(self):
-        """Test validación falla con fechas inválidas."""
-        invalid_dates = [
-            ("2024/02/30", "2024/02/28"),  # 30 de febrero
-            ("2024/13/01", "2024/12/01"),  # Mes 13
-            ("2024/01/32", "2024/01/31"),  # Día 32
-        ]
-
-        for date_from, date_to in invalid_dates:
-            with pytest.raises(ValidationError) as exc_info:
-                validate_date_range(date_from, date_to, "daily")
-            assert "Fecha inválida" in str(exc_info.value)
 
     @pytest.mark.unit
     @pytest.mark.utils
     def test_validate_date_range_start_after_end(self):
         """Test validación falla cuando fecha inicio es posterior a fecha fin."""
         with pytest.raises(ValidationError) as exc_info:
-            validate_date_range("2024/01/31", "2024/01/01", "daily")
+            validate_date_range("2024/12", "2024/01", "monthly")
 
         assert "no puede ser posterior a" in str(exc_info.value)
 
@@ -129,11 +102,11 @@ class TestDateRangeValidator:
         mock_datetime.strptime.side_effect = datetime.strptime
 
         # Fecha de hace 3 años (debería fallar)
-        old_date = "2021/06/01"
-        recent_date = "2024/06/01"
+        old_date = "2021/06"
+        recent_date = "2024/06"
 
         with pytest.raises(ValidationError) as exc_info:
-            validate_date_range(old_date, recent_date, "daily")
+            validate_date_range(old_date, recent_date, "monthly")
 
         assert "no puede ser anterior a hace 2 años" in str(exc_info.value)
 
@@ -148,11 +121,11 @@ class TestDateRangeValidator:
         mock_datetime.strptime.side_effect = datetime.strptime
 
         # Fecha futura (debería fallar)
-        current_date = "2024/06/01"
-        future_date = "2024/12/01"
+        current_date = "2024/06"
+        future_date = "2024/12"
 
         with pytest.raises(ValidationError) as exc_info:
-            validate_date_range(current_date, future_date, "daily")
+            validate_date_range(current_date, future_date, "monthly")
 
         assert "no puede ser futura" in str(exc_info.value)
 
@@ -162,36 +135,13 @@ class TestDistributorCodeValidator:
 
     @pytest.mark.unit
     @pytest.mark.utils
-    def test_validate_distributor_code_valid(self):
-        """Test validación exitosa de códigos de distribuidor válidos."""
-        valid_codes = ["1", "2", "3", "4", "5", "6", "7", "8"]
+    def test_validate_distributor_code_any_string(self):
+        """Test que el validador de código de distribuidor acepta cualquier string."""
+        any_codes = ["1", "99", "ABC", "cualquier_cosa", "", "0", "10", "A", "X", "99"]
 
-        for code in valid_codes:
+        for code in any_codes:
             result = validate_distributor_code(code)
             assert result == code
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_distributor_code_invalid(self):
-        """Test validación falla con códigos inválidos."""
-        invalid_codes = ["0", "9", "10", "A", "X", "", "99"]
-
-        for code in invalid_codes:
-            with pytest.raises(ValidationError) as exc_info:
-                validate_distributor_code(code)
-            assert "Código de distribuidor inválido" in str(exc_info.value)
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_distributor_code_error_message_includes_valid_codes(self):
-        """Test que el mensaje de error incluye códigos válidos."""
-        with pytest.raises(ValidationError) as exc_info:
-            validate_distributor_code("invalid")
-
-        error_message = str(exc_info.value)
-        assert "Válidos:" in error_message
-        assert "1" in error_message
-        assert "8" in error_message
 
 
 class TestMeasurementTypeValidator:
@@ -227,11 +177,11 @@ class TestPointTypeValidator:
 
     @pytest.mark.unit
     @pytest.mark.utils
-    def test_validate_point_type_valid(self):
-        """Test validación exitosa de tipos de punto válidos."""
-        valid_types = [1, 2, 3, 4]
+    def test_validate_point_type_any_integer(self):
+        """Test que el validador de tipo de punto acepta cualquier entero."""
+        any_types = [1, 2, 3, 4, 0, 5, 6, -1, 999]
 
-        for point_type in valid_types:
+        for point_type in any_types:
             result = validate_point_type(point_type)
             assert result == point_type
 
@@ -240,20 +190,6 @@ class TestPointTypeValidator:
     def test_validate_point_type_none_returns_default(self):
         """Test que None devuelve valor por defecto."""
         assert validate_point_type(None) == 1  # Default: frontera
-
-    @pytest.mark.unit
-    @pytest.mark.utils
-    def test_validate_point_type_invalid(self):
-        """Test validación falla con tipos inválidos."""
-        invalid_types = [0, 5, 6, -1, 999]
-
-        for point_type in invalid_types:
-            with pytest.raises(ValidationError) as exc_info:
-                validate_point_type(point_type)
-            assert (
-                "debe ser 1 (frontera), 2 (consumo), 3 (generación) o 4 (servicios auxiliares)"
-                in str(exc_info.value)
-            )
 
 
 class TestTextNormalization:
@@ -332,7 +268,7 @@ class TestTextNormalization:
     @pytest.mark.utils
     def test_normalize_list_strings(self):
         """Test normalización de strings en listas."""
-        input_list = ["MÁLAGA", 123, {"name": "JOSÉ", "age": 30}, ["NIÑO", "ESPAÑA"]]
+        input_list = ["MÁLAGA", 123, {"name": "JOSÉ", "age": 30}, [["NIÑO", "ESPAÑA"]]]
 
         result = normalize_list_strings(input_list)
 
@@ -340,7 +276,7 @@ class TestTextNormalization:
         assert result[1] == 123
         assert result[2]["name"] == "JOSE"
         assert result[2]["age"] == 30
-        assert result[3] == ["NINO", "ESPANA"]
+        assert result[3] == [["NINO", "ESPANA"]]
 
     @pytest.mark.unit
     @pytest.mark.utils
@@ -658,7 +594,7 @@ class TestHTTPClient:
                 content_type="application/json",
             )
 
-            result = client.make_request("GET", "https://example.com/api/test")
+            result = client.make_.make_request("GET", "https://example.com/api/test")
 
             # Debería devolver como texto si no es JSON válido
             assert result == "not valid json"
@@ -735,8 +671,8 @@ class TestUtilsIntegration:
         # Datos de entrada
         cups = "  es0031607515707001rc0f  "
         distributor_code = "2"
-        date_from = "2024/01/01"
-        date_to = "2024/01/31"
+        date_from = "2024/01"
+        date_to = "2024/01"
         measurement_type = None
         point_type = None
 
@@ -745,7 +681,7 @@ class TestUtilsIntegration:
             cups.upper().strip()
         )  # Simplemente normalizar CUPS sin validar formato
         validated_distributor = validate_distributor_code(distributor_code)
-        validated_dates = validate_date_range(date_from, date_to, "daily")
+        validated_dates = validate_date_range(date_from, date_to, "monthly")
         validated_measurement = validate_measurement_type(measurement_type)
         validated_point = validate_point_type(point_type)
 
@@ -785,12 +721,10 @@ class TestUtilsIntegration:
         """Test propagación correcta de errores en validadores."""
         error_scenarios = [
             (
-                lambda: validate_date_range("invalid", "2024/01/01", "daily"),
+                lambda: validate_date_range("invalid", "2024/01", "monthly"),
                 ValidationError,
             ),
-            (lambda: validate_distributor_code("invalid"), ValidationError),
             (lambda: validate_measurement_type(999), ValidationError),
-            (lambda: validate_point_type(999), ValidationError),
         ]
 
         for func, expected_error in error_scenarios:

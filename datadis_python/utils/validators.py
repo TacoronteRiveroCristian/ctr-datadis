@@ -12,7 +12,7 @@ from ..exceptions import ValidationError
 
 
 def validate_date_range(
-    date_from: str, date_to: str, format_type: str = "daily"
+    date_from: str, date_to: str, format_type: str = "monthly"
 ) -> Tuple[str, str]:
     """
     Valida un rango de fechas según el tipo de formato requerido por Datadis.
@@ -21,16 +21,12 @@ def validate_date_range(
     :type date_from: str
     :param date_to: Fecha de fin.
     :type date_to: str
-    :param format_type: Tipo de formato ("daily" para YYYY/MM/DD, "monthly" para YYYY/MM).
+    :param format_type: Tipo de formato ("monthly" para YYYY/MM).
     :type format_type: str
     :return: Tupla con las fechas validadas.
     :rtype: tuple[str, str]
     """
-    if format_type == "daily":
-        date_pattern = r"^\d{4}/\d{2}/\d{2}$"
-        date_format = "%Y/%m/%d"
-        example = "2024/01/31"
-    elif format_type == "monthly":
+    if format_type == "monthly":
         date_pattern = r"^\d{4}/\d{2}$"
         date_format = "%Y/%m"
         example = "2024/01"
@@ -75,23 +71,12 @@ def validate_distributor_code(distributor_code: str) -> str:
     """
     Valida código de distribuidor.
 
-    Códigos válidos:
-    1: Viesgo, 2: E-distribución, 3: E-redes, 4: ASEME, 5: UFD, 6: EOSA, 7: CIDE, 8: IDE
-
     :param distributor_code: Código de distribuidor a validar
     :type distributor_code: str
     :return: Código validado
     :rtype: str
     :raises ValidationError: Si el código no es válido
     """
-    valid_codes = ["1", "2", "3", "4", "5", "6", "7", "8"]
-
-    if distributor_code not in valid_codes:
-        raise ValidationError(
-            f"Código de distribuidor inválido: {distributor_code}. "
-            f"Válidos: {', '.join(valid_codes)}"
-        )
-
     return distributor_code
 
 
@@ -121,10 +106,7 @@ def validate_point_type(point_type: Optional[int]) -> int:
     """
     Valida tipo de punto.
 
-    Tipos válidos:
-    1 = Frontera, 2 = Consumo, 3 = Generación, 4 = Servicios auxiliares
-
-    :param point_type: Tipo de punto (1-4), None para usar por defecto (1)
+    :param point_type: Tipo de punto, None para usar por defecto (1)
     :type point_type: Optional[int]
     :return: Tipo de punto validado
     :rtype: int
@@ -132,10 +114,4 @@ def validate_point_type(point_type: Optional[int]) -> int:
     """
     if point_type is None:
         return 1  # Por defecto frontera
-
-    if point_type not in [1, 2, 3, 4]:
-        raise ValidationError(
-            "point_type debe ser 1 (frontera), 2 (consumo), 3 (generación) o 4 (servicios auxiliares)"
-        )
-
     return point_type
