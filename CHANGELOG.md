@@ -5,6 +5,30 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.4.5] - 2025-01-24
+
+### Cambiado
+- **Validación relajada de parámetros API**: Los validadores ahora delegan la validación estricta a la API de Datadis
+  - `distributor_code`: Acepta cualquier string (antes solo 1-8)
+  - `point_type`: Acepta cualquier entero (antes solo 1-4)
+  - Permite futuros cambios en la API sin romper el SDK
+  - La API de Datadis es quien valida los valores permitidos
+
+### Eliminado
+- **Soporte para formato de fecha "daily"**: La API de Datadis solo acepta formato mensual (YYYY/MM)
+  - Validador `validate_date_range` ahora solo soporta `format_type="monthly"`
+  - Todos los ejemplos y tests actualizados para usar formato mensual
+
+### Corregido
+- **Tests actualizados**: 338 tests pasando correctamente
+  - Actualizados tests de validación en `test_simple_client_v2.py` para reflejar validación relajada
+  - Corregidos tests en `test_type_converters.py` que usaban formato "daily"
+  - Corregido typo en `test_utils.py`
+
+### Técnico
+- Merge exitoso de rama `fix/validation-supplies` a `develop` y `main`
+- Resolución de conflictos manteniendo lógica funcional y documentación mejorada
+
 ## [0.4.3] - 2025-01-23
 
 ### Corregido
