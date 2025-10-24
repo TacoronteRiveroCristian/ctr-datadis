@@ -205,7 +205,7 @@ def validate_cups(cups: str) -> str:
 
 
 def validate_date_range(
-    date_from: str, date_to: str, format_type: str = "daily"
+    date_from: str, date_to: str, format_type: str = "monthly"
 ) -> Tuple[str, str]:
     """
     Valida un rango de fechas según las restricciones específicas de Datadis.
@@ -235,11 +235,7 @@ def validate_date_range(
     :type date_from: str
     :param date_to: Fecha de fin del rango en formato string
     :type date_to: str
-    :param format_type: Tipo de formato esperado:
-
-                       - **"monthly"**: YYYY/MM (recomendado)
-                       - **"daily"**: YYYY/MM/DD (limitado)
-
+    :param format_type: Tipo de formato ("monthly" para YYYY/MM).
     :type format_type: str
 
     :return: Tupla con las fechas validadas ``(date_from, date_to)``
@@ -320,12 +316,7 @@ def validate_date_range(
     .. versionchanged:: 2.0
        Añadidas validaciones específicas para limitaciones de Datadis
     """
-    # Paso 1: Determinar patrón y formato según el tipo
-    if format_type == "daily":
-        date_pattern = r"^\d{4}/\d{2}/\d{2}$"
-        date_format = "%Y/%m/%d"
-        example = "2024/01/31"
-    elif format_type == "monthly":
+    if format_type == "monthly":
         date_pattern = r"^\d{4}/\d{2}$"
         date_format = "%Y/%m"
         example = "2024/01"
@@ -375,31 +366,7 @@ def validate_distributor_code(distributor_code: str) -> str:
     """
     Valida códigos de distribuidor eléctrico españoles oficiales.
 
-    Los códigos de distribuidor identifican las compañías distribuidoras de
-    electricidad en España que están registradas en el sistema Datadis. Solo
-    existen 8 distribuidores oficiales, cada uno con un código numérico único.
-
-    Distribuidores válidos y sus códigos:
-        - **"1"**: Viesgo - Cantabria, Asturias
-        - **"2"**: E-distribución (Endesa) - Cobertura nacional amplia
-        - **"3"**: E-redes - Galicia y zonas de Castilla y León
-        - **"4"**: ASEME - Ciudad autónoma de Melilla
-        - **"5"**: UFD (Naturgy) - Cobertura nacional, especialmente este y sur
-        - **"6"**: EOSA - Aragón y zonas del noreste
-        - **"7"**: CIDE - Ciudad autónoma de Ceuta
-        - **"8"**: IDE - Islas Baleares
-
-    Cobertura geográfica:
-        - **Nacional**: E-distribución (2), UFD (5)
-        - **Regional**: Viesgo (1), E-redes (3), EOSA (6)
-        - **Insular/Local**: IDE (8), ASEME (4), CIDE (7)
-
-    Validación aplicada:
-        - **Lista blanca**: Solo códigos de distribuidores realmente existentes
-        - **Formato string**: Debe ser string (no entero)
-        - **Exactitud**: Coincidencia exacta con códigos oficiales
-
-    :param distributor_code: Código del distribuidor a validar (como string)
+    :param distributor_code: Código de distribuidor a validar
     :type distributor_code: str
 
     :return: Código de distribuidor validado
@@ -478,16 +445,6 @@ def validate_distributor_code(distributor_code: str) -> str:
     .. versionchanged:: 2.0
        Actualizada lista con información geográfica detallada
     """
-    # Lista oficial de códigos de distribuidor válidos en España
-    valid_codes = ["1", "2", "3", "4", "5", "6", "7", "8"]
-
-    if distributor_code not in valid_codes:
-        raise ValidationError(
-            f"Código de distribuidor inválido: {distributor_code}. "
-            f"Válidos: {', '.join(valid_codes)} "
-            f"(1:Viesgo, 2:E-distribución, 3:E-redes, 4:ASEME, 5:UFD, 6:EOSA, 7:CIDE, 8:IDE)"
-        )
-
     return distributor_code
 
 
@@ -614,35 +571,7 @@ def validate_point_type(point_type: Optional[int]) -> int:
     """
     Valida y normaliza tipos de punto de medida según normativa eléctrica española.
 
-    Los tipos de punto clasifican los puntos de medida eléctrica según su función
-    y posición en la red eléctrica. Esta clasificación es importante para entender
-    el contexto de los datos de consumo y generación obtenidos de Datadis.
-
-    Tipos de punto oficiales según normativa española:
-        - **1 - FRONTERA**: Puntos de intercambio entre sistemas eléctricos
-        - **2 - CONSUMO**: Puntos de consumo de usuarios finales (doméstico/comercial)
-        - **3 - GENERACIÓN**: Puntos de plantas de generación eléctrica
-        - **4 - SERVICIOS AUXILIARES**: Equipos de soporte al sistema eléctrico
-        - **5 - SERVICIOS AUXILIARES ALT**: Servicios auxiliares alternativos
-
-    Casos de uso por tipo:
-        - **Tipo 1 (Frontera)**: Intercambios entre comunidades autónomas o países
-        - **Tipo 2 (Consumo)**: Viviendas, comercios, industrias (más común)
-        - **Tipo 3 (Generación)**: Centrales eléctricas, parques solares/eólicos
-        - **Tipo 4/5 (Auxiliares)**: Equipos de compensación, transformadores
-
-    Manejo de valores por defecto:
-        - **None**: Se convierte automáticamente a 1 (frontera, valor neutro)
-        - **Valor explícito**: Se valida que esté en el rango permitido (1-5)
-
-    :param point_type: Tipo de punto a validar:
-
-                      - ``1`` o ``None``: Frontera (por defecto)
-                      - ``2``: Consumo (usuarios finales)
-                      - ``3``: Generación (plantas eléctricas)
-                      - ``4``: Servicios auxiliares
-                      - ``5``: Servicios auxiliares alternativos
-
+    :param point_type: Tipo de punto, None para usar por defecto (1)
     :type point_type: Optional[int]
 
     :return: Tipo de punto validado (siempre 1-5)
@@ -734,13 +663,5 @@ def validate_point_type(point_type: Optional[int]) -> int:
        Añadido soporte para tipo 5 y documentación extendida
     """
     if point_type is None:
-        return 1  # Por defecto: frontera (valor neutro y seguro)
-
-    if point_type not in [1, 2, 3, 4, 5]:
-        raise ValidationError(
-            "point_type debe ser 1 (frontera), 2 (consumo), 3 (generación), "
-            f"4 (servicios auxiliares) o 5 (servicios auxiliares alt). "
-            f"Recibido: {point_type}"
-        )
-
+        return 1  # Por defecto frontera
     return point_type

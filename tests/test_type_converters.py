@@ -157,10 +157,10 @@ class TestTypeConverters:
     def test_convert_date_range_mixed_types(self):
         """Test conversión de rango de fechas con tipos mixtos."""
         dt_from = datetime(2024, 1, 1)
-        date_to = "2024/01/31"
+        date_to = "2024/01"
 
-        result = convert_date_range_to_api_format(dt_from, date_to, "daily")
-        assert result == ("2024/01/01", "2024/01/31")
+        result = convert_date_range_to_api_format(dt_from, date_to, "monthly")
+        assert result == ("2024/01", "2024/01")
 
     @pytest.mark.unit
     @pytest.mark.utils
@@ -215,7 +215,7 @@ class TestTypeConverters:
         cups = "  es0031607515707001rc0f  "
         distributor_code = 2
         date_from = datetime(2024, 1, 1)
-        date_to = date(2024, 1, 31)
+        date_to = date(2024, 1, 1)
         measurement_type = 0
         point_type = None
 
@@ -223,7 +223,7 @@ class TestTypeConverters:
         cups_conv = convert_cups_parameter(cups)
         dist_conv = convert_distributor_code_parameter(distributor_code)
         from_conv, to_conv = convert_date_range_to_api_format(
-            date_from, date_to, "daily"
+            date_from, date_to, "monthly"
         )
         measurement_conv = convert_number_to_string(measurement_type)
         point_conv = convert_optional_number_to_string(point_type)
@@ -231,7 +231,7 @@ class TestTypeConverters:
         # Verificar resultados
         assert cups_conv == "ES0031607515707001RC0F"
         assert dist_conv == "2"
-        assert from_conv == "2024/01/01"
-        assert to_conv == "2024/01/31"
+        assert from_conv == "2024/01"
+        assert to_conv == "2024/01"
         assert measurement_conv == "0"
         assert point_conv is None

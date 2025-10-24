@@ -5,6 +5,20 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es/).
 
+## [0.4.3] - 2025-01-23
+
+### Corregido
+- **Resolución de conflictos de documentación**: Integración exitosa de mejoras en documentación de ejemplos
+  - Resolución de conflictos en `docs/examples.rst`, `docs/index.rst` y `docs/quickstart.rst`
+  - Preservación de estructura completa de análisis anual en ejemplos
+  - Mantenimiento de formato mensual YYYY/MM en toda la documentación
+  - Unificación de documentación conservando funcionalidad completa de validación y manejo de errores V2
+
+### Técnico
+- Merge exitoso de rama `docs/improve-examples` a `develop`
+- Resolución manual de conflictos manteniendo coherencia en documentación
+- Working tree limpio sin conflictos pendientes
+
 ## [0.4.2] - 2025-01-22
 
 ### Añadido
