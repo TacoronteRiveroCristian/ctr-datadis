@@ -28,6 +28,7 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 ### Técnico
 - Merge exitoso de rama `fix/validation-supplies` a `develop` y `main`
 - Resolución de conflictos manteniendo lógica funcional y documentación mejorada
+- Publicación automatizada vía GitHub Actions
 
 ## [0.4.3] - 2025-01-23
 
