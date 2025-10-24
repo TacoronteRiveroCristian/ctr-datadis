@@ -12,15 +12,16 @@
 
 ## Características
 
+- **Dos Versiones de Cliente** - V1 (básico) y V2 (recomendado con manejo avanzado de errores)
 - **Autenticación Automática** - Autenticación basada en tokens con renovación automática
 - **Cobertura Completa de API** - Acceso a todos los endpoints de la API de Datadis
+- **Manejo Robusto de Errores** - V2 incluye manejo específico de errores por distribuidor
 - **Parámetros Flexibles** - Acepta tipos Python nativos (datetime, int, float) además de strings
 - **Seguridad de Tipos** - Type hints completos y modelos Pydantic para validación de datos
-- **Manejo de Errores** - Manejo exhaustivo de errores con excepciones personalizadas
+- **Context Managers** - Gestión automática de recursos con declaraciones `with`
 - **Python 3.9+** - Compatible con versiones modernas de Python
 - **Normalización de Texto** - Manejo automático de acentos españoles y caracteres especiales
-- **Modelos de Datos** - Datos estructurados con Pydantic para consumo, suministro y datos de contrato
-- **Dos Versiones de API** - Soporte para clientes V1 y V2 (V2 incluye datos de energía reactiva)
+- **Datos de Energía Reactiva** - Acceso exclusivo en V2 para análisis energético avanzado
 
 ## Instalación
 
@@ -30,46 +31,70 @@ pip install ctr-datadis
 
 ## Inicio Rápido
 
+### Cliente V1 (Básico)
+
 ```python
-from datetime import datetime, date
 from datadis_python.client.v1.simple_client import SimpleDatadisClientV1
 
-# Inicializar cliente con tus credenciales de Datadis
-client = SimpleDatadisClientV1(username="12345678A", password="tu_password")
+# Usar context manager (recomendado)
+with SimpleDatadisClientV1(username="12345678A", password="tu_password") as client:
+    # Obtener puntos de suministro
+    supplies = client.get_supplies()
+    print(f"Encontrados {len(supplies)} puntos de suministro")
 
-# Obtener tus puntos de suministro
-supplies = client.get_supplies()
-print(f"Encontrados {len(supplies)} puntos de suministro")
+    if supplies:
+        # Obtener consumo anual (formato mensual OBLIGATORIO)
+        consumption = client.get_consumption(
+            cups=supplies[0].cups,
+            distributor_code=supplies[0].distributorCode,
+            date_from="2024/01",  # Enero 2024
+            date_to="2024/12"     # Diciembre 2024
+        )
 
-# IMPORTANTE: Datadis solo acepta fechas MENSUALES (YYYY/MM), NO fechas diarias
-# Obtener datos de consumo con tipos flexibles (más pythónico!)
-consumption = client.get_consumption(
-    cups="ES1234000000000001JN0F",  # Tu código CUPS
-    distributor_code=2,             # int en lugar de string
-    date_from=datetime(2024, 1, 1),  # datetime object (solo primer día del mes)
-    date_to=datetime(2024, 2, 1),    # datetime object (solo primer día del mes)
-    measurement_type=0              # int en lugar de string
-)
-print(f"Obtenidos {len(consumption)} registros de consumo")
+        total_kwh = sum(c.consumptionKWh for c in consumption if c.consumptionKWh)
+        print(f"Consumo total 2024: {total_kwh:.2f} kWh")
+```
 
-# También funciona con strings mensuales (formato requerido por Datadis)
-consumption_classic = client.get_consumption(
-    cups="ES1234000000000001JN0F",
-    distributor_code="2",           # string clásico
-    date_from="2024/01",            # formato mensual OBLIGATORIO
-    date_to="2024/02"               # formato mensual OBLIGATORIO
-)
+### Cliente V2 (Recomendado - con manejo de errores mejorado)
 
-# Para cliente V2 con datos de energía reactiva
+```python
 from datadis_python.client.v2.simple_client import SimpleDatadisClientV2
 
-client_v2 = SimpleDatadisClientV2(username="12345678A", password="tu_password")
-reactive_data = client_v2.get_reactive_data(
-    cups="ES1234000000000001JN0F",
-    distributor_code=2,             # También acepta tipos flexibles
-    date_from=datetime(2024, 1, 1), # solo primer día del mes
-    date_to=datetime(2024, 2, 1)    # solo primer día del mes
-)
+with SimpleDatadisClientV2(username="12345678A", password="tu_password") as client:
+    # Obtener suministros con manejo de errores
+    supplies_response = client.get_supplies()
+
+    print(f"Suministros obtenidos: {len(supplies_response.supplies)}")
+
+    # Verificar errores por distribuidor (exclusivo V2)
+    if supplies_response.distributor_error:
+        for error in supplies_response.distributor_error:
+            print(f"Error en {error.distributorName}: {error.errorDescription}")
+
+    if supplies_response.supplies:
+        supply = supplies_response.supplies[0]
+
+        # Obtener consumo con manejo robusto de errores
+        consumption_response = client.get_consumption(
+            cups=supply.cups,
+            distributor_code=supply.distributorCode,
+            date_from="2024/01",
+            date_to="2024/12"
+        )
+
+        if consumption_response.time_curve:
+            total_kwh = sum(c.consumptionKWh for c in consumption_response.time_curve
+                          if c.consumptionKWh)
+            print(f"Consumo total 2024: {total_kwh:.2f} kWh")
+
+        # Funcionalidad exclusiva V2: Energía reactiva
+        reactive_data = client.get_reactive_data(
+            cups=supply.cups,
+            distributor_code=supply.distributorCode,
+            date_from="2024/01",
+            date_to="2024/12"
+        )
+        print(f"Datos de energía reactiva: {len(reactive_data)} registros")
 ```
 
 ## Métodos Disponibles
@@ -117,6 +142,9 @@ distributors = client.get_distributors()
 El SDK acepta múltiples tipos de parámetros para mayor comodidad, manteniendo 100% de compatibilidad hacia atrás:
 
 ### Fechas (IMPORTANTE: Solo formato mensual)
+
+La API de Datadis **SOLO acepta fechas mensuales**. No es posible especificar días específicos.
+
 ```python
 # ESTAS YA NO SON VÁLIDAS (contienen días específicos):
 # date_from = "2024/01/15"           # RECHAZADO: contiene día específico
@@ -193,17 +221,35 @@ except DatadisError as e:
 - **Ejemplos**: Tutoriales paso a paso y casos de uso
 - **Solución de Problemas**: Problemas comunes y soluciones
 
-## Versiones de API
+## Comparación de Versiones
 
 | Característica | Cliente V1 | Cliente V2 |
 |----------------|------------|------------|
-| Datos de Consumo | ✓ | ✓ |
-| Información de Suministro | ✓ | ✓ |
-| Detalles del Contrato | ✓ | ✓ |
-| Datos de Potencia Máxima | ✓ | ✓ |
-| Datos de Energía Reactiva | ✗ | ✓ |
+| **Datos de Consumo** | ✓ | ✓ |
+| **Información de Suministro** | ✓ | ✓ |
+| **Detalles del Contrato** | ✓ | ✓ |
+| **Datos de Potencia Máxima** | ✓ | ✓ |
+| **Datos de Energía Reactiva** | ✗ | ✓ |
+| **Manejo de Errores por Distribuidor** | ✗ | ✓ |
+| **Respuestas Estructuradas** | ✗ | ✓ |
+| **Información de Errores Detallada** | ✗ | ✓ |
+| **Soporte para NIFs Autorizados** | Limitado | ✓ |
+| **Tipo de Respuesta** | Lista simple | Objeto estructurado |
 
-**Recomendación**: Usa V1 para datos básicos de consumo, V2 para análisis avanzado de energía reactiva.
+### ¿Cuál elegir?
+
+**Usa Cliente V1 cuando:**
+- Migres código existente
+- Necesites respuestas simples (listas directas)
+- Implementes scripts básicos
+- Solo requieras datos de consumo estándar
+
+**Usa Cliente V2 cuando:** (Recomendado)
+- Desarrolles aplicaciones de producción
+- Necesites manejo robusto de errores
+- Quieras acceso a energía reactiva
+- Requieras información detallada de fallos
+- Trabajes con múltiples distribuidores
 
 ## Contribuciones
 

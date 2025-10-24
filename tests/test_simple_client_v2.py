@@ -509,16 +509,34 @@ class TestSimpleClientV2SuppliesAPI:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_supplies_invalid_distributor_code(
-        self, authenticated_simple_v2_client
+    def test_get_supplies_accepts_any_distributor_code(
+        self, authenticated_simple_v2_client, sample_v2_supplies_response
     ):
-        """Test get_supplies con código de distribuidor inválido."""
-        invalid_distributor = "invalid"
+        """Test que get_supplies acepta cualquier código de distribuidor.
 
-        with pytest.raises(ValidationError):
-            authenticated_simple_v2_client.get_supplies(
-                distributor_code=invalid_distributor
-            )
+        La validación estricta se eliminó para permitir futuros cambios en la API.
+        La API de Datadis es quien debe validar los códigos.
+        """
+        arbitrary_distributors = ["invalid", "99", "ABC", "0"]
+
+        for distributor_code in arbitrary_distributors:
+            with responses.RequestsMock() as rsps:
+                rsps.add(
+                    responses.GET,
+                    f"{DATADIS_API_BASE}{API_V2_ENDPOINTS['supplies']}",
+                    json=sample_v2_supplies_response,
+                    status=200,
+                )
+
+                # No debería lanzar ValidationError
+                result = authenticated_simple_v2_client.get_supplies(
+                    distributor_code=distributor_code
+                )
+
+                # Verificar que el código se pasa a la API
+                assert isinstance(result, SuppliesResponse)
+                request = rsps.calls[0].request
+                assert f"distributorCode={distributor_code}" in request.url
 
 
 class TestSimpleClientV2DistributorsAPI:
@@ -659,38 +677,50 @@ class TestSimpleClientV2ContractAPI:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_contract_detail_accepts_any_cups(
+    def test_get_contract_detail_validates_cups_format(
         self, authenticated_simple_v2_client, distributor_code
     ):
-        """Test que get_contract_detail acepta cualquier CUPS sin validación de formato."""
-        any_cups = "INVALID_CUPS"
+        """Test que get_contract_detail valida el formato de CUPS."""
+        invalid_cups = "INVALID_CUPS"
 
-        # No debería lanzar ValidationError por formato de CUPS
-        try:
+        # Debe lanzar ValidationError por formato de CUPS inválido
+        with pytest.raises(ValidationError) as exc_info:
             authenticated_simple_v2_client.get_contract_detail(
-                cups=any_cups, distributor_code=distributor_code
+                cups=invalid_cups, distributor_code=distributor_code
             )
-            # Si llegamos aquí, significa que no se lanzó ValidationError por CUPS
-            assert True
-        except ValidationError:
-            # Si se lanza ValidationError, significa que aún valida CUPS (no esperado)
-            pytest.fail("No se esperaba ValidationError por formato de CUPS")
-        except Exception:
-            # Otros errores son aceptables (errores de red, API, etc.)
-            pass
+
+        assert "Formato CUPS inválido" in str(exc_info.value)
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_get_contract_detail_invalid_distributor(
-        self, authenticated_simple_v2_client, cups_code
+    def test_get_contract_detail_accepts_any_distributor(
+        self, authenticated_simple_v2_client, cups_code, sample_v2_contract_response
     ):
-        """Test get_contract_detail con código de distribuidor inválido."""
-        invalid_distributor = "invalid"
+        """Test que get_contract_detail acepta cualquier código de distribuidor.
 
-        with pytest.raises(ValidationError):
-            authenticated_simple_v2_client.get_contract_detail(
-                cups=cups_code, distributor_code=invalid_distributor
-            )
+        La validación estricta se eliminó para permitir futuros cambios en la API.
+        La API de Datadis es quien debe validar los códigos.
+        """
+        arbitrary_distributors = ["invalid", "99", "ABC", "0"]
+
+        for distributor_code in arbitrary_distributors:
+            with responses.RequestsMock() as rsps:
+                rsps.add(
+                    responses.GET,
+                    f"{DATADIS_API_BASE}{API_V2_ENDPOINTS['contracts']}",
+                    json=sample_v2_contract_response,
+                    status=200,
+                )
+
+                # No debería lanzar ValidationError
+                result = authenticated_simple_v2_client.get_contract_detail(
+                    cups=cups_code, distributor_code=distributor_code
+                )
+
+                # Verificar que el código se pasa a la API
+                assert isinstance(result, ContractResponse)
+                request = rsps.calls[0].request
+                assert f"distributorCode={distributor_code}" in request.url
 
 
 class TestSimpleClientV2ConsumptionAPI:
@@ -1161,22 +1191,38 @@ class TestSimpleClientV2InputValidation:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_distributor_code_validation(
-        self, authenticated_simple_v2_client, cups_code
+    def test_distributor_code_accepts_any_value(
+        self, authenticated_simple_v2_client, cups_code, sample_v2_contract_response
     ):
-        """Test validación de códigos de distribuidor."""
-        invalid_distributors = [
-            "0",  # No válido
-            "9",  # Fuera de rango
+        """Test que el validador de códigos de distribuidor acepta cualquier valor.
+
+        La validación estricta (solo 1-8) se eliminó para permitir futuros cambios
+        en la API de Datadis. La API es quien debe validar los códigos.
+        """
+        arbitrary_distributors = [
+            "0",  # Antes no válido
+            "9",  # Antes fuera de rango
             "abc",  # No numérico
             "",  # Vacío
+            "99",  # Número alto
         ]
 
-        for invalid_distributor in invalid_distributors:
-            with pytest.raises(ValidationError):
-                authenticated_simple_v2_client.get_contract_detail(
-                    cups=cups_code, distributor_code=invalid_distributor
+        for distributor_code in arbitrary_distributors:
+            with responses.RequestsMock() as rsps:
+                rsps.add(
+                    responses.GET,
+                    f"{DATADIS_API_BASE}{API_V2_ENDPOINTS['contracts']}",
+                    json=sample_v2_contract_response,
+                    status=200,
                 )
+
+                # No debería lanzar ValidationError
+                result = authenticated_simple_v2_client.get_contract_detail(
+                    cups=cups_code, distributor_code=distributor_code
+                )
+
+                # Verificar que acepta el valor
+                assert isinstance(result, ContractResponse)
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
@@ -1239,25 +1285,47 @@ class TestSimpleClientV2InputValidation:
 
     @pytest.mark.unit
     @pytest.mark.simple_client_v2
-    def test_point_type_validation(
-        self, authenticated_simple_v2_client, cups_code, distributor_code
+    def test_point_type_accepts_any_value(
+        self,
+        authenticated_simple_v2_client,
+        cups_code,
+        distributor_code,
+        sample_v2_consumption_response,
     ):
-        """Test validación de tipos de punto."""
-        invalid_point_types = [
-            0,  # Fuera de rango
-            6,  # Fuera de rango
+        """Test que el validador de tipos de punto acepta cualquier valor.
+
+        La validación estricta (solo 1-4) se eliminó para permitir futuros cambios
+        en la API de Datadis. La API es quien debe validar los tipos de punto.
+        """
+        arbitrary_point_types = [
+            0,  # Antes fuera de rango
+            6,  # Antes fuera de rango
             -1,  # Negativo
+            999,  # Número muy alto
         ]
 
-        for invalid_point_type in invalid_point_types:
-            with pytest.raises(ValidationError):
-                authenticated_simple_v2_client.get_consumption(
+        for point_type in arbitrary_point_types:
+            with responses.RequestsMock() as rsps:
+                rsps.add(
+                    responses.GET,
+                    f"{DATADIS_API_BASE}{API_V2_ENDPOINTS['consumption']}",
+                    json=sample_v2_consumption_response,
+                    status=200,
+                )
+
+                # No debería lanzar ValidationError
+                result = authenticated_simple_v2_client.get_consumption(
                     cups=cups_code,
                     distributor_code=distributor_code,
                     date_from="2024/01",
                     date_to="2024/01",
-                    point_type=invalid_point_type,
+                    point_type=point_type,
                 )
+
+                # Verificar que acepta el valor
+                assert isinstance(result, ConsumptionResponse)
+                request = rsps.calls[0].request
+                assert f"pointType={point_type}" in request.url
 
 
 class TestSimpleClientV2PydanticValidation:

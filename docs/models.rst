@@ -114,12 +114,11 @@ Información sobre las empresas distribuidoras:
    from datadis_python.models.distributor import DistributorData
 
    distribuidor = DistributorData(
-       code="2",
-       name="UFD Distribución Electricidad S.A."
+       distributorCodes=["2", "3", "5"]
    )
 
-   print(f"Código: {distribuidor.code}")
-   print(f"Nombre: {distribuidor.name}")
+   print(f"Códigos disponibles: {distribuidor.distributor_codes}")
+   print(f"Primer código: {distribuidor.distributor_codes[0]}")
 
 Modelo de Potencia Máxima
 --------------------------
