@@ -594,7 +594,7 @@ class TestHTTPClient:
                 content_type="application/json",
             )
 
-            result = client.make_.make_request("GET", "https://example.com/api/test")
+            result = client.make_request("GET", "https://example.com/api/test")
 
             # Debería devolver como texto si no es JSON válido
             assert result == "not valid json"
